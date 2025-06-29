@@ -7,12 +7,15 @@ import Goals from './components/Goals/Goals';
 import Friends from './components/Friends/Friends';
 import Badges from './components/Badges/Badges';
 import Profile from './components/Profile/Profile';
+import FriendProfile from './components/Profile/FriendProfile';
 import CreateTask from './components/CreateTask/CreateTask';
+import { currentUser } from './data/mockData';
 
 function App() {
   const [activeTab, setActiveTab] = useState('feed');
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [isCreateTaskOpen, setIsCreateTaskOpen] = useState(false);
+  const [viewingFriendId, setViewingFriendId] = useState<string | null>(null);
 
   const handleCreateTask = (task: any) => {
     // This would normally make an API call to your backend
@@ -21,12 +24,28 @@ function App() {
 
   const handleLogoClick = () => {
     setActiveTab('feed');
+    setViewingFriendId(null);
+  };
+
+  const handleProfileClick = (userId: string) => {
+    if (userId === currentUser.id) {
+      setActiveTab('profile');
+      setViewingFriendId(null);
+    } else {
+      setViewingFriendId(userId);
+      setActiveTab('friend-profile');
+    }
+  };
+
+  const handleBackToFeed = () => {
+    setActiveTab('feed');
+    setViewingFriendId(null);
   };
 
   const renderContent = () => {
     switch (activeTab) {
       case 'feed':
-        return <Feed />;
+        return <Feed onProfileClick={handleProfileClick} />;
       case 'goals':
         return <Goals onCreateTask={() => setIsCreateTaskOpen(true)} />;
       case 'friends':
@@ -35,6 +54,13 @@ function App() {
         return <Badges />;
       case 'profile':
         return <Profile />;
+      case 'friend-profile':
+        return viewingFriendId ? (
+          <FriendProfile 
+            friendId={viewingFriendId} 
+            onBack={handleBackToFeed}
+          />
+        ) : <Feed onProfileClick={handleProfileClick} />;
       case 'settings':
         return (
           <div className="max-w-2xl mx-auto text-center py-12">
@@ -43,7 +69,7 @@ function App() {
           </div>
         );
       default:
-        return <Feed />;
+        return <Feed onProfileClick={handleProfileClick} />;
     }
   };
 
@@ -63,13 +89,16 @@ function App() {
           isOpen={isSidebarOpen}
           onClose={() => setIsSidebarOpen(false)}
           activeTab={activeTab}
-          onTabChange={setActiveTab}
+          onTabChange={(tab) => {
+            setActiveTab(tab);
+            setViewingFriendId(null);
+          }}
         />
 
         {/* Main Content - Adjusted for fixed sidebar */}
         <main className="flex-1 lg:ml-64 p-6">
           <motion.div
-            key={activeTab}
+            key={activeTab + (viewingFriendId || '')}
             initial={{ opacity: 0, x: 20 }}
             animate={{ opacity: 1, x: 0 }}
             exit={{ opacity: 0, x: -20 }}

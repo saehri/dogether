@@ -12,9 +12,10 @@ import { friends, currentUser } from '@/data/mockData';
 interface FeedCardProps {
   task: Task;
   index: number;
+  onProfileClick: (userId: string) => void;
 }
 
-const FeedCard: React.FC<FeedCardProps> = ({ task, index }) => {
+const FeedCard: React.FC<FeedCardProps> = ({ task, index, onProfileClick }) => {
   const user = task.userId === currentUser.id ? currentUser : friends.find(f => f.id === task.userId);
   
   if (!user) return null;
@@ -22,6 +23,10 @@ const FeedCard: React.FC<FeedCardProps> = ({ task, index }) => {
   const isGoal = task.type === 'goal';
   const progress = isGoal && task.goalDetails ? 
     (task.goalDetails.currentCount / task.goalDetails.targetCount) * 100 : 100;
+
+  const handleUserClick = () => {
+    onProfileClick(user.id);
+  };
 
   return (
     <motion.div
@@ -32,14 +37,27 @@ const FeedCard: React.FC<FeedCardProps> = ({ task, index }) => {
       <Card className="overflow-hidden hover:shadow-md transition-all">
         <CardHeader className="pb-3">
           <div className="flex items-center space-x-3">
-            <Avatar className="w-10 h-10">
+            <Avatar 
+              className="w-10 h-10 cursor-pointer hover:ring-2 hover:ring-purple-300 transition-all"
+              onClick={handleUserClick}
+            >
               <AvatarImage src={user.avatar} alt={user.name} />
               <AvatarFallback>{user.name.charAt(0)}</AvatarFallback>
             </Avatar>
             <div className="flex-1">
               <div className="flex items-center space-x-2">
-                <h3 className="font-semibold text-gray-900">{user.name}</h3>
-                <span className="text-gray-500 text-sm">@{user.username}</span>
+                <h3 
+                  className="font-semibold text-gray-900 cursor-pointer hover:text-purple-600 transition-colors"
+                  onClick={handleUserClick}
+                >
+                  {user.name}
+                </h3>
+                <span 
+                  className="text-gray-500 text-sm cursor-pointer hover:text-purple-500 transition-colors"
+                  onClick={handleUserClick}
+                >
+                  @{user.username}
+                </span>
               </div>
               <div className="flex items-center space-x-2 text-sm text-gray-500">
                 {isGoal ? (

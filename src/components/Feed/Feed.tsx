@@ -4,7 +4,11 @@ import { Button } from '@/components/ui/button';
 import { tasks } from '@/data/mockData';
 import FeedCard from './FeedCard';
 
-const Feed: React.FC = () => {
+interface FeedProps {
+  onProfileClick: (userId: string) => void;
+}
+
+const Feed: React.FC<FeedProps> = ({ onProfileClick }) => {
   return (
     <div className="max-w-2xl mx-auto space-y-6">
       <motion.div
@@ -20,7 +24,12 @@ const Feed: React.FC = () => {
 
       <div className="space-y-6">
         {tasks.map((task, index) => (
-          <FeedCard key={task.id} task={task} index={index} />
+          <FeedCard 
+            key={task.id} 
+            task={task} 
+            index={index} 
+            onProfileClick={onProfileClick}
+          />
         ))}
       </div>
 
