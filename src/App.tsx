@@ -6,6 +6,7 @@ import Feed from './components/Feed/Feed';
 import Goals from './components/Goals/Goals';
 import Friends from './components/Friends/Friends';
 import Badges from './components/Badges/Badges';
+import Profile from './components/Profile/Profile';
 import CreateTask from './components/CreateTask/CreateTask';
 
 function App() {
@@ -28,6 +29,8 @@ function App() {
         return <Friends />;
       case 'badges':
         return <Badges />;
+      case 'profile':
+        return <Profile />;
       case 'settings':
         return (
           <div className="max-w-2xl mx-auto text-center py-12">
@@ -46,6 +49,7 @@ function App() {
       <Header
         onMenuToggle={() => setIsSidebarOpen(!isSidebarOpen)}
         onCreateTask={() => setIsCreateTaskOpen(true)}
+        onProfileClick={() => setActiveTab('profile')}
       />
 
       <div className="flex">

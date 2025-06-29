@@ -9,9 +9,10 @@ import { currentUser } from '@/data/mockData';
 interface HeaderProps {
   onMenuToggle: () => void;
   onCreateTask: () => void;
+  onProfileClick: () => void;
 }
 
-const Header: React.FC<HeaderProps> = ({ onMenuToggle, onCreateTask }) => {
+const Header: React.FC<HeaderProps> = ({ onMenuToggle, onCreateTask, onProfileClick }) => {
   return (
     <motion.header 
       initial={{ y: -20, opacity: 0 }}
@@ -71,7 +72,10 @@ const Header: React.FC<HeaderProps> = ({ onMenuToggle, onCreateTask }) => {
               <div className="absolute -top-1 -right-1 w-3 h-3 bg-red-500 rounded-full border-2 border-white"></div>
             </div>
 
-            <Avatar className="w-8 h-8 border-2 border-purple-200 cursor-pointer hover:border-purple-400 transition-colors">
+            <Avatar 
+              className="w-8 h-8 border-2 border-purple-200 cursor-pointer hover:border-purple-400 transition-colors"
+              onClick={onProfileClick}
+            >
               <AvatarImage src={currentUser.avatar} alt={currentUser.name} />
               <AvatarFallback>{currentUser.name.charAt(0)}</AvatarFallback>
             </Avatar>

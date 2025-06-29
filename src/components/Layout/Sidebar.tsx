@@ -1,6 +1,6 @@
 import React from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Home, Target, Users, Trophy, Settings, X } from 'lucide-react';
+import { Home, Target, Users, Trophy, Settings, User, X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
 
@@ -17,6 +17,7 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose, activeTab, onTabChan
     { id: 'goals', label: 'My Goals', icon: Target },
     { id: 'friends', label: 'Friends', icon: Users },
     { id: 'badges', label: 'Badges', icon: Trophy },
+    { id: 'profile', label: 'Profile', icon: User },
     { id: 'settings', label: 'Settings', icon: Settings },
   ];
 
