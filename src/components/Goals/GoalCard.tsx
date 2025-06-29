@@ -72,7 +72,7 @@ const GoalCard: React.FC<GoalCardProps> = ({ task }) => {
                   <h3 className="font-semibold text-gray-900">{task.title}</h3>
                   <p className="text-sm text-gray-500 flex items-center space-x-1">
                     <Calendar className="w-4 h-4" />
-                    <span>Started {task.createdAt.toLocaleDateString()}</span>
+                    <span>Started {new Date(task.createdAt).toLocaleDateString()}</span>
                   </p>
                 </div>
               </div>

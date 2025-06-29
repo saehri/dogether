@@ -71,7 +71,7 @@ const FeedCard: React.FC<FeedCardProps> = ({ task, index, onProfileClick }) => {
                 <span>{isGoal ? 'Goal' : 'Task'}</span>
                 <span>•</span>
                 <Calendar className="w-4 h-4" />
-                <span>{task.createdAt.toLocaleDateString()}</span>
+                <span>{new Date(task.createdAt).toLocaleDateString()}</span>
               </div>
             </div>
           </div>
@@ -137,7 +137,7 @@ const FeedCard: React.FC<FeedCardProps> = ({ task, index, onProfileClick }) => {
             
             {task.completedAt && (
               <span className="text-xs text-gray-500">
-                Completed {task.completedAt.toLocaleDateString()}
+                Completed {new Date(task.completedAt).toLocaleDateString()}
               </span>
             )}
           </div>

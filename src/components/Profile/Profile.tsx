@@ -235,7 +235,7 @@ const Profile: React.FC = () => {
                   <div className="flex-1">
                     <h4 className="font-semibold text-gray-900">{task.title}</h4>
                     <p className="text-sm text-gray-600">
-                      Completed {task.completedAt?.toLocaleDateString()}
+                      Completed {task.completedAt ? new Date(task.completedAt).toLocaleDateString() : ''}
                     </p>
                   </div>
                   <Badge variant="success">
