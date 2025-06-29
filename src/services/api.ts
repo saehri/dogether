@@ -105,13 +105,19 @@ async function apiRequest<T>(
 // Authentication API endpoints
 export const authApi = {
   login: (credentials: { email: string; password: string }) =>
-    apiRequest('/auth/login', {
+    apiRequest('/login', {
       method: 'POST',
       data: credentials,
     }),
 
-  register: (userData: { name: string; username: string; email: string; password: string }) =>
-    apiRequest('/auth/register', {
+  register: (userData: { 
+    username: string; 
+    fullname: string; 
+    email: string; 
+    password: string; 
+    date_of_birth: string; 
+  }) =>
+    apiRequest('/register', {
       method: 'POST',
       data: userData,
     }),

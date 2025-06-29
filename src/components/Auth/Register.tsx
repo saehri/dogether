@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { motion } from 'framer-motion';
-import { Eye, EyeOff, Mail, Lock, User, Chrome, ArrowRight, Check } from 'lucide-react';
+import { Eye, EyeOff, Mail, Lock, User, Chrome, ArrowRight, Check, Calendar } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -9,18 +9,19 @@ import { authApi, setAuthToken } from '@/services/api';
 import { cn } from '@/lib/utils';
 
 interface RegisterProps {
-  onRegister: (userData: { name: string; username: string; email: string; password: string }) => void;
+  onRegister: (userData: { username: string; fullname: string; email: string; password: string; date_of_birth: string }) => void;
   onGoogleRegister: () => void;
   onNavigateToLogin: () => void;
 }
 
 const Register: React.FC<RegisterProps> = ({ onRegister, onGoogleRegister, onNavigateToLogin }) => {
   const [formData, setFormData] = useState({
-    name: '',
+    fullname: '',
     username: '',
     email: '',
     password: '',
-    confirmPassword: ''
+    confirmPassword: '',
+    date_of_birth: ''
   });
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
@@ -31,10 +32,10 @@ const Register: React.FC<RegisterProps> = ({ onRegister, onGoogleRegister, onNav
   const validateForm = () => {
     const newErrors: Record<string, string> = {};
 
-    if (!formData.name.trim()) {
-      newErrors.name = 'Full name is required';
-    } else if (formData.name.trim().length < 2) {
-      newErrors.name = 'Name must be at least 2 characters';
+    if (!formData.fullname.trim()) {
+      newErrors.fullname = 'Full name is required';
+    } else if (formData.fullname.trim().length < 2) {
+      newErrors.fullname = 'Name must be at least 2 characters';
     }
 
     if (!formData.username.trim()) {
@@ -65,6 +66,17 @@ const Register: React.FC<RegisterProps> = ({ onRegister, onGoogleRegister, onNav
       newErrors.confirmPassword = 'Passwords do not match';
     }
 
+    if (!formData.date_of_birth) {
+      newErrors.date_of_birth = 'Date of birth is required';
+    } else {
+      const birthDate = new Date(formData.date_of_birth);
+      const today = new Date();
+      const age = today.getFullYear() - birthDate.getFullYear();
+      if (age < 13) {
+        newErrors.date_of_birth = 'You must be at least 13 years old';
+      }
+    }
+
     if (!acceptTerms) {
       newErrors.terms = 'You must accept the terms and conditions';
     }
@@ -91,10 +103,11 @@ const Register: React.FC<RegisterProps> = ({ onRegister, onGoogleRegister, onNav
 
     try {
       const userData = {
-        name: formData.name.trim(),
         username: formData.username.trim(),
+        fullname: formData.fullname.trim(),
         email: formData.email.trim(),
-        password: formData.password
+        password: formData.password,
+        date_of_birth: formData.date_of_birth
       };
 
       const response = await authApi.register(userData);
@@ -235,9 +248,9 @@ const Register: React.FC<RegisterProps> = ({ onRegister, onGoogleRegister, onNav
 
               {/* Register Form */}
               <form onSubmit={handleSubmit} className="space-y-4">
-                {/* Name Field */}
+                {/* Full Name Field */}
                 <div>
-                  <Label htmlFor="name" className={cn(
+                  <Label htmlFor="fullname" className={cn(
                     "text-sm font-medium mb-2 block",
                     "text-gray-700 dark:text-gray-200"
                   )}>
@@ -246,20 +259,20 @@ const Register: React.FC<RegisterProps> = ({ onRegister, onGoogleRegister, onNav
                   <div className="relative">
                     <User className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 dark:text-gray-500" />
                     <Input
-                      id="name"
+                      id="fullname"
                       type="text"
-                      value={formData.name}
-                      onChange={(e) => handleInputChange('name', e.target.value)}
+                      value={formData.fullname}
+                      onChange={(e) => handleInputChange('fullname', e.target.value)}
                       placeholder="Enter your full name"
                       className={cn(
                         "pl-10 h-12",
-                        errors.name && "border-red-500 focus:border-red-500 dark:border-red-400"
+                        errors.fullname && "border-red-500 focus:border-red-500 dark:border-red-400"
                       )}
                       disabled={isLoading}
                     />
                   </div>
-                  {errors.name && (
-                    <p className="text-xs text-red-600 dark:text-red-400 mt-1">{errors.name}</p>
+                  {errors.fullname && (
+                    <p className="text-xs text-red-600 dark:text-red-400 mt-1">{errors.fullname}</p>
                   )}
                 </div>
 
@@ -316,6 +329,33 @@ const Register: React.FC<RegisterProps> = ({ onRegister, onGoogleRegister, onNav
                   </div>
                   {errors.email && (
                     <p className="text-xs text-red-600 dark:text-red-400 mt-1">{errors.email}</p>
+                  )}
+                </div>
+
+                {/* Date of Birth Field */}
+                <div>
+                  <Label htmlFor="date_of_birth" className={cn(
+                    "text-sm font-medium mb-2 block",
+                    "text-gray-700 dark:text-gray-200"
+                  )}>
+                    Date of Birth
+                  </Label>
+                  <div className="relative">
+                    <Calendar className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 dark:text-gray-500" />
+                    <Input
+                      id="date_of_birth"
+                      type="date"
+                      value={formData.date_of_birth}
+                      onChange={(e) => handleInputChange('date_of_birth', e.target.value)}
+                      className={cn(
+                        "pl-10 h-12",
+                        errors.date_of_birth && "border-red-500 focus:border-red-500 dark:border-red-400"
+                      )}
+                      disabled={isLoading}
+                    />
+                  </div>
+                  {errors.date_of_birth && (
+                    <p className="text-xs text-red-600 dark:text-red-400 mt-1">{errors.date_of_birth}</p>
                   )}
                 </div>
 

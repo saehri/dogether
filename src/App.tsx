@@ -21,7 +21,7 @@ function App() {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [isCreateTaskOpen, setIsCreateTaskOpen] = useState(false);
   const [viewingFriendId, setViewingFriendId] = useState<string | null>(null);
-  const [isAuthenticated, setIsAuthenticated] = useState(true); // Set to false to show auth pages
+  const [isAuthenticated, setIsAuthenticated] = useState(false); // Set to false to show auth pages
   const [authView, setAuthView] = useState<'login' | 'register'>('login');
 
   const currentUser = useCurrentUser();
@@ -67,7 +67,7 @@ function App() {
     setActiveTab('feed');
   };
 
-  const handleRegister = async (userData: { name: string; username: string; email: string; password: string }) => {
+  const handleRegister = async (userData: { username: string; fullname: string; email: string; password: string; date_of_birth: string }) => {
     // Simulate registration process
     console.log('Registration attempt:', userData);
     // In a real app, you'd create the user account with your backend
