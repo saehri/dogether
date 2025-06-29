@@ -80,6 +80,144 @@ apiClient.interceptors.response.use(
   }
 );
 
+// Mock data for development
+const mockUsers = [
+  {
+    id: '1',
+    email: 'demo@example.com',
+    username: 'demo',
+    fullname: 'Demo User',
+    password: 'password123'
+  },
+  {
+    id: '2',
+    email: 'test@example.com',
+    username: 'test',
+    fullname: 'Test User',
+    password: 'test123'
+  }
+];
+
+// Mock authentication functions
+const mockAuth = {
+  login: async (credentials: { email: string; password: string }): Promise<ApiResponse<any>> => {
+    // Simulate network delay
+    await new Promise(resolve => setTimeout(resolve, 1000));
+
+    const { email, password } = credentials;
+    
+    // Find user by email or username
+    const user = mockUsers.find(u => 
+      u.email.toLowerCase() === email.toLowerCase() || 
+      u.username.toLowerCase() === email.toLowerCase()
+    );
+
+    if (!user || user.password !== password) {
+      return {
+        success: false,
+        data: { message: 'Invalid email/username or password' },
+        message: 'Invalid credentials'
+      };
+    }
+
+    // Generate a mock token
+    const token = `mock_token_${user.id}_${Date.now()}`;
+    
+    return {
+      success: true,
+      data: {
+        token,
+        user: {
+          id: user.id,
+          email: user.email,
+          username: user.username,
+          fullname: user.fullname
+        }
+      },
+      message: 'Login successful'
+    };
+  },
+
+  register: async (userData: { 
+    username: string; 
+    fullname: string; 
+    email: string; 
+    password: string; 
+    date_of_birth: string; 
+  }): Promise<ApiResponse<any>> => {
+    // Simulate network delay
+    await new Promise(resolve => setTimeout(resolve, 1000));
+
+    const { email, username } = userData;
+    
+    // Check if user already exists
+    const existingUser = mockUsers.find(u => 
+      u.email.toLowerCase() === email.toLowerCase() || 
+      u.username.toLowerCase() === username.toLowerCase()
+    );
+
+    if (existingUser) {
+      return {
+        success: false,
+        data: { message: 'User with this email or username already exists' },
+        message: 'User already exists'
+      };
+    }
+
+    // Create new user
+    const newUser = {
+      id: String(mockUsers.length + 1),
+      email: userData.email,
+      username: userData.username,
+      fullname: userData.fullname,
+      password: userData.password
+    };
+
+    mockUsers.push(newUser);
+
+    // Generate a mock token
+    const token = `mock_token_${newUser.id}_${Date.now()}`;
+    
+    return {
+      success: true,
+      data: {
+        token,
+        user: {
+          id: newUser.id,
+          email: newUser.email,
+          username: newUser.username,
+          fullname: newUser.fullname
+        }
+      },
+      message: 'Registration successful'
+    };
+  },
+
+  googleAuth: async (token: string): Promise<ApiResponse<any>> => {
+    // Simulate network delay
+    await new Promise(resolve => setTimeout(resolve, 1000));
+
+    // Mock Google authentication
+    const mockGoogleUser = {
+      id: 'google_user_1',
+      email: 'google.user@gmail.com',
+      username: 'googleuser',
+      fullname: 'Google User'
+    };
+
+    const authToken = `mock_google_token_${Date.now()}`;
+    
+    return {
+      success: true,
+      data: {
+        token: authToken,
+        user: mockGoogleUser
+      },
+      message: 'Google authentication successful'
+    };
+  }
+};
+
 // Generic API request function
 async function apiRequest<T>(
   endpoint: string,
@@ -104,11 +242,10 @@ async function apiRequest<T>(
 
 // Authentication API endpoints
 export const authApi = {
-  login: (credentials: { email: string; password: string }) =>
-    apiRequest('/login', {
-      method: 'POST',
-      data: credentials,
-    }),
+  login: (credentials: { email: string; password: string }) => {
+    // Use mock authentication instead of real API call
+    return mockAuth.login(credentials);
+  },
 
   register: (userData: { 
     username: string; 
@@ -116,17 +253,15 @@ export const authApi = {
     email: string; 
     password: string; 
     date_of_birth: string; 
-  }) =>
-    apiRequest('/register', {
-      method: 'POST',
-      data: userData,
-    }),
+  }) => {
+    // Use mock authentication instead of real API call
+    return mockAuth.register(userData);
+  },
 
-  googleAuth: (token: string) =>
-    apiRequest('/auth/google', {
-      method: 'POST',
-      data: { token },
-    }),
+  googleAuth: (token: string) => {
+    // Use mock authentication instead of real API call
+    return mockAuth.googleAuth(token);
+  },
 
   logout: () =>
     apiRequest('/auth/logout', {
