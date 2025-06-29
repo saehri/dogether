@@ -29,11 +29,6 @@ const Friends: React.FC = () => {
     }
   ];
 
-  const suggestions = [
-    { name: 'John Smith', username: 'johnsmith', mutual: 3 },
-    { name: 'Lisa Wang', username: 'lisawang', mutual: 2 }
-  ];
-
   return (
     <div className="max-w-4xl mx-auto space-y-6">
       {/* Header */}
@@ -134,55 +129,7 @@ const Friends: React.FC = () => {
             </Card>
           </motion.div>
         ))}
-      </motion.div>
-
-      {/* Suggested Friends */}
-      <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: 0.4 }}
-      >
-        <Card className="bg-gradient-to-r from-purple-50 to-blue-50 dark:from-purple-900/20 dark:to-blue-900/20">
-          <CardHeader>
-            <h3 className={cn(
-              "text-lg font-semibold",
-              "text-gray-900 dark:text-gray-100"
-            )}>
-              People You May Know
-            </h3>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            {suggestions.map((suggestion, index) => (
-              <div key={index} className="flex items-center justify-between p-4 bg-white dark:bg-gray-800/50 rounded-lg">
-                <div className="flex items-center space-x-3">
-                  <Avatar className="w-10 h-10">
-                    <AvatarFallback className="bg-gradient-to-br from-gray-300 to-gray-400">
-                      {suggestion.name.charAt(0)}
-                    </AvatarFallback>
-                  </Avatar>
-                  <div>
-                    <h4 className={cn(
-                      "font-medium",
-                      "text-gray-900 dark:text-gray-100"
-                    )}>
-                      {suggestion.name}
-                    </h4>
-                    <p className={cn(
-                      "text-sm",
-                      "text-gray-600 dark:text-gray-200"
-                    )}>
-                      {suggestion.mutual} mutual friends
-                    </p>
-                  </div>
-                </div>
-                <Button variant="gradient" size="sm">
-                  Add Friend
-                </Button>
-              </div>
-            ))}
-          </CardContent>
-        </Card>
-      </motion.div>
+      </div>
     </div>
   );
 };
