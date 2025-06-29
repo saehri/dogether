@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { motion } from 'framer-motion';
-import { Link, useNavigate, useLocation } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { Eye, EyeOff, Mail, Lock, User, Chrome, ArrowRight, Check, Calendar } from 'lucide-react';
 import { format } from 'date-fns';
 import { Button } from '@/components/ui/button';
@@ -34,8 +34,6 @@ const Register: React.FC<RegisterProps> = ({ onRegister, onGoogleRegister, onNav
   const [acceptTerms, setAcceptTerms] = useState(false);
 
   const navigate = useNavigate();
-  const location = useLocation();
-  const from = location.state?.from?.pathname || '/';
 
   const validateForm = () => {
     const newErrors: Record<string, string> = {};
@@ -140,8 +138,12 @@ const Register: React.FC<RegisterProps> = ({ onRegister, onGoogleRegister, onNav
         // Call the parent component's onRegister handler
         onRegister(userData);
         
-        // Navigate to intended page
-        navigate(from, { replace: true });
+        // Navigate to login page after successful registration
+        navigate('/login', { 
+          state: { 
+            message: 'Registration successful! Please sign in with your new account.' 
+          } 
+        });
       } else {
         setErrors({ general: response.data?.message || 'Registration failed. Please try again.' });
       }
@@ -164,7 +166,13 @@ const Register: React.FC<RegisterProps> = ({ onRegister, onGoogleRegister, onNav
       // For now, we'll simulate the process
       await new Promise(resolve => setTimeout(resolve, 1000));
       onGoogleRegister();
-      navigate(from, { replace: true });
+      
+      // Navigate to login page after successful Google registration
+      navigate('/login', { 
+        state: { 
+          message: 'Google registration successful! Please sign in.' 
+        } 
+      });
     } catch (error: any) {
       console.error('Google registration error:', error);
       setErrors({ general: 'Google registration failed. Please try again.' });
