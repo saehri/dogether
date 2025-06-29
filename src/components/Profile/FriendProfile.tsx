@@ -1,6 +1,6 @@
 import React from 'react';
 import { motion } from 'framer-motion';
-import { ArrowLeft, Trophy, Target, CheckCircle2, Calendar, Users, UserPlus } from 'lucide-react';
+import { ArrowLeft, Trophy, Target, CheckCircle2, Calendar, Users, UserMinus } from 'lucide-react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
@@ -66,6 +66,12 @@ const FriendProfile: React.FC<FriendProfileProps> = ({ friendId, onBack }) => {
 
   const friendBio = `Hey there! I'm ${friend.name} and I love setting goals and achieving them. Always looking for motivation and new challenges. Let's support each other on our journey to success!`;
 
+  const handleUnfriend = () => {
+    // This would normally make an API call to unfriend the user
+    console.log(`Unfriending ${friend.name}`);
+    // You could show a confirmation dialog here
+  };
+
   return (
     <div className="max-w-4xl mx-auto space-y-8">
       {/* Back Button */}
@@ -106,11 +112,15 @@ const FriendProfile: React.FC<FriendProfileProps> = ({ friendId, onBack }) => {
         
         {/* Action Buttons */}
         <div className="flex justify-center space-x-4 mb-6">
-          <Button variant="gradient" className="flex items-center space-x-2">
-            <UserPlus className="w-4 h-4" />
-            <span>Add Friend</span>
+          <Button 
+            variant="outline" 
+            className="flex items-center space-x-2 text-red-600 border-red-200 hover:bg-red-50 hover:border-red-300"
+            onClick={handleUnfriend}
+          >
+            <UserMinus className="w-4 h-4" />
+            <span>Unfriend</span>
           </Button>
-          <Button variant="outline">
+          <Button variant="gradient">
             Message
           </Button>
         </div>
