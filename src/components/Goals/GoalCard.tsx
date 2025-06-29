@@ -11,6 +11,7 @@ import { Input } from '@/components/ui/input';
 import { Task } from '@/types';
 import { useStore } from '@/store/useStore';
 import { useAsyncOperation } from '@/hooks/useApi';
+import { cn } from '@/lib/utils';
 
 interface GoalCardProps {
   task: Task;
@@ -69,8 +70,16 @@ const GoalCard: React.FC<GoalCardProps> = ({ task }) => {
                   </div>
                 )}
                 <div>
-                  <h3 className="font-semibold text-gray-900">{task.title}</h3>
-                  <p className="text-sm text-gray-500 flex items-center space-x-1">
+                  <h3 className={cn(
+                    "font-semibold",
+                    "text-gray-900 dark:text-gray-100"
+                  )}>
+                    {task.title}
+                  </h3>
+                  <p className={cn(
+                    "text-sm flex items-center space-x-1",
+                    "text-gray-500 dark:text-gray-300"
+                  )}>
                     <Calendar className="w-4 h-4" />
                     <span>Started {new Date(task.createdAt).toLocaleDateString()}</span>
                   </p>
@@ -86,7 +95,7 @@ const GoalCard: React.FC<GoalCardProps> = ({ task }) => {
                   size="icon"
                   onClick={handleDelete}
                   disabled={loading}
-                  className="text-red-500 hover:text-red-700 hover:bg-red-50"
+                  className="text-red-500 hover:text-red-700 hover:bg-red-50 dark:hover:bg-red-900/20"
                 >
                   <Trash2 className="w-4 h-4" />
                 </Button>
@@ -95,17 +104,27 @@ const GoalCard: React.FC<GoalCardProps> = ({ task }) => {
           </CardHeader>
 
           <CardContent className="space-y-4">
-            <p className="text-gray-600">{task.description}</p>
+            <p className={cn(
+              "text-gray-600 dark:text-gray-200"
+            )}>
+              {task.description}
+            </p>
 
             {/* Progress for Goals */}
             {isGoal && task.goalDetails && (
               <div>
-                <div className="flex items-center justify-between text-sm text-gray-600 mb-2">
+                <div className={cn(
+                  "flex items-center justify-between text-sm mb-2",
+                  "text-gray-600 dark:text-gray-200"
+                )}>
                   <span>Progress</span>
                   <span>{task.goalDetails.currentCount}/{task.goalDetails.targetCount} days</span>
                 </div>
                 <Progress value={progress} className="h-3" />
-                <div className="flex items-center justify-between text-xs text-gray-500 mt-2">
+                <div className={cn(
+                  "flex items-center justify-between text-xs mt-2",
+                  "text-gray-500 dark:text-gray-300"
+                )}>
                   <span className="flex items-center space-x-1">
                     <Clock className="w-3 h-3" />
                     <span>{task.goalDetails.frequency}</span>
@@ -124,15 +143,20 @@ const GoalCard: React.FC<GoalCardProps> = ({ task }) => {
                   className="w-full h-48 object-cover rounded-lg"
                 />
                 {task.evidence.caption && (
-                  <p className="text-sm text-gray-700 mt-2">{task.evidence.caption}</p>
+                  <p className={cn(
+                    "text-sm mt-2",
+                    "text-gray-700 dark:text-gray-200"
+                  )}>
+                    {task.evidence.caption}
+                  </p>
                 )}
               </div>
             )}
 
             {/* Error Display */}
             {error && (
-              <div className="bg-red-50 border border-red-200 rounded-lg p-3">
-                <p className="text-red-700 text-sm">{error}</p>
+              <div className="bg-red-50 border border-red-200 rounded-lg p-3 dark:bg-red-900/20 dark:border-red-800/30">
+                <p className="text-red-700 text-sm dark:text-red-300">{error}</p>
               </div>
             )}
 
@@ -163,7 +187,7 @@ const GoalCard: React.FC<GoalCardProps> = ({ task }) => {
           </DialogHeader>
           
           <div className="space-y-4">
-            <div className="border-2 border-dashed border-gray-300 rounded-lg p-8 text-center">
+            <div className="border-2 border-dashed border-gray-300 dark:border-gray-600 rounded-lg p-8 text-center">
               {selectedFile ? (
                 <div>
                   <img
@@ -171,12 +195,22 @@ const GoalCard: React.FC<GoalCardProps> = ({ task }) => {
                     alt="Selected"
                     className="w-full h-48 object-cover rounded-lg mb-4"
                   />
-                  <p className="text-sm text-gray-600">{selectedFile.name}</p>
+                  <p className={cn(
+                    "text-sm",
+                    "text-gray-600 dark:text-gray-200"
+                  )}>
+                    {selectedFile.name}
+                  </p>
                 </div>
               ) : (
                 <div>
-                  <Camera className="w-12 h-12 text-gray-400 mx-auto mb-4" />
-                  <p className="text-gray-600 mb-4">Choose a photo</p>
+                  <Camera className="w-12 h-12 text-gray-400 dark:text-gray-500 mx-auto mb-4" />
+                  <p className={cn(
+                    "mb-4",
+                    "text-gray-600 dark:text-gray-200"
+                  )}>
+                    Choose a photo
+                  </p>
                   <Label htmlFor="evidence-upload" className="cursor-pointer">
                     <Button variant="outline" asChild>
                       <span>Select Photo</span>

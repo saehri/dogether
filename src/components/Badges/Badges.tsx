@@ -5,6 +5,7 @@ import { Card, CardContent, CardHeader } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
 import { badges, currentUser } from '@/data/mockData';
+import { cn } from '@/lib/utils';
 
 const Badges: React.FC = () => {
   const unlockedBadges = currentUser.badges;
@@ -43,7 +44,11 @@ const Badges: React.FC = () => {
         <h2 className="text-2xl font-bold bg-gradient-to-r from-purple-600 to-blue-600 bg-clip-text text-transparent mb-2">
           Your Badges
         </h2>
-        <p className="text-gray-600">Achievements unlock as you complete goals</p>
+        <p className={cn(
+          "text-gray-600 dark:text-gray-200"
+        )}>
+          Achievements unlock as you complete goals
+        </p>
       </motion.div>
 
       {/* Stats */}
@@ -74,7 +79,10 @@ const Badges: React.FC = () => {
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.2 }}
         >
-          <h3 className="text-xl font-bold text-gray-900 mb-4 flex items-center space-x-2">
+          <h3 className={cn(
+            "text-xl font-bold mb-4 flex items-center space-x-2",
+            "text-gray-900 dark:text-gray-100"
+          )}>
             <Trophy className="w-6 h-6 text-yellow-500" />
             <span>Earned Badges</span>
           </h3>
@@ -92,8 +100,18 @@ const Badges: React.FC = () => {
                     <div className={`w-16 h-16 bg-gradient-to-br ${badge.color} rounded-full flex items-center justify-center mx-auto mb-3 text-2xl`}>
                       {badge.icon}
                     </div>
-                    <h4 className="font-bold text-gray-900 mb-1">{badge.name}</h4>
-                    <p className="text-sm text-gray-600 mb-3">{badge.description}</p>
+                    <h4 className={cn(
+                      "font-bold mb-1",
+                      "text-gray-900 dark:text-gray-100"
+                    )}>
+                      {badge.name}
+                    </h4>
+                    <p className={cn(
+                      "text-sm mb-3",
+                      "text-gray-600 dark:text-gray-200"
+                    )}>
+                      {badge.description}
+                    </p>
                     <Badge variant="success" className="flex items-center space-x-1 w-fit mx-auto">
                       <Trophy className="w-3 h-3" />
                       <span>Earned</span>
@@ -112,7 +130,10 @@ const Badges: React.FC = () => {
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: 0.3 }}
       >
-        <h3 className="text-xl font-bold text-gray-900 mb-4 flex items-center space-x-2">
+        <h3 className={cn(
+          "text-xl font-bold mb-4 flex items-center space-x-2",
+          "text-gray-900 dark:text-gray-100"
+        )}>
           <Lock className="w-6 h-6 text-gray-400" />
           <span>Locked Badges</span>
         </h3>
@@ -126,11 +147,21 @@ const Badges: React.FC = () => {
             >
               <Card className="hover:shadow-md transition-all opacity-75">
                 <CardContent className="p-6 text-center">
-                  <div className="w-16 h-16 bg-gray-200 rounded-full flex items-center justify-center mx-auto mb-3 text-2xl grayscale">
+                  <div className="w-16 h-16 bg-gray-200 dark:bg-gray-700 rounded-full flex items-center justify-center mx-auto mb-3 text-2xl grayscale">
                     {badge.icon}
                   </div>
-                  <h4 className="font-bold text-gray-600 mb-1">{badge.name}</h4>
-                  <p className="text-sm text-gray-500 mb-3">{badge.description}</p>
+                  <h4 className={cn(
+                    "font-bold mb-1",
+                    "text-gray-600 dark:text-gray-200"
+                  )}>
+                    {badge.name}
+                  </h4>
+                  <p className={cn(
+                    "text-sm mb-3",
+                    "text-gray-500 dark:text-gray-300"
+                  )}>
+                    {badge.description}
+                  </p>
                   <Badge variant="outline" className="flex items-center space-x-1 w-fit mx-auto">
                     <Lock className="w-3 h-3" />
                     <span>Locked</span>
@@ -148,14 +179,25 @@ const Badges: React.FC = () => {
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: 0.4 }}
       >
-        <Card className="bg-gradient-to-r from-purple-50 to-blue-50">
+        <Card className="bg-gradient-to-r from-purple-50 to-blue-50 dark:from-purple-900/20 dark:to-blue-900/20">
           <CardContent className="p-6 text-center">
-            <h3 className="text-lg font-semibold text-gray-900 mb-2">Keep Going!</h3>
-            <p className="text-gray-600 mb-4">
+            <h3 className={cn(
+              "text-lg font-semibold mb-2",
+              "text-gray-900 dark:text-gray-100"
+            )}>
+              Keep Going!
+            </h3>
+            <p className={cn(
+              "mb-4",
+              "text-gray-600 dark:text-gray-200"
+            )}>
               Complete more goals and tasks to unlock amazing badges and show off your achievements.
             </p>
             <Progress value={progressPercentage} className="mb-2" />
-            <p className="text-sm text-gray-600">
+            <p className={cn(
+              "text-sm",
+              "text-gray-600 dark:text-gray-200"
+            )}>
               {unlockedBadges.length} of {badges.length} badges earned
             </p>
           </CardContent>

@@ -6,6 +6,7 @@ import { Button } from '@/components/ui/button';
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
 import { useCurrentUser, useBadges, useUserStats, useCompletedTasks } from '@/store/useStore';
+import { cn } from '@/lib/utils';
 
 const Profile: React.FC = () => {
   const [showAllBadges, setShowAllBadges] = useState(false);
@@ -70,14 +71,34 @@ const Profile: React.FC = () => {
           <div className="absolute -bottom-2 -right-2 w-8 h-8 bg-green-500 border-4 border-white rounded-full"></div>
         </div>
         
-        <h1 className="text-3xl font-bold text-gray-900 mb-2">{currentUser.name}</h1>
-        <p className="text-xl text-gray-600 mb-4">@{currentUser.username}</p>
+        <h1 className={cn(
+          "text-3xl font-bold mb-2",
+          "text-gray-900 dark:text-gray-100"
+        )}>
+          {currentUser.name}
+        </h1>
+        <p className={cn(
+          "text-xl mb-4",
+          "text-gray-600 dark:text-gray-200"
+        )}>
+          @{currentUser.username}
+        </p>
         
         {/* Bio */}
         <Card className="max-w-2xl mx-auto">
           <CardContent className="p-6">
-            <h2 className="text-lg font-semibold text-gray-900 mb-3">About Me</h2>
-            <p className="text-gray-700 leading-relaxed">{userBio}</p>
+            <h2 className={cn(
+              "text-lg font-semibold mb-3",
+              "text-gray-900 dark:text-gray-100"
+            )}>
+              About Me
+            </h2>
+            <p className={cn(
+              "leading-relaxed",
+              "text-gray-700 dark:text-gray-200"
+            )}>
+              {userBio}
+            </p>
           </CardContent>
         </Card>
       </motion.div>
@@ -88,7 +109,12 @@ const Profile: React.FC = () => {
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: 0.1 }}
       >
-        <h2 className="text-2xl font-bold text-gray-900 mb-6 text-center">My Statistics</h2>
+        <h2 className={cn(
+          "text-2xl font-bold mb-6 text-center",
+          "text-gray-900 dark:text-gray-100"
+        )}>
+          My Statistics
+        </h2>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           {statsData.map((stat, index) => {
             const percentage = stat.total > 0 ? (stat.value / stat.total) * 100 : 0;
@@ -109,19 +135,39 @@ const Profile: React.FC = () => {
                           <Icon className="w-5 h-5 text-white" />
                         </div>
                         <div>
-                          <h3 className="font-semibold text-gray-900">{stat.label}</h3>
-                          <p className="text-sm text-gray-600">{stat.value} of {stat.total}</p>
+                          <h3 className={cn(
+                            "font-semibold",
+                            "text-gray-900 dark:text-gray-100"
+                          )}>
+                            {stat.label}
+                          </h3>
+                          <p className={cn(
+                            "text-sm",
+                            "text-gray-600 dark:text-gray-200"
+                          )}>
+                            {stat.value} of {stat.total}
+                          </p>
                         </div>
                       </div>
                       <div className="text-right">
-                        <div className="text-2xl font-bold text-gray-900">{stat.value}</div>
-                        <div className="text-sm text-gray-500">{Math.round(percentage)}%</div>
+                        <div className={cn(
+                          "text-2xl font-bold",
+                          "text-gray-900 dark:text-gray-100"
+                        )}>
+                          {stat.value}
+                        </div>
+                        <div className={cn(
+                          "text-sm",
+                          "text-gray-500 dark:text-gray-300"
+                        )}>
+                          {Math.round(percentage)}%
+                        </div>
                       </div>
                     </div>
                     
                     {/* Bar Chart */}
                     <div className="relative">
-                      <div className="w-full bg-gray-200 rounded-full h-3">
+                      <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-3">
                         <motion.div
                           className={`h-3 bg-gradient-to-r ${stat.color} rounded-full`}
                           initial={{ width: 0 }}
@@ -145,7 +191,10 @@ const Profile: React.FC = () => {
         transition={{ delay: 0.2 }}
       >
         <div className="flex items-center justify-between mb-6">
-          <h2 className="text-2xl font-bold text-gray-900 flex items-center space-x-2">
+          <h2 className={cn(
+            "text-2xl font-bold flex items-center space-x-2",
+            "text-gray-900 dark:text-gray-100"
+          )}>
             <Trophy className="w-7 h-7 text-yellow-500" />
             <span>My Badges</span>
           </h2>
@@ -169,8 +218,18 @@ const Profile: React.FC = () => {
                     <div className={`w-16 h-16 bg-gradient-to-br ${badge.color} rounded-full flex items-center justify-center mx-auto mb-3 text-2xl shadow-lg`}>
                       {badge.icon}
                     </div>
-                    <h4 className="font-semibold text-gray-900 text-sm mb-1">{badge.name}</h4>
-                    <p className="text-xs text-gray-600 line-clamp-2">{badge.description}</p>
+                    <h4 className={cn(
+                      "font-semibold text-sm mb-1",
+                      "text-gray-900 dark:text-gray-100"
+                    )}>
+                      {badge.name}
+                    </h4>
+                    <p className={cn(
+                      "text-xs line-clamp-2",
+                      "text-gray-600 dark:text-gray-200"
+                    )}>
+                      {badge.description}
+                    </p>
                   </motion.div>
                 ))}
               </div>
@@ -201,9 +260,18 @@ const Profile: React.FC = () => {
         ) : (
           <Card>
             <CardContent className="p-12 text-center">
-              <Trophy className="w-16 h-16 text-gray-300 mx-auto mb-4" />
-              <h3 className="text-xl font-semibold text-gray-600 mb-2">No badges yet</h3>
-              <p className="text-gray-500">Complete goals and tasks to earn your first badge!</p>
+              <Trophy className="w-16 h-16 text-gray-300 dark:text-gray-600 mx-auto mb-4" />
+              <h3 className={cn(
+                "text-xl font-semibold mb-2",
+                "text-gray-600 dark:text-gray-200"
+              )}>
+                No badges yet
+              </h3>
+              <p className={cn(
+                "text-gray-500 dark:text-gray-300"
+              )}>
+                Complete goals and tasks to earn your first badge!
+              </p>
             </CardContent>
           </Card>
         )}
@@ -215,7 +283,10 @@ const Profile: React.FC = () => {
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: 0.3 }}
       >
-        <h2 className="text-2xl font-bold text-gray-900 mb-6 flex items-center space-x-2">
+        <h2 className={cn(
+          "text-2xl font-bold mb-6 flex items-center space-x-2",
+          "text-gray-900 dark:text-gray-100"
+        )}>
           <Calendar className="w-7 h-7 text-blue-500" />
           <span>Recent Activity</span>
         </h2>
@@ -224,7 +295,7 @@ const Profile: React.FC = () => {
           <CardContent className="p-6">
             <div className="space-y-4">
               {completedTasks.slice(0, 3).map((task, index) => (
-                <div key={task.id} className="flex items-center space-x-4 p-4 bg-gray-50 rounded-lg">
+                <div key={task.id} className="flex items-center space-x-4 p-4 bg-gray-50 dark:bg-gray-800/50 rounded-lg">
                   <div className={`w-10 h-10 bg-gradient-to-br ${task.type === 'goal' ? 'from-blue-500 to-purple-600' : 'from-orange-500 to-red-500'} rounded-lg flex items-center justify-center`}>
                     {task.type === 'goal' ? (
                       <Target className="w-5 h-5 text-white" />
@@ -233,8 +304,16 @@ const Profile: React.FC = () => {
                     )}
                   </div>
                   <div className="flex-1">
-                    <h4 className="font-semibold text-gray-900">{task.title}</h4>
-                    <p className="text-sm text-gray-600">
+                    <h4 className={cn(
+                      "font-semibold",
+                      "text-gray-900 dark:text-gray-100"
+                    )}>
+                      {task.title}
+                    </h4>
+                    <p className={cn(
+                      "text-sm",
+                      "text-gray-600 dark:text-gray-200"
+                    )}>
                       Completed {task.completedAt ? new Date(task.completedAt).toLocaleDateString() : ''}
                     </p>
                   </div>
@@ -247,8 +326,12 @@ const Profile: React.FC = () => {
               
               {completedTasks.length === 0 && (
                 <div className="text-center py-8">
-                  <CheckCircle2 className="w-12 h-12 text-gray-300 mx-auto mb-3" />
-                  <p className="text-gray-500">No completed activities yet</p>
+                  <CheckCircle2 className="w-12 h-12 text-gray-300 dark:text-gray-600 mx-auto mb-3" />
+                  <p className={cn(
+                    "text-gray-500 dark:text-gray-300"
+                  )}>
+                    No completed activities yet
+                  </p>
                 </div>
               )}
             </div>

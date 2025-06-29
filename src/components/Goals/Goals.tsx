@@ -5,6 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { useCurrentUser, useUserTasks, useUserStats } from '@/store/useStore';
 import GoalCard from './GoalCard';
+import { cn } from '@/lib/utils';
 
 interface GoalsProps {
   onCreateTask: () => void;
@@ -72,7 +73,11 @@ const Goals: React.FC<GoalsProps> = ({ onCreateTask }) => {
           <h2 className="text-2xl font-bold bg-gradient-to-r from-purple-600 to-blue-600 bg-clip-text text-transparent mb-2">
             My Goals & Tasks
           </h2>
-          <p className="text-gray-600">Track your progress and achieve your goals</p>
+          <p className={cn(
+            "text-gray-600 dark:text-gray-200"
+          )}>
+            Track your progress and achieve your goals
+          </p>
         </div>
         
         <Button variant="gradient" onClick={onCreateTask} className="flex items-center space-x-2">
@@ -105,7 +110,10 @@ const Goals: React.FC<GoalsProps> = ({ onCreateTask }) => {
         transition={{ delay: 0.2 }}
         className="flex items-center space-x-4"
       >
-        <Filter className="w-5 h-5 text-gray-600" />
+        <Filter className={cn(
+          "w-5 h-5",
+          "text-gray-600 dark:text-gray-200"
+        )} />
         <div className="flex space-x-2">
           {filterOptions.map(({ key, label }) => (
             <Button
@@ -145,11 +153,21 @@ const Goals: React.FC<GoalsProps> = ({ onCreateTask }) => {
           animate={{ opacity: 1 }}
           className="text-center py-12"
         >
-          <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
-            <Plus className="w-8 h-8 text-gray-400" />
+          <div className="w-16 h-16 bg-gray-100 dark:bg-gray-800 rounded-full flex items-center justify-center mx-auto mb-4">
+            <Plus className="w-8 h-8 text-gray-400 dark:text-gray-500" />
           </div>
-          <h3 className="text-xl font-semibold text-gray-900 mb-2">No goals found</h3>
-          <p className="text-gray-600 mb-6">Create your first goal to get started!</p>
+          <h3 className={cn(
+            "text-xl font-semibold mb-2",
+            "text-gray-900 dark:text-gray-100"
+          )}>
+            No goals found
+          </h3>
+          <p className={cn(
+            "mb-6",
+            "text-gray-600 dark:text-gray-200"
+          )}>
+            Create your first goal to get started!
+          </p>
           <Button variant="gradient" onClick={onCreateTask}>
             Create Goal
           </Button>

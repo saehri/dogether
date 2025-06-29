@@ -5,6 +5,7 @@ import { Card, CardContent, CardHeader } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
 import { friends } from '@/data/mockData';
+import { cn } from '@/lib/utils';
 
 const Friends: React.FC = () => {
   const stats = [
@@ -44,7 +45,11 @@ const Friends: React.FC = () => {
         <h2 className="text-2xl font-bold bg-gradient-to-r from-purple-600 to-blue-600 bg-clip-text text-transparent mb-2">
           Your Friends
         </h2>
-        <p className="text-gray-600">Connect and motivate each other</p>
+        <p className={cn(
+          "text-gray-600 dark:text-gray-200"
+        )}>
+          Connect and motivate each other
+        </p>
       </motion.div>
 
       {/* Stats */}
@@ -107,8 +112,18 @@ const Friends: React.FC = () => {
                   )}
                 </div>
                 
-                <h3 className="font-semibold text-gray-900 mb-1">{friend.name}</h3>
-                <p className="text-gray-600 text-sm mb-4">@{friend.username}</p>
+                <h3 className={cn(
+                  "font-semibold mb-1",
+                  "text-gray-900 dark:text-gray-100"
+                )}>
+                  {friend.name}
+                </h3>
+                <p className={cn(
+                  "text-sm mb-4",
+                  "text-gray-600 dark:text-gray-200"
+                )}>
+                  @{friend.username}
+                </p>
                 
                 <div className="flex justify-center">
                   <Button variant="gradient" size="sm" className="w-full">
@@ -127,13 +142,18 @@ const Friends: React.FC = () => {
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: 0.4 }}
       >
-        <Card className="bg-gradient-to-r from-purple-50 to-blue-50">
+        <Card className="bg-gradient-to-r from-purple-50 to-blue-50 dark:from-purple-900/20 dark:to-blue-900/20">
           <CardHeader>
-            <h3 className="text-lg font-semibold text-gray-900">People You May Know</h3>
+            <h3 className={cn(
+              "text-lg font-semibold",
+              "text-gray-900 dark:text-gray-100"
+            )}>
+              People You May Know
+            </h3>
           </CardHeader>
           <CardContent className="space-y-4">
             {suggestions.map((suggestion, index) => (
-              <div key={index} className="flex items-center justify-between p-4 bg-white rounded-lg">
+              <div key={index} className="flex items-center justify-between p-4 bg-white dark:bg-gray-800/50 rounded-lg">
                 <div className="flex items-center space-x-3">
                   <Avatar className="w-10 h-10">
                     <AvatarFallback className="bg-gradient-to-br from-gray-300 to-gray-400">
@@ -141,8 +161,18 @@ const Friends: React.FC = () => {
                     </AvatarFallback>
                   </Avatar>
                   <div>
-                    <h4 className="font-medium text-gray-900">{suggestion.name}</h4>
-                    <p className="text-sm text-gray-600">{suggestion.mutual} mutual friends</p>
+                    <h4 className={cn(
+                      "font-medium",
+                      "text-gray-900 dark:text-gray-100"
+                    )}>
+                      {suggestion.name}
+                    </h4>
+                    <p className={cn(
+                      "text-sm",
+                      "text-gray-600 dark:text-gray-200"
+                    )}>
+                      {suggestion.mutual} mutual friends
+                    </p>
                   </div>
                 </div>
                 <Button variant="gradient" size="sm">

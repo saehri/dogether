@@ -70,7 +70,7 @@ const FeedCard: React.FC<FeedCardProps> = ({ task, index, onProfileClick }) => {
                 <span 
                   className={cn(
                     "text-sm cursor-pointer hover:text-purple-500 dark:hover:text-purple-400 transition-colors",
-                    "text-gray-500 dark:text-gray-400"
+                    "text-gray-500 dark:text-gray-300"
                   )}
                   onClick={handleUserClick}
                 >
@@ -79,7 +79,7 @@ const FeedCard: React.FC<FeedCardProps> = ({ task, index, onProfileClick }) => {
               </div>
               <div className={cn(
                 "flex items-center space-x-2 text-sm",
-                "text-gray-500 dark:text-gray-400"
+                "text-gray-500 dark:text-gray-300"
               )}>
                 {isGoal ? (
                   <Target className="w-4 h-4" />
@@ -104,7 +104,8 @@ const FeedCard: React.FC<FeedCardProps> = ({ task, index, onProfileClick }) => {
               {task.title}
             </h4>
             <p className={cn(
-              "text-gray-600 dark:text-gray-300 leading-relaxed"
+              "leading-relaxed",
+              "text-gray-600 dark:text-gray-200"
             )}>
               {task.description}
             </p>
@@ -115,7 +116,7 @@ const FeedCard: React.FC<FeedCardProps> = ({ task, index, onProfileClick }) => {
             <div>
               <div className={cn(
                 "flex items-center justify-between text-sm mb-2",
-                "text-gray-600 dark:text-gray-400"
+                "text-gray-600 dark:text-gray-200"
               )}>
                 <span>Progress</span>
                 <span className="font-medium">
@@ -137,7 +138,7 @@ const FeedCard: React.FC<FeedCardProps> = ({ task, index, onProfileClick }) => {
               {task.evidence.caption && (
                 <p className={cn(
                   "text-sm mt-2 px-2",
-                  "text-gray-700 dark:text-gray-300"
+                  "text-gray-700 dark:text-gray-200"
                 )}>
                   {task.evidence.caption}
                 </p>
@@ -153,7 +154,7 @@ const FeedCard: React.FC<FeedCardProps> = ({ task, index, onProfileClick }) => {
                 className={cn(
                   "flex items-center space-x-1 w-fit",
                   "bg-green-100 text-green-800 border-green-200",
-                  "dark:bg-green-900/20 dark:text-green-400 dark:border-green-800/30"
+                  "dark:bg-green-900/20 dark:text-green-300 dark:border-green-700/50"
                 )}
               >
                 <CheckCircle2 className="w-3 h-3" />
@@ -165,8 +166,8 @@ const FeedCard: React.FC<FeedCardProps> = ({ task, index, onProfileClick }) => {
                 className={cn(
                   "w-fit",
                   isGoal 
-                    ? "bg-blue-100 text-blue-800 border-blue-200 dark:bg-blue-900/20 dark:text-blue-400 dark:border-blue-800/30"
-                    : "bg-orange-100 text-orange-800 border-orange-200 dark:bg-orange-900/20 dark:text-orange-400 dark:border-orange-800/30"
+                    ? "bg-blue-100 text-blue-800 border-blue-200 dark:bg-blue-900/20 dark:text-blue-300 dark:border-blue-700/50"
+                    : "bg-orange-100 text-orange-800 border-orange-200 dark:bg-orange-900/20 dark:text-orange-300 dark:border-orange-700/50"
                 )}
               >
                 {isGoal ? 'In Progress' : 'Pending'}
@@ -185,7 +186,7 @@ const FeedCard: React.FC<FeedCardProps> = ({ task, index, onProfileClick }) => {
                 variant="ghost" 
                 size="sm" 
                 className={cn(
-                  "text-gray-500 hover:text-red-500 dark:text-gray-400 dark:hover:text-red-400",
+                  "text-gray-500 hover:text-red-500 dark:text-gray-300 dark:hover:text-red-400",
                   "hover:bg-red-50 dark:hover:bg-red-900/20"
                 )}
               >
@@ -196,7 +197,7 @@ const FeedCard: React.FC<FeedCardProps> = ({ task, index, onProfileClick }) => {
                 variant="ghost" 
                 size="sm" 
                 className={cn(
-                  "text-gray-500 hover:text-purple-500 dark:text-gray-400 dark:hover:text-purple-400",
+                  "text-gray-500 hover:text-purple-500 dark:text-gray-300 dark:hover:text-purple-400",
                   "hover:bg-purple-50 dark:hover:bg-purple-900/20"
                 )}
               >
@@ -207,7 +208,7 @@ const FeedCard: React.FC<FeedCardProps> = ({ task, index, onProfileClick }) => {
             {task.completedAt && (
               <span className={cn(
                 "text-xs",
-                "text-gray-500 dark:text-gray-400"
+                "text-gray-500 dark:text-gray-300"
               )}>
                 Completed {new Date(task.completedAt).toLocaleDateString()}
               </span>
