@@ -1,5 +1,4 @@
-import { API_BASE_URL, API_TIMEOUT, STORAGE_KEYS } from './constants';
-
+// API utility functions and configuration
 export interface ApiResponse<T> {
   data: T;
   success: boolean;
@@ -18,127 +17,136 @@ export class ApiError extends Error {
   }
 }
 
-interface RequestConfig {
-  method?: string;
-  headers?: Record<string, string>;
-  body?: any;
-  timeout?: number;
-}
+// Base API configuration
+const API_BASE_URL = 'https://dogether.etalasepro.com/api';
+const API_TIMEOUT = 10000; // 10 seconds
 
-const withTimeout = (promise: Promise<Response>, timeoutMs: number): Promise<Response> => {
-  return Promise.race([
-    promise,
-    new Promise<Response>((_, reject) =>
-      setTimeout(() => reject(new Error('Request timeout')), timeoutMs)
-    )
-  ]);
-};
-
+// Generic API request function using fetch
 export async function apiRequest<T>(
   endpoint: string,
-  config: RequestConfig = {}
+  options: RequestInit = {}
 ): Promise<ApiResponse<T>> {
-  const {
-    method = 'GET',
-    headers = {},
-    body,
-    timeout = API_TIMEOUT
-  } = config;
-
-  const defaultHeaders: Record<string, string> = {
+  const url = `${API_BASE_URL}${endpoint}`;
+  
+  // Get auth token from localStorage
+  const token = getAuthToken();
+  
+  // Default headers
+  const defaultHeaders: HeadersInit = {
     'Content-Type': 'application/json',
   };
-
-  const token = localStorage.getItem(STORAGE_KEYS.AUTH_TOKEN);
+  
+  // Add auth header if token exists
   if (token) {
     defaultHeaders.Authorization = `Bearer ${token}`;
   }
-
-  const finalHeaders = { ...defaultHeaders, ...headers };
-
-  const requestOptions: RequestInit = {
-    method,
-    headers: finalHeaders,
+  
+  // Merge headers
+  const headers = {
+    ...defaultHeaders,
+    ...options.headers,
   };
-
-  if (body && method !== 'GET') {
-    if (body instanceof FormData) {
-      delete finalHeaders['Content-Type'];
-      requestOptions.body = body;
-    } else {
-      requestOptions.body = JSON.stringify(body);
-    }
-  }
-
+  
+  // Create abort controller for timeout
+  const controller = new AbortController();
+  const timeoutId = setTimeout(() => controller.abort(), API_TIMEOUT);
+  
   try {
-    const response = await withTimeout(
-      fetch(`${API_BASE_URL}${endpoint}`, requestOptions),
-      timeout
-    );
-
-    if (!response.ok) {
-      let errorMessage = `HTTP ${response.status}: ${response.statusText}`;
-      let errorData: any = null;
-
-      try {
-        errorData = await response.json();
-        errorMessage = errorData.message || errorMessage;
-      } catch {
-        // If response is not JSON, use status text
-      }
-
-      const apiError = new ApiError({
-        message: errorMessage,
-        code: errorData?.code,
-        status: response.status,
-      });
-
-      if (response.status === 401) {
-        localStorage.removeItem(STORAGE_KEYS.AUTH_TOKEN);
-        if (typeof window !== 'undefined') {
-          window.location.href = '/auth/login';
-        }
-      }
-
-      throw apiError;
-    }
-
-    let responseData: any;
+    const response = await fetch(url, {
+      ...options,
+      headers,
+      signal: controller.signal,
+    });
+    
+    clearTimeout(timeoutId);
+    
+    // Parse response
+    let data: any;
     const contentType = response.headers.get('content-type');
     
     if (contentType && contentType.includes('application/json')) {
-      responseData = await response.json();
+      data = await response.json();
     } else {
-      responseData = await response.text();
+      data = await response.text();
     }
-
+    
+    // Handle HTTP errors
+    if (!response.ok) {
+      throw new ApiError({
+        message: data?.message || `HTTP ${response.status}: ${response.statusText}`,
+        code: data?.code || response.status.toString(),
+        status: response.status,
+      });
+    }
+    
     return {
-      data: responseData,
+      data,
       success: true,
-      message: responseData?.message,
+      message: data?.message,
     };
   } catch (error) {
+    clearTimeout(timeoutId);
+    
     if (error instanceof ApiError) {
       throw error;
     }
-
-    const apiError = new ApiError({
-      message: error instanceof Error ? error.message : 'An unexpected error occurred',
-      code: 'NETWORK_ERROR',
+    
+    if (error instanceof Error) {
+      if (error.name === 'AbortError') {
+        throw new ApiError({
+          message: 'Request timeout',
+          code: 'TIMEOUT',
+        });
+      }
+      
+      throw new ApiError({
+        message: error.message || 'Network error occurred',
+        code: 'NETWORK_ERROR',
+      });
+    }
+    
+    throw new ApiError({
+      message: 'An unexpected error occurred',
+      code: 'UNKNOWN_ERROR',
     });
-
-    throw apiError;
   }
 }
 
+// Auth token management
 export const setAuthToken = (token: string) => {
-  localStorage.setItem(STORAGE_KEYS.AUTH_TOKEN, token);
+  localStorage.setItem('authToken', token);
 };
 
 export const removeAuthToken = () => {
-  localStorage.removeItem(STORAGE_KEYS.AUTH_TOKEN);
+  localStorage.removeItem('authToken');
 };
 
 export const getAuthToken = () => {
-  return localStorage.getItem(STORAGE_KEYS.AUTH_TOKEN);
+  return localStorage.getItem('authToken');
+};
+
+// Handle common API errors
+export const handleApiError = (error: unknown) => {
+  if (error instanceof ApiError) {
+    switch (error.status) {
+      case 401:
+        // Handle unauthorized - redirect to login
+        removeAuthToken();
+        window.location.href = '/auth/login';
+        break;
+      case 403:
+        console.error('Access forbidden');
+        break;
+      case 404:
+        console.error('Resource not found');
+        break;
+      case 500:
+        console.error('Server error');
+        break;
+      default:
+        console.error('API error:', error.message);
+    }
+  } else {
+    console.error('Unexpected error:', error);
+  }
 };
