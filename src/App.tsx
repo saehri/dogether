@@ -10,6 +10,8 @@ import Profile from './components/Profile/Profile';
 import FriendProfile from './components/Profile/FriendProfile';
 import Settings from './components/Settings/Settings';
 import CreateTask from './components/CreateTask/CreateTask';
+import Login from './components/Auth/Login';
+import Register from './components/Auth/Register';
 import LoadingSpinner from './components/ui/loading-spinner';
 import ErrorBoundary from './components/ui/error-boundary';
 import { useStore, useCurrentUser, useLoading, useError } from './store/useStore';
@@ -19,6 +21,8 @@ function App() {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [isCreateTaskOpen, setIsCreateTaskOpen] = useState(false);
   const [viewingFriendId, setViewingFriendId] = useState<string | null>(null);
+  const [isAuthenticated, setIsAuthenticated] = useState(true); // Set to false to show auth pages
+  const [authView, setAuthView] = useState<'login' | 'register'>('login');
 
   const currentUser = useCurrentUser();
   const isLoading = useLoading();
@@ -54,6 +58,38 @@ function App() {
     setViewingFriendId(null);
   };
 
+  // Authentication handlers
+  const handleLogin = async (credentials: { email: string; password: string }) => {
+    // Simulate login process
+    console.log('Login attempt:', credentials);
+    // In a real app, you'd validate credentials with your backend
+    setIsAuthenticated(true);
+    setActiveTab('feed');
+  };
+
+  const handleRegister = async (userData: { name: string; username: string; email: string; password: string }) => {
+    // Simulate registration process
+    console.log('Registration attempt:', userData);
+    // In a real app, you'd create the user account with your backend
+    setIsAuthenticated(true);
+    setActiveTab('feed');
+  };
+
+  const handleGoogleAuth = async () => {
+    // Simulate Google OAuth
+    console.log('Google authentication');
+    // In a real app, you'd integrate with Google OAuth
+    setIsAuthenticated(true);
+    setActiveTab('feed');
+  };
+
+  const handleLogout = () => {
+    setIsAuthenticated(false);
+    setAuthView('login');
+    setActiveTab('feed');
+    setViewingFriendId(null);
+  };
+
   const renderContent = () => {
     switch (activeTab) {
       case 'feed':
@@ -65,7 +101,7 @@ function App() {
       case 'badges':
         return <Badges />;
       case 'profile':
-        return <Profile />;
+        return <Profile onLogout={handleLogout} />;
       case 'friend-profile':
         return viewingFriendId ? (
           <FriendProfile 
@@ -89,6 +125,31 @@ function App() {
       return () => clearTimeout(timer);
     }
   }, [error, setError]);
+
+  // Show authentication pages if not authenticated
+  if (!isAuthenticated) {
+    return (
+      <ErrorBoundary>
+        <AnimatePresence mode="wait">
+          {authView === 'login' ? (
+            <Login
+              key="login"
+              onLogin={handleLogin}
+              onGoogleLogin={handleGoogleAuth}
+              onNavigateToRegister={() => setAuthView('register')}
+            />
+          ) : (
+            <Register
+              key="register"
+              onRegister={handleRegister}
+              onGoogleRegister={handleGoogleAuth}
+              onNavigateToLogin={() => setAuthView('login')}
+            />
+          )}
+        </AnimatePresence>
+      </ErrorBoundary>
+    );
+  }
 
   return (
     <ErrorBoundary>

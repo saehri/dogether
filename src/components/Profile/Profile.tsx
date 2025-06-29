@@ -1,15 +1,21 @@
 import React, { useState } from 'react';
 import { motion } from 'framer-motion';
-import { ChevronDown, ChevronUp, Trophy, Target, CheckCircle2, Calendar, Users } from 'lucide-react';
+import { ChevronDown, ChevronUp, Trophy, Target, CheckCircle2, Calendar, Users, LogOut } from 'lucide-react';
 import { Card, CardContent, CardHeader } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
 import { useCurrentUser, useBadges, useUserStats, useCompletedTasks } from '@/store/useStore';
 import { cn } from '@/lib/utils';
 
-const Profile: React.FC = () => {
+interface ProfileProps {
+  onLogout?: () => void;
+}
+
+const Profile: React.FC<ProfileProps> = ({ onLogout }) => {
   const [showAllBadges, setShowAllBadges] = useState(false);
+  const [isLogoutModalOpen, setIsLogoutModalOpen] = useState(false);
   
   const currentUser = useCurrentUser();
   const allBadges = useBadges();
@@ -53,6 +59,13 @@ const Profile: React.FC = () => {
 
   const userBio = "Passionate about personal growth and achieving goals. Love connecting with like-minded people who push each other to be better every day. Currently focusing on fitness, reading, and learning new skills!";
 
+  const handleLogout = () => {
+    setIsLogoutModalOpen(false);
+    if (onLogout) {
+      onLogout();
+    }
+  };
+
   return (
     <div className="max-w-4xl mx-auto space-y-8">
       {/* Profile Header */}
@@ -83,6 +96,18 @@ const Profile: React.FC = () => {
         )}>
           @{currentUser.username}
         </p>
+
+        {/* Logout Button */}
+        <div className="flex justify-center mb-6">
+          <Button
+            variant="outline"
+            onClick={() => setIsLogoutModalOpen(true)}
+            className="flex items-center space-x-2 text-red-600 border-red-200 hover:bg-red-50 hover:border-red-300 dark:text-red-400 dark:border-red-800/30 dark:hover:bg-red-900/20"
+          >
+            <LogOut className="w-4 h-4" />
+            <span>Sign Out</span>
+          </Button>
+        </div>
         
         {/* Bio */}
         <Card className="max-w-2xl mx-auto">
@@ -338,6 +363,39 @@ const Profile: React.FC = () => {
           </CardContent>
         </Card>
       </motion.div>
+
+      {/* Logout Confirmation Modal */}
+      <Dialog open={isLogoutModalOpen} onOpenChange={setIsLogoutModalOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle className="flex items-center space-x-2">
+              <LogOut className="w-5 h-5 text-red-500" />
+              <span>Sign Out</span>
+            </DialogTitle>
+            <DialogDescription>
+              Are you sure you want to sign out? You'll need to log in again to access your account.
+            </DialogDescription>
+          </DialogHeader>
+          
+          <div className="flex space-x-3 mt-6">
+            <Button
+              variant="outline"
+              className="flex-1"
+              onClick={() => setIsLogoutModalOpen(false)}
+            >
+              Cancel
+            </Button>
+            <Button
+              variant="destructive"
+              className="flex-1 flex items-center space-x-2"
+              onClick={handleLogout}
+            >
+              <LogOut className="w-4 h-4" />
+              <span>Sign Out</span>
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };
