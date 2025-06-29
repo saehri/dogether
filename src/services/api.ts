@@ -132,11 +132,6 @@ export const authApi = {
     apiRequest('/logout', {
       method: 'POST',
     }),
-
-  refreshToken: () =>
-    apiRequest('/auth/refresh', {
-      method: 'POST',
-    }),
 };
 
 // User API endpoints
