@@ -31,6 +31,8 @@ const FeedCard: React.FC<FeedCardProps> = ({ task, index, onProfileClick }) => {
     onProfileClick(user.id);
   };
 
+  console.log(task.createdAt)
+
   return (
     <motion.div
       initial={{ opacity: 0, y: 20 }}
