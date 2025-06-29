@@ -1,5 +1,3 @@
-import axios, { AxiosResponse } from 'axios';
-
 // API service layer for external API integration
 export interface ApiResponse<T> {
   data: T;
@@ -19,86 +17,147 @@ export class ApiError extends Error {
   }
 }
 
-// Base API configuration - Updated to use the correct backend URL
+// Base API configuration
 const API_BASE_URL = 'https://dogether.etalasepro.com/api';
 const API_TIMEOUT = 10000; // 10 seconds
 
-// Create axios instance with base configuration
-const apiClient = axios.create({
-  baseURL: API_BASE_URL,
-  timeout: API_TIMEOUT,
-  headers: {
-    'Content-Type': 'application/json',
-  },
-});
+// Request configuration interface
+interface RequestConfig {
+  method?: string;
+  headers?: Record<string, string>;
+  body?: any;
+  timeout?: number;
+}
 
-// Request interceptor for adding auth tokens
-apiClient.interceptors.request.use(
-  (config) => {
-    const token = localStorage.getItem('authToken');
-    if (token) {
-      config.headers.Authorization = `Bearer ${token}`;
-    }
-    return config;
-  },
-  (error) => {
-    return Promise.reject(error);
-  }
-);
+// Timeout helper function
+const withTimeout = (promise: Promise<Response>, timeoutMs: number): Promise<Response> => {
+  return Promise.race([
+    promise,
+    new Promise<Response>((_, reject) =>
+      setTimeout(() => reject(new Error('Request timeout')), timeoutMs)
+    )
+  ]);
+};
 
-// Response interceptor for error handling
-apiClient.interceptors.response.use(
-  (response: AxiosResponse) => response,
-  (error) => {
-    const apiError = new ApiError({
-      message: error.response?.data?.message || error.message || 'An unexpected error occurred',
-      code: error.response?.data?.code || error.code,
-      status: error.response?.status,
-    });
-
-    // Handle common errors
-    switch (error.response?.status) {
-      case 401:
-        // Handle unauthorized - redirect to login
-        localStorage.removeItem('authToken');
-        window.location.href = '/login';
-        break;
-      case 403:
-        console.error('Access forbidden');
-        break;
-      case 404:
-        console.error('Resource not found');
-        break;
-      case 500:
-        console.error('Server error');
-        break;
-      default:
-        console.error('API error:', apiError.message);
-    }
-
-    return Promise.reject(apiError);
-  }
-);
-
-// Generic API request function
+// Generic API request function using fetch
 async function apiRequest<T>(
   endpoint: string,
-  options: any = {}
+  config: RequestConfig = {}
 ): Promise<ApiResponse<T>> {
+  const {
+    method = 'GET',
+    headers = {},
+    body,
+    timeout = API_TIMEOUT
+  } = config;
+
+  // Prepare headers
+  const defaultHeaders: Record<string, string> = {
+    'Content-Type': 'application/json',
+  };
+
+  // Add auth token if available
+  const token = localStorage.getItem('authToken');
+  if (token) {
+    defaultHeaders.Authorization = `Bearer ${token}`;
+  }
+
+  const finalHeaders = { ...defaultHeaders, ...headers };
+
+  // Prepare request options
+  const requestOptions: RequestInit = {
+    method,
+    headers: finalHeaders,
+  };
+
+  // Add body for non-GET requests
+  if (body && method !== 'GET') {
+    if (body instanceof FormData) {
+      // Remove Content-Type for FormData (browser will set it with boundary)
+      delete finalHeaders['Content-Type'];
+      requestOptions.body = body;
+    } else {
+      requestOptions.body = JSON.stringify(body);
+    }
+  }
+
   try {
-    const response = await apiClient.request({
-      url: endpoint,
-      ...options,
-    });
+    const response = await withTimeout(
+      fetch(`${API_BASE_URL}${endpoint}`, requestOptions),
+      timeout
+    );
+
+    // Handle HTTP errors
+    if (!response.ok) {
+      let errorMessage = `HTTP ${response.status}: ${response.statusText}`;
+      let errorData: any = null;
+
+      try {
+        errorData = await response.json();
+        errorMessage = errorData.message || errorMessage;
+      } catch {
+        // If response is not JSON, use status text
+      }
+
+      const apiError = new ApiError({
+        message: errorMessage,
+        code: errorData?.code,
+        status: response.status,
+      });
+
+      // Handle common errors
+      switch (response.status) {
+        case 401:
+          // Handle unauthorized - redirect to login
+          localStorage.removeItem('authToken');
+          if (typeof window !== 'undefined') {
+            window.location.href = '/login';
+          }
+          break;
+        case 403:
+          console.error('Access forbidden');
+          break;
+        case 404:
+          console.error('Resource not found');
+          break;
+        case 500:
+          console.error('Server error');
+          break;
+        default:
+          console.error('API error:', apiError.message);
+      }
+
+      throw apiError;
+    }
+
+    // Parse response
+    let responseData: any;
+    const contentType = response.headers.get('content-type');
+    
+    if (contentType && contentType.includes('application/json')) {
+      responseData = await response.json();
+    } else {
+      responseData = await response.text();
+    }
 
     return {
-      data: response.data,
+      data: responseData,
       success: true,
-      message: response.data?.message,
+      message: responseData?.message,
     };
   } catch (error) {
-    console.error('API request failed:', error);
-    throw error;
+    if (error instanceof ApiError) {
+      throw error;
+    }
+
+    // Handle network errors, timeouts, etc.
+    const apiError = new ApiError({
+      message: error instanceof Error ? error.message : 'An unexpected error occurred',
+      code: 'NETWORK_ERROR',
+    });
+
+    console.error('API request failed:', apiError);
+    throw apiError;
   }
 }
 
@@ -107,7 +166,7 @@ export const authApi = {
   login: (credentials: { email: string; password: string }) =>
     apiRequest('/login', {
       method: 'POST',
-      data: credentials,
+      body: credentials,
     }),
 
   register: (userData: { 
@@ -119,13 +178,13 @@ export const authApi = {
   }) =>
     apiRequest('/register', {
       method: 'POST',
-      data: userData,
+      body: userData,
     }),
 
   googleAuth: (token: string) =>
     apiRequest('/google', {
       method: 'POST',
-      data: { token },
+      body: { token },
     }),
 
   logout: () =>
@@ -145,7 +204,7 @@ export const userApi = {
   updateProfile: (userId: string, updates: any) =>
     apiRequest(`/users/${userId}`, {
       method: 'PUT',
-      data: updates,
+      body: updates,
     }),
 
   deleteProfile: (userId: string) =>
@@ -159,17 +218,14 @@ export const userApi = {
     
     return apiRequest('/users/avatar', {
       method: 'POST',
-      data: formData,
-      headers: {
-        'Content-Type': 'multipart/form-data',
-      },
+      body: formData,
     });
   },
 
   addBadge: (userId: string, badgeId: string) =>
     apiRequest(`/users/${userId}/badges`, {
       method: 'POST',
-      data: { badgeId },
+      body: { badgeId },
     }),
 
   getUserStats: (userId: string) =>
@@ -198,13 +254,13 @@ export const taskApi = {
   createTask: (task: any) =>
     apiRequest('/tasks', {
       method: 'POST',
-      data: task,
+      body: task,
     }),
 
   updateTask: (taskId: string, updates: any) =>
     apiRequest(`/tasks/${taskId}`, {
       method: 'PUT',
-      data: updates,
+      body: updates,
     }),
 
   deleteTask: (taskId: string) =>
@@ -213,15 +269,12 @@ export const taskApi = {
     }),
 
   completeTask: (taskId: string, evidence?: FormData) => {
-    const config: any = {
+    const config: RequestConfig = {
       method: 'POST',
     };
 
     if (evidence) {
-      config.data = evidence;
-      config.headers = {
-        'Content-Type': 'multipart/form-data',
-      };
+      config.body = evidence;
     }
 
     return apiRequest(`/tasks/${taskId}/complete`, config);
@@ -230,7 +283,7 @@ export const taskApi = {
   addProgress: (taskId: string, progressData: any) =>
     apiRequest(`/tasks/${taskId}/progress`, {
       method: 'POST',
-      data: progressData,
+      body: progressData,
     }),
 };
 
@@ -247,7 +300,7 @@ export const friendApi = {
   sendFriendRequest: (userId: string) =>
     apiRequest('/friends/request', {
       method: 'POST',
-      data: { userId },
+      body: { userId },
     }),
 
   acceptFriendRequest: (requestId: string) =>
@@ -271,7 +324,7 @@ export const friendApi = {
   updateStatus: (isOnline: boolean) =>
     apiRequest('/users/status', {
       method: 'PUT',
-      data: { isOnline },
+      body: { isOnline },
     }),
 };
 
@@ -288,13 +341,13 @@ export const badgeApi = {
   createBadge: (badge: any) =>
     apiRequest('/badges', {
       method: 'POST',
-      data: badge,
+      body: badge,
     }),
 
   updateBadge: (badgeId: string, updates: any) =>
     apiRequest(`/badges/${badgeId}`, {
       method: 'PUT',
-      data: updates,
+      body: updates,
     }),
 
   deleteBadge: (badgeId: string) =>
@@ -339,10 +392,7 @@ export const uploadApi = {
 
     return apiRequest('/upload/image', {
       method: 'POST',
-      data: formData,
-      headers: {
-        'Content-Type': 'multipart/form-data',
-      },
+      body: formData,
     });
   },
 
@@ -353,10 +403,7 @@ export const uploadApi = {
 
     return apiRequest(`/tasks/${taskId}/evidence`, {
       method: 'POST',
-      data: formData,
-      headers: {
-        'Content-Type': 'multipart/form-data',
-      },
+      body: formData,
     });
   },
 
@@ -406,6 +453,3 @@ export const getAuthToken = () => {
 // Health check
 export const healthCheck = () =>
   apiRequest('/health');
-
-// Export the configured axios instance for custom requests
-export { apiClient };
