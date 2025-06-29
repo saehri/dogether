@@ -1,6 +1,6 @@
 import React from 'react';
 import { motion } from 'framer-motion';
-import { UserPlus, Users } from 'lucide-react';
+import { UserPlus, Users, Zap } from 'lucide-react';
 import { Card, CardContent, CardHeader } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
@@ -13,19 +13,24 @@ const Friends: React.FC = () => {
       title: 'Total Friends',
       value: friends.length,
       icon: Users,
-      gradient: 'from-purple-500 to-blue-600'
+      gradient: 'from-purple-500 via-purple-600 to-blue-600'
     },
     {
       title: 'Online Now',
       value: friends.filter(f => f.isOnline).length,
-      icon: () => <div className="w-3 h-3 bg-green-300 rounded-full"></div>,
-      gradient: 'from-green-500 to-emerald-600'
+      icon: () => (
+        <div className="relative w-8 h-8 flex items-center justify-center">
+          <div className="w-4 h-4 bg-white/90 rounded-full animate-pulse"></div>
+          <div className="absolute inset-0 w-8 h-8 border-2 border-white/60 rounded-full"></div>
+        </div>
+      ),
+      gradient: 'from-green-500 via-green-600 to-emerald-600'
     },
     {
       title: 'Active This Week',
       value: Math.floor(friends.length * 0.8),
-      icon: () => <div className="w-6 h-6 bg-blue-300 rounded-full flex items-center justify-center text-xs font-bold text-blue-800">A</div>,
-      gradient: 'from-blue-500 to-cyan-600'
+      icon: Zap,
+      gradient: 'from-blue-500 via-blue-600 to-cyan-600'
     }
   ];
 
@@ -57,11 +62,15 @@ const Friends: React.FC = () => {
         {stats.map((stat, index) => {
           const Icon = stat.icon;
           return (
-            <Card key={index} className="overflow-hidden">
-              <CardContent className={`p-6 bg-gradient-to-br ${stat.gradient} text-white text-center`}>
+            <Card key={index} className="overflow-hidden relative">
+              {/* Gradient Background with Full Coverage */}
+              <div className={`absolute inset-0 bg-gradient-to-br ${stat.gradient}`}></div>
+              
+              {/* Content Layer */}
+              <CardContent className="relative z-10 p-6 text-white text-center">
                 <Icon className="w-8 h-8 mx-auto mb-2" />
                 <h3 className="text-2xl font-bold">{stat.value}</h3>
-                <p className="text-white/80">{stat.title}</p>
+                <p className="text-white/90">{stat.title}</p>
               </CardContent>
             </Card>
           );
