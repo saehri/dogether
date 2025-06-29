@@ -6,39 +6,15 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
-import { friends } from '@/data/mockData';
+import { friends, simulateUserSearch, simulateSendFriendRequest, currentUser, SearchableUser } from '@/data/mockData';
 import { cn } from '@/lib/utils';
 
 const Friends: React.FC = () => {
   const [isAddFriendOpen, setIsAddFriendOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
-  const [searchResults, setSearchResults] = useState<any[]>([]);
+  const [searchResults, setSearchResults] = useState<SearchableUser[]>([]);
   const [isSearching, setIsSearching] = useState(false);
-
-  // Mock search results - in a real app, this would come from your API
-  const mockSearchResults = [
-    {
-      id: '5',
-      name: 'John Smith',
-      username: 'johnsmith',
-      avatar: 'https://images.pexels.com/photos/1222271/pexels-photo-1222271.jpeg?auto=compress&cs=tinysrgb&w=150&h=150&fit=crop',
-      mutualFriends: 3
-    },
-    {
-      id: '6',
-      name: 'Lisa Johnson',
-      username: 'lisaj',
-      avatar: 'https://images.pexels.com/photos/1239291/pexels-photo-1239291.jpeg?auto=compress&cs=tinysrgb&w=150&h=150&fit=crop',
-      mutualFriends: 1
-    },
-    {
-      id: '7',
-      name: 'David Wilson',
-      username: 'davidw',
-      avatar: 'https://images.pexels.com/photos/1681010/pexels-photo-1681010.jpeg?auto=compress&cs=tinysrgb&w=150&h=150&fit=crop',
-      mutualFriends: 0
-    }
-  ];
+  const [sendingRequestTo, setSendingRequestTo] = useState<string | null>(null);
 
   const stats = [
     {
@@ -74,22 +50,37 @@ const Friends: React.FC = () => {
     // Simulate API call delay
     await new Promise(resolve => setTimeout(resolve, 800));
     
-    // Filter mock results based on search query
-    const filteredResults = mockSearchResults.filter(user =>
-      user.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      user.username.toLowerCase().includes(searchQuery.toLowerCase())
-    );
+    // Get excluded IDs (current user + existing friends)
+    const excludeIds = [currentUser.id, ...currentUser.friends];
     
-    setSearchResults(filteredResults);
+    // Use the mock search function
+    const results = simulateUserSearch(searchQuery, excludeIds);
+    
+    setSearchResults(results);
     setIsSearching(false);
   };
 
-  const handleAddFriend = (userId: string) => {
-    // In a real app, this would make an API call to send a friend request
-    console.log('Adding friend:', userId);
+  const handleAddFriend = async (userId: string) => {
+    setSendingRequestTo(userId);
     
-    // Remove from search results (simulate friend request sent)
-    setSearchResults(prev => prev.filter(user => user.id !== userId));
+    try {
+      const success = await simulateSendFriendRequest(userId);
+      
+      if (success) {
+        // Remove from search results (simulate friend request sent)
+        setSearchResults(prev => prev.filter(user => user.id !== userId));
+        
+        // In a real app, you might show a success toast here
+        console.log('Friend request sent successfully!');
+      } else {
+        // Handle error case
+        console.error('Failed to send friend request');
+      }
+    } catch (error) {
+      console.error('Error sending friend request:', error);
+    } finally {
+      setSendingRequestTo(null);
+    }
   };
 
   const handleKeyPress = (e: React.KeyboardEvent) => {
@@ -288,12 +279,17 @@ const Friends: React.FC = () => {
                         "dark:bg-gray-800/50 dark:border-gray-700 dark:hover:bg-gray-700/50"
                       )}
                     >
-                      <Avatar className="w-10 h-10">
-                        <AvatarImage src={user.avatar} alt={user.name} />
-                        <AvatarFallback className="bg-gradient-to-br from-purple-500 to-blue-600 text-white text-sm">
-                          {user.name.charAt(0)}
-                        </AvatarFallback>
-                      </Avatar>
+                      <div className="relative">
+                        <Avatar className="w-10 h-10">
+                          <AvatarImage src={user.avatar} alt={user.name} />
+                          <AvatarFallback className="bg-gradient-to-br from-purple-500 to-blue-600 text-white text-sm">
+                            {user.name.charAt(0)}
+                          </AvatarFallback>
+                        </Avatar>
+                        {user.isOnline && (
+                          <div className="absolute -bottom-0.5 -right-0.5 w-3 h-3 bg-green-500 border-2 border-white dark:border-gray-800 rounded-full"></div>
+                        )}
+                      </div>
                       
                       <div className="flex-1 min-w-0">
                         <h4 className={cn(
@@ -316,15 +312,28 @@ const Friends: React.FC = () => {
                             {user.mutualFriends} mutual friend{user.mutualFriends !== 1 ? 's' : ''}
                           </p>
                         )}
+                        {user.location && (
+                          <p className={cn(
+                            "text-xs",
+                            "text-gray-500 dark:text-gray-400"
+                          )}>
+                            📍 {user.location}
+                          </p>
+                        )}
                       </div>
                       
                       <Button
                         size="icon"
                         variant="ghost"
                         onClick={() => handleAddFriend(user.id)}
+                        disabled={sendingRequestTo === user.id}
                         className="text-purple-600 hover:text-purple-700 hover:bg-purple-50 dark:text-purple-400 dark:hover:text-purple-300 dark:hover:bg-purple-900/20"
                       >
-                        <UserPlus className="w-4 h-4" />
+                        {sendingRequestTo === user.id ? (
+                          <div className="w-4 h-4 border-2 border-purple-600/30 border-t-purple-600 rounded-full animate-spin" />
+                        ) : (
+                          <UserPlus className="w-4 h-4" />
+                        )}
                       </Button>
                     </motion.div>
                   ))}
