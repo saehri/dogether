@@ -26,6 +26,8 @@ const Profile: React.FC<ProfileProps> = ({ onLogout }) => {
   const visibleBadges = showAllBadges ? userBadges : userBadges.slice(0, 5);
   const shouldShowToggle = userBadges.length > 5;
 
+  console.log(currentUser)
+
   const statsData = [
     {
       label: 'Tasks Completed',
