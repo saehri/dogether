@@ -67,3 +67,5 @@ export const router = createBrowserRouter([
     element: <Navigate to="/auth/login" replace />,
   },
 ]);
+
+export default router
