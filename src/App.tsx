@@ -6,7 +6,7 @@ import ErrorBoundary from './components/ui/error-boundary';
 import { useStore, useCurrentUser, useLoading, useError } from './store/useStore';
 
 function App() {
-  const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [isAuthenticated, setIsAuthenticated] = useState(true);
   const [isCreateTaskOpen, setIsCreateTaskOpen] = useState(false);
 
   const currentUser = useCurrentUser();
