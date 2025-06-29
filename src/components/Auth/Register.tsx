@@ -5,6 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardHeader } from '@/components/ui/card';
+import { authApi, setAuthToken } from '@/services/api';
 import { cn } from '@/lib/utils';
 
 interface RegisterProps {
@@ -86,17 +87,32 @@ const Register: React.FC<RegisterProps> = ({ onRegister, onGoogleRegister, onNav
     if (!validateForm()) return;
 
     setIsLoading(true);
+    setErrors({});
+
     try {
-      // Simulate API delay
-      await new Promise(resolve => setTimeout(resolve, 1500));
-      onRegister({
+      const userData = {
         name: formData.name.trim(),
         username: formData.username.trim(),
         email: formData.email.trim(),
         password: formData.password
+      };
+
+      const response = await authApi.register(userData);
+
+      if (response.success && response.data?.token) {
+        // Store the auth token
+        setAuthToken(response.data.token);
+        
+        // Call the parent component's onRegister handler
+        onRegister(userData);
+      } else {
+        setErrors({ general: response.data?.message || 'Registration failed. Please try again.' });
+      }
+    } catch (error: any) {
+      console.error('Registration error:', error);
+      setErrors({ 
+        general: error.message || 'Registration failed. Please check your information and try again.' 
       });
-    } catch (error) {
-      setErrors({ general: 'Registration failed. Please try again.' });
     } finally {
       setIsLoading(false);
     }
@@ -104,11 +120,15 @@ const Register: React.FC<RegisterProps> = ({ onRegister, onGoogleRegister, onNav
 
   const handleGoogleRegister = async () => {
     setIsLoading(true);
+    setErrors({});
+
     try {
-      // Simulate API delay
+      // In a real implementation, you would integrate with Google OAuth
+      // For now, we'll simulate the process
       await new Promise(resolve => setTimeout(resolve, 1000));
       onGoogleRegister();
-    } catch (error) {
+    } catch (error: any) {
+      console.error('Google registration error:', error);
       setErrors({ general: 'Google registration failed. Please try again.' });
     } finally {
       setIsLoading(false);

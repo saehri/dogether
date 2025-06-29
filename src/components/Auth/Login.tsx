@@ -5,6 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardHeader } from '@/components/ui/card';
+import { authApi, setAuthToken } from '@/services/api';
 import { cn } from '@/lib/utils';
 
 interface LoginProps {
@@ -45,12 +46,28 @@ const Login: React.FC<LoginProps> = ({ onLogin, onGoogleLogin, onNavigateToRegis
     if (!validateForm()) return;
 
     setIsLoading(true);
+    setErrors({});
+
     try {
-      // Simulate API delay
-      await new Promise(resolve => setTimeout(resolve, 1000));
-      onLogin({ email: email.trim(), password });
-    } catch (error) {
-      setErrors({ general: 'Login failed. Please try again.' });
+      const response = await authApi.login({
+        email: email.trim(),
+        password
+      });
+
+      if (response.success && response.data?.token) {
+        // Store the auth token
+        setAuthToken(response.data.token);
+        
+        // Call the parent component's onLogin handler
+        onLogin({ email: email.trim(), password });
+      } else {
+        setErrors({ general: response.data?.message || 'Login failed. Please try again.' });
+      }
+    } catch (error: any) {
+      console.error('Login error:', error);
+      setErrors({ 
+        general: error.message || 'Login failed. Please check your credentials and try again.' 
+      });
     } finally {
       setIsLoading(false);
     }
@@ -58,11 +75,15 @@ const Login: React.FC<LoginProps> = ({ onLogin, onGoogleLogin, onNavigateToRegis
 
   const handleGoogleLogin = async () => {
     setIsLoading(true);
+    setErrors({});
+
     try {
-      // Simulate API delay
+      // In a real implementation, you would integrate with Google OAuth
+      // For now, we'll simulate the process
       await new Promise(resolve => setTimeout(resolve, 1000));
       onGoogleLogin();
-    } catch (error) {
+    } catch (error: any) {
+      console.error('Google login error:', error);
       setErrors({ general: 'Google login failed. Please try again.' });
     } finally {
       setIsLoading(false);
