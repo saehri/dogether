@@ -129,7 +129,7 @@ const Friends: React.FC = () => {
             </Card>
           </motion.div>
         ))}
-      </div>
+      </motion.div>
     </div>
   );
 };
