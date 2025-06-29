@@ -57,6 +57,31 @@ const simulateApiDelay = () => new Promise(resolve => setTimeout(resolve, 500));
 // Generate unique ID
 const generateId = () => Date.now().toString() + Math.random().toString(36).substr(2, 9);
 
+// Date reviver function to convert ISO date strings back to Date objects
+const dateReviver = (key: string, value: any) => {
+  if (typeof value === 'string' && /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}/.test(value)) {
+    return new Date(value);
+  }
+  return value;
+};
+
+// Recursively apply date reviver to nested objects
+const reviveNestedDates = (obj: any): any => {
+  if (obj === null || typeof obj !== 'object') {
+    return obj;
+  }
+  
+  if (Array.isArray(obj)) {
+    return obj.map(reviveNestedDates);
+  }
+  
+  const result: any = {};
+  for (const [key, value] of Object.entries(obj)) {
+    result[key] = reviveNestedDates(dateReviver(key, value));
+  }
+  return result;
+};
+
 const initialState: AppState = {
   currentUser: initialUser,
   users: [initialUser],
@@ -353,6 +378,13 @@ export const useStore = create<Store>()(
           friends: state.friends,
           badges: state.badges,
         }),
+        onRehydrateStorage: () => (state) => {
+          if (state) {
+            // Apply date revival to the rehydrated state
+            const revivedState = reviveNestedDates(state);
+            Object.assign(state, revivedState);
+          }
+        },
       }
     ),
     { name: 'dogether-store' }
