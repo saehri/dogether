@@ -20,7 +20,7 @@ export class ApiError extends Error {
 }
 
 // Base API configuration
-const API_BASE_URL = 'https://dogether.etalasepro.com/api';
+const API_BASE_URL = 'http://localhost:8000/api';
 const API_TIMEOUT = 10000; // 10 seconds
 
 // Create axios instance with base configuration
@@ -160,7 +160,8 @@ export const authApi = {
 // User API endpoints
 export const userApi = {
   getProfile: (userId?: string) => {
-    const endpoint = userId ? `/users/${userId}` : '/users/me';
+    // Use the profile endpoint for current user, or specific user endpoint if userId provided
+    const endpoint = userId ? `/users/${userId}` : '/profile';
     return apiRequest(endpoint);
   },
 
