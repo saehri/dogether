@@ -1,12 +1,20 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { UserPlus, Users, Zap, Search, X } from 'lucide-react';
+import { UserPlus, Users, Zap, Search, X, MapPin, Calendar } from 'lucide-react';
 import { Card, CardContent, CardHeader } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
-import { friends, simulateUserSearch, simulateSendFriendRequest, currentUser, SearchableUser } from '@/data/mockData';
+import { Badge } from '@/components/ui/badge';
+import { 
+  friends, 
+  simulateUserSearch, 
+  simulateSendFriendRequest, 
+  currentUser, 
+  SearchableUser,
+  getSearchSuggestions 
+} from '@/data/mockData';
 import { cn } from '@/lib/utils';
 
 const Friends: React.FC = () => {
@@ -15,6 +23,9 @@ const Friends: React.FC = () => {
   const [searchResults, setSearchResults] = useState<SearchableUser[]>([]);
   const [isSearching, setIsSearching] = useState(false);
   const [sendingRequestTo, setSendingRequestTo] = useState<string | null>(null);
+  const [searchSuggestions, setSearchSuggestions] = useState<string[]>([]);
+  const [showSuggestions, setShowSuggestions] = useState(false);
+  const [requestStatus, setRequestStatus] = useState<{ [key: string]: 'success' | 'error' | null }>({});
 
   const stats = [
     {
@@ -42,42 +53,92 @@ const Friends: React.FC = () => {
     }
   ];
 
-  const handleSearch = async () => {
-    if (!searchQuery.trim()) return;
+  // Update search suggestions as user types
+  useEffect(() => {
+    if (searchQuery.length > 0) {
+      const suggestions = getSearchSuggestions(searchQuery);
+      setSearchSuggestions(suggestions);
+      setShowSuggestions(suggestions.length > 0);
+    } else {
+      setSearchSuggestions([]);
+      setShowSuggestions(false);
+    }
+  }, [searchQuery]);
+
+  // Auto-search when user stops typing
+  useEffect(() => {
+    const timeoutId = setTimeout(() => {
+      if (searchQuery.trim().length >= 2) {
+        handleSearch();
+      } else if (searchQuery.trim().length === 0) {
+        setSearchResults([]);
+      }
+    }, 300);
+
+    return () => clearTimeout(timeoutId);
+  }, [searchQuery]);
+
+  const handleSearch = async (query?: string) => {
+    const searchTerm = query || searchQuery;
+    if (!searchTerm.trim() || searchTerm.trim().length < 2) {
+      setSearchResults([]);
+      return;
+    }
     
     setIsSearching(true);
+    setShowSuggestions(false);
     
-    // Simulate API call delay
-    await new Promise(resolve => setTimeout(resolve, 800));
-    
-    // Get excluded IDs (current user + existing friends)
-    const excludeIds = [currentUser.id, ...currentUser.friends];
-    
-    // Use the mock search function
-    const results = simulateUserSearch(searchQuery, excludeIds);
-    
-    setSearchResults(results);
-    setIsSearching(false);
+    try {
+      // Simulate API call delay
+      await new Promise(resolve => setTimeout(resolve, 600));
+      
+      // Get excluded IDs (current user + existing friends)
+      const excludeIds = [currentUser.id, ...currentUser.friends];
+      
+      // Use the enhanced search function
+      const results = simulateUserSearch(searchTerm, excludeIds);
+      
+      setSearchResults(results);
+    } catch (error) {
+      console.error('Search error:', error);
+      setSearchResults([]);
+    } finally {
+      setIsSearching(false);
+    }
   };
 
   const handleAddFriend = async (userId: string) => {
     setSendingRequestTo(userId);
+    setRequestStatus(prev => ({ ...prev, [userId]: null }));
     
     try {
-      const success = await simulateSendFriendRequest(userId);
+      const result = await simulateSendFriendRequest(userId);
       
-      if (success) {
+      if (result.success) {
         // Remove from search results (simulate friend request sent)
         setSearchResults(prev => prev.filter(user => user.id !== userId));
+        setRequestStatus(prev => ({ ...prev, [userId]: 'success' }));
         
-        // In a real app, you might show a success toast here
-        console.log('Friend request sent successfully!');
+        // Clear success status after 3 seconds
+        setTimeout(() => {
+          setRequestStatus(prev => ({ ...prev, [userId]: null }));
+        }, 3000);
       } else {
-        // Handle error case
-        console.error('Failed to send friend request');
+        setRequestStatus(prev => ({ ...prev, [userId]: 'error' }));
+        console.error('Failed to send friend request:', result.message);
+        
+        // Clear error status after 5 seconds
+        setTimeout(() => {
+          setRequestStatus(prev => ({ ...prev, [userId]: null }));
+        }, 5000);
       }
     } catch (error) {
+      setRequestStatus(prev => ({ ...prev, [userId]: 'error' }));
       console.error('Error sending friend request:', error);
+      
+      setTimeout(() => {
+        setRequestStatus(prev => ({ ...prev, [userId]: null }));
+      }, 5000);
     } finally {
       setSendingRequestTo(null);
     }
@@ -86,12 +147,35 @@ const Friends: React.FC = () => {
   const handleKeyPress = (e: React.KeyboardEvent) => {
     if (e.key === 'Enter') {
       handleSearch();
+      setShowSuggestions(false);
+    } else if (e.key === 'Escape') {
+      setShowSuggestions(false);
     }
+  };
+
+  const handleSuggestionClick = (suggestion: string) => {
+    setSearchQuery(suggestion);
+    setShowSuggestions(false);
+    handleSearch(suggestion);
   };
 
   const resetSearch = () => {
     setSearchQuery('');
     setSearchResults([]);
+    setSearchSuggestions([]);
+    setShowSuggestions(false);
+    setRequestStatus({});
+  };
+
+  const handleInputFocus = () => {
+    if (searchSuggestions.length > 0) {
+      setShowSuggestions(true);
+    }
+  };
+
+  const handleInputBlur = () => {
+    // Delay hiding suggestions to allow clicking on them
+    setTimeout(() => setShowSuggestions(false), 200);
   };
 
   return (
@@ -206,59 +290,97 @@ const Friends: React.FC = () => {
 
       {/* Add Friend Dialog */}
       <Dialog open={isAddFriendOpen} onOpenChange={setIsAddFriendOpen}>
-        <DialogContent className="max-w-md">
-          <DialogHeader>
+        <DialogContent className="max-w-md max-h-[80vh] overflow-hidden flex flex-col">
+          <DialogHeader className="flex-shrink-0">
             <DialogTitle className="flex items-center space-x-2">
               <UserPlus className="w-5 h-5 text-purple-600" />
               <span>Add New Friend</span>
             </DialogTitle>
           </DialogHeader>
           
-          <div className="space-y-6">
+          <div className="flex-1 overflow-y-auto space-y-6">
             {/* Search Input */}
             <div className="space-y-4">
-              <div className="flex space-x-2">
-                <div className="flex-1 relative">
-                  <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 dark:text-gray-500" />
-                  <Input
-                    placeholder="Search by name or username..."
-                    value={searchQuery}
-                    onChange={(e) => setSearchQuery(e.target.value)}
-                    onKeyPress={handleKeyPress}
-                    className="pl-10"
-                  />
+              <div className="relative">
+                <div className="flex space-x-2">
+                  <div className="flex-1 relative">
+                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 dark:text-gray-500" />
+                    <Input
+                      placeholder="Search by name, username, or location..."
+                      value={searchQuery}
+                      onChange={(e) => setSearchQuery(e.target.value)}
+                      onKeyPress={handleKeyPress}
+                      onFocus={handleInputFocus}
+                      onBlur={handleInputBlur}
+                      className="pl-10"
+                    />
+                    
+                    {/* Search Suggestions */}
+                    {showSuggestions && searchSuggestions.length > 0 && (
+                      <div className={cn(
+                        "absolute top-full left-0 right-0 z-10 mt-1 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-md shadow-lg max-h-40 overflow-y-auto"
+                      )}>
+                        {searchSuggestions.map((suggestion, index) => (
+                          <button
+                            key={index}
+                            className={cn(
+                              "w-full text-left px-3 py-2 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors",
+                              "text-gray-900 dark:text-gray-100"
+                            )}
+                            onClick={() => handleSuggestionClick(suggestion)}
+                          >
+                            {suggestion}
+                          </button>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                  <Button 
+                    onClick={() => handleSearch()}
+                    disabled={!searchQuery.trim() || isSearching}
+                    variant="gradient"
+                    className="flex items-center space-x-2"
+                  >
+                    {isSearching ? (
+                      <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                    ) : (
+                      <Search className="w-4 h-4" />
+                    )}
+                    <span>Search</span>
+                  </Button>
                 </div>
-                <Button 
-                  onClick={handleSearch}
-                  disabled={!searchQuery.trim() || isSearching}
-                  variant="gradient"
-                  className="flex items-center space-x-2"
-                >
-                  {isSearching ? (
-                    <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-                  ) : (
-                    <Search className="w-4 h-4" />
-                  )}
-                  <span>Search</span>
-                </Button>
-              </div>
 
-              {/* Clear Search */}
-              {(searchQuery || searchResults.length > 0) && (
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={resetSearch}
-                  className="flex items-center space-x-1 text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200"
-                >
-                  <X className="w-3 h-3" />
-                  <span>Clear search</span>
-                </Button>
-              )}
+                {/* Clear Search */}
+                {(searchQuery || searchResults.length > 0) && (
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={resetSearch}
+                    className="flex items-center space-x-1 text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200 mt-2"
+                  >
+                    <X className="w-3 h-3" />
+                    <span>Clear search</span>
+                  </Button>
+                )}
+              </div>
             </div>
 
+            {/* Loading State */}
+            {isSearching && (
+              <div className="flex items-center justify-center py-8">
+                <div className="flex items-center space-x-3">
+                  <div className="w-6 h-6 border-2 border-purple-600/30 border-t-purple-600 rounded-full animate-spin" />
+                  <span className={cn(
+                    "text-gray-600 dark:text-gray-300"
+                  )}>
+                    Searching for users...
+                  </span>
+                </div>
+              </div>
+            )}
+
             {/* Search Results */}
-            {searchResults.length > 0 && (
+            {!isSearching && searchResults.length > 0 && (
               <div className="space-y-3">
                 <h3 className={cn(
                   "text-sm font-medium",
@@ -267,74 +389,114 @@ const Friends: React.FC = () => {
                   Search Results ({searchResults.length})
                 </h3>
                 
-                <div className="space-y-2 max-h-64 overflow-y-auto">
+                <div className="space-y-3">
                   {searchResults.map((user) => (
                     <motion.div
                       key={user.id}
                       initial={{ opacity: 0, y: 10 }}
                       animate={{ opacity: 1, y: 0 }}
                       className={cn(
-                        "flex items-center space-x-3 p-3 rounded-lg border transition-colors",
+                        "flex items-start space-x-3 p-4 rounded-lg border transition-colors",
                         "bg-gray-50 border-gray-200 hover:bg-gray-100",
                         "dark:bg-gray-800/50 dark:border-gray-700 dark:hover:bg-gray-700/50"
                       )}
                     >
-                      <div className="relative">
-                        <Avatar className="w-10 h-10">
+                      <div className="relative flex-shrink-0">
+                        <Avatar className="w-12 h-12">
                           <AvatarImage src={user.avatar} alt={user.name} />
-                          <AvatarFallback className="bg-gradient-to-br from-purple-500 to-blue-600 text-white text-sm">
+                          <AvatarFallback className="bg-gradient-to-br from-purple-500 to-blue-600 text-white">
                             {user.name.charAt(0)}
                           </AvatarFallback>
                         </Avatar>
                         {user.isOnline && (
-                          <div className="absolute -bottom-0.5 -right-0.5 w-3 h-3 bg-green-500 border-2 border-white dark:border-gray-800 rounded-full"></div>
+                          <div className="absolute -bottom-0.5 -right-0.5 w-4 h-4 bg-green-500 border-2 border-white dark:border-gray-800 rounded-full"></div>
                         )}
                       </div>
                       
                       <div className="flex-1 min-w-0">
-                        <h4 className={cn(
-                          "font-medium truncate",
-                          "text-gray-900 dark:text-gray-100"
-                        )}>
-                          {user.name}
-                        </h4>
-                        <p className={cn(
-                          "text-sm truncate",
-                          "text-gray-600 dark:text-gray-300"
-                        )}>
-                          @{user.username}
-                        </p>
-                        {user.mutualFriends > 0 && (
+                        <div className="flex items-start justify-between">
+                          <div className="flex-1 min-w-0">
+                            <h4 className={cn(
+                              "font-semibold truncate",
+                              "text-gray-900 dark:text-gray-100"
+                            )}>
+                              {user.name}
+                            </h4>
+                            <p className={cn(
+                              "text-sm truncate",
+                              "text-gray-600 dark:text-gray-300"
+                            )}>
+                              @{user.username}
+                            </p>
+                          </div>
+                          
+                          <Button
+                            size="icon"
+                            variant="ghost"
+                            onClick={() => handleAddFriend(user.id)}
+                            disabled={sendingRequestTo === user.id || requestStatus[user.id] === 'success'}
+                            className={cn(
+                              "flex-shrink-0 ml-2",
+                              requestStatus[user.id] === 'success' 
+                                ? "text-green-600 hover:text-green-700 hover:bg-green-50 dark:text-green-400 dark:hover:text-green-300 dark:hover:bg-green-900/20"
+                                : requestStatus[user.id] === 'error'
+                                ? "text-red-600 hover:text-red-700 hover:bg-red-50 dark:text-red-400 dark:hover:text-red-300 dark:hover:bg-red-900/20"
+                                : "text-purple-600 hover:text-purple-700 hover:bg-purple-50 dark:text-purple-400 dark:hover:text-purple-300 dark:hover:bg-purple-900/20"
+                            )}
+                          >
+                            {sendingRequestTo === user.id ? (
+                              <div className="w-4 h-4 border-2 border-purple-600/30 border-t-purple-600 rounded-full animate-spin" />
+                            ) : requestStatus[user.id] === 'success' ? (
+                              <span className="text-xs">✓</span>
+                            ) : requestStatus[user.id] === 'error' ? (
+                              <span className="text-xs">✗</span>
+                            ) : (
+                              <UserPlus className="w-4 h-4" />
+                            )}
+                          </Button>
+                        </div>
+                        
+                        {user.bio && (
                           <p className={cn(
-                            "text-xs",
-                            "text-purple-600 dark:text-purple-400"
-                          )}>
-                            {user.mutualFriends} mutual friend{user.mutualFriends !== 1 ? 's' : ''}
-                          </p>
-                        )}
-                        {user.location && (
-                          <p className={cn(
-                            "text-xs",
+                            "text-xs mt-1 line-clamp-2",
                             "text-gray-500 dark:text-gray-400"
                           )}>
-                            📍 {user.location}
+                            {user.bio}
                           </p>
                         )}
+                        
+                        <div className="flex items-center space-x-3 mt-2">
+                          {user.mutualFriends > 0 && (
+                            <Badge variant="info" className="text-xs">
+                              {user.mutualFriends} mutual friend{user.mutualFriends !== 1 ? 's' : ''}
+                            </Badge>
+                          )}
+                          
+                          {user.location && (
+                            <div className="flex items-center space-x-1">
+                              <MapPin className="w-3 h-3 text-gray-400 dark:text-gray-500" />
+                              <span className={cn(
+                                "text-xs",
+                                "text-gray-500 dark:text-gray-400"
+                              )}>
+                                {user.location}
+                              </span>
+                            </div>
+                          )}
+                          
+                          {user.joinedDate && (
+                            <div className="flex items-center space-x-1">
+                              <Calendar className="w-3 h-3 text-gray-400 dark:text-gray-500" />
+                              <span className={cn(
+                                "text-xs",
+                                "text-gray-500 dark:text-gray-400"
+                              )}>
+                                Joined {user.joinedDate.toLocaleDateString('en-US', { month: 'short', year: 'numeric' })}
+                              </span>
+                            </div>
+                          )}
+                        </div>
                       </div>
-                      
-                      <Button
-                        size="icon"
-                        variant="ghost"
-                        onClick={() => handleAddFriend(user.id)}
-                        disabled={sendingRequestTo === user.id}
-                        className="text-purple-600 hover:text-purple-700 hover:bg-purple-50 dark:text-purple-400 dark:hover:text-purple-300 dark:hover:bg-purple-900/20"
-                      >
-                        {sendingRequestTo === user.id ? (
-                          <div className="w-4 h-4 border-2 border-purple-600/30 border-t-purple-600 rounded-full animate-spin" />
-                        ) : (
-                          <UserPlus className="w-4 h-4" />
-                        )}
-                      </Button>
                     </motion.div>
                   ))}
                 </div>
@@ -342,7 +504,7 @@ const Friends: React.FC = () => {
             )}
 
             {/* No Results */}
-            {searchQuery && searchResults.length === 0 && !isSearching && (
+            {!isSearching && searchQuery.trim().length >= 2 && searchResults.length === 0 && (
               <div className="text-center py-8">
                 <div className="w-16 h-16 bg-gray-100 dark:bg-gray-800 rounded-full flex items-center justify-center mx-auto mb-4">
                   <Search className="w-8 h-8 text-gray-400 dark:text-gray-500" />
@@ -356,13 +518,13 @@ const Friends: React.FC = () => {
                 <p className={cn(
                   "text-gray-600 dark:text-gray-300"
                 )}>
-                  Try searching with a different name or username
+                  Try searching with a different name, username, or location
                 </p>
               </div>
             )}
 
             {/* Search Prompt */}
-            {!searchQuery && searchResults.length === 0 && (
+            {!searchQuery && searchResults.length === 0 && !isSearching && (
               <div className="text-center py-8">
                 <div className="w-16 h-16 bg-purple-100 dark:bg-purple-900/20 rounded-full flex items-center justify-center mx-auto mb-4">
                   <UserPlus className="w-8 h-8 text-purple-600 dark:text-purple-400" />
@@ -376,7 +538,7 @@ const Friends: React.FC = () => {
                 <p className={cn(
                   "text-gray-600 dark:text-gray-300"
                 )}>
-                  Search for people by their name or username to send friend requests
+                  Search for people by their name, username, or location to send friend requests
                 </p>
               </div>
             )}
