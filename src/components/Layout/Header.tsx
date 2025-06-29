@@ -4,17 +4,17 @@ import { Link, useNavigate } from 'react-router-dom';
 import { Plus, Menu } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
-import { currentUser } from '@/data/mockData';
+import { useAuth } from '@/stores/authStore';
+import { APP_NAME } from '@/utils/constants';
 
 interface HeaderProps {
   onMenuToggle: () => void;
   onCreateTask: () => void;
-  onProfileClick: () => void;
-  onLogoClick?: () => void;
 }
 
-const Header: React.FC<HeaderProps> = ({ onMenuToggle, onCreateTask, onProfileClick, onLogoClick }) => {
+const Header: React.FC<HeaderProps> = ({ onMenuToggle, onCreateTask }) => {
   const navigate = useNavigate();
+  const { user } = useAuth();
 
   const handleProfileClick = () => {
     navigate('/profile');
@@ -47,7 +47,7 @@ const Header: React.FC<HeaderProps> = ({ onMenuToggle, onCreateTask, onProfileCl
                 <span className="text-white font-bold text-sm">D</span>
               </div>
               <h1 className="text-xl font-bold bg-gradient-to-r from-purple-600 to-blue-600 bg-clip-text text-transparent">
-                Dogether
+                {APP_NAME}
               </h1>
             </Link>
           </div>
@@ -68,8 +68,8 @@ const Header: React.FC<HeaderProps> = ({ onMenuToggle, onCreateTask, onProfileCl
               className="w-8 h-8 border-2 border-purple-200 dark:border-purple-700 cursor-pointer hover:border-purple-400 dark:hover:border-purple-500 transition-colors"
               onClick={handleProfileClick}
             >
-              <AvatarImage src={currentUser.avatar} alt={currentUser.name} />
-              <AvatarFallback>{currentUser.name ? currentUser.name.charAt(0) : 'U'}</AvatarFallback>
+              <AvatarImage src={user?.avatar} alt={user?.name || 'User'} />
+              <AvatarFallback>{user?.name ? user.name.charAt(0) : 'U'}</AvatarFallback>
             </Avatar>
           </div>
         </div>

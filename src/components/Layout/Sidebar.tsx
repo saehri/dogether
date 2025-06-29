@@ -3,31 +3,31 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { Link, useLocation } from 'react-router-dom';
 import { Home, Target, Users, Trophy, Settings, User, X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { APP_NAME, ROUTES } from '@/utils/constants';
 import { cn } from '@/lib/utils';
 
 interface SidebarProps {
   isOpen: boolean;
   onClose: () => void;
-  activeTab: string;
 }
 
-const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose, activeTab }) => {
+const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
   const location = useLocation();
 
   const menuItems = [
-    { id: '/', label: 'Feed', icon: Home, path: '/' },
-    { id: '/goals', label: 'My Goals', icon: Target, path: '/goals' },
-    { id: '/friends', label: 'Friends', icon: Users, path: '/friends' },
-    { id: '/badges', label: 'Badges', icon: Trophy, path: '/badges' },
-    { id: '/profile', label: 'Profile', icon: User, path: '/profile' },
-    { id: '/settings', label: 'Settings', icon: Settings, path: '/settings' },
+    { id: 'feed', label: 'Feed', icon: Home, path: ROUTES.HOME },
+    { id: 'goals', label: 'My Goals', icon: Target, path: ROUTES.GOALS },
+    { id: 'friends', label: 'Friends', icon: Users, path: ROUTES.FRIENDS },
+    { id: 'badges', label: 'Badges', icon: Trophy, path: ROUTES.BADGES },
+    { id: 'profile', label: 'Profile', icon: User, path: ROUTES.PROFILE },
+    { id: 'settings', label: 'Settings', icon: Settings, path: ROUTES.SETTINGS },
   ];
 
-  const HEADER_HEIGHT = 64; // 16 * 4 = 64px (h-16)
+  const HEADER_HEIGHT = 64;
 
   const isActiveRoute = (path: string) => {
-    if (path === '/') {
-      return location.pathname === '/';
+    if (path === ROUTES.HOME) {
+      return location.pathname === ROUTES.HOME;
     }
     return location.pathname.startsWith(path);
   };
@@ -60,14 +60,14 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose, activeTab }) => {
           height: `calc(100vh - ${HEADER_HEIGHT}px)`
         }}
       >
-        {/* Mobile Header - Only show on mobile */}
+        {/* Mobile Header */}
         <div className="flex items-center justify-between p-6 border-b border-gray-200/50 dark:border-gray-700/50 lg:hidden">
-          <Link to="/" className="flex items-center space-x-2">
+          <Link to={ROUTES.HOME} className="flex items-center space-x-2">
             <div className="w-8 h-8 bg-gradient-to-br from-purple-500 to-blue-600 rounded-lg flex items-center justify-center">
               <span className="text-white font-bold text-sm">D</span>
             </div>
             <h1 className="text-xl font-bold bg-gradient-to-r from-purple-600 to-blue-600 bg-clip-text text-transparent">
-              Dogether
+              {APP_NAME}
             </h1>
           </Link>
           <Button variant="ghost" size="icon" onClick={onClose}>

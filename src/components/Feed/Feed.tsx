@@ -3,7 +3,7 @@ import { motion } from 'framer-motion';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Plus, Users } from 'lucide-react';
-import { useTasks } from '@/store/useStore';
+import { useTasks } from '@/stores/taskStore';
 import FeedCard from './FeedCard';
 import { cn } from '@/lib/utils';
 
@@ -59,7 +59,6 @@ const Feed: React.FC<FeedProps> = ({ onProfileClick }) => {
                   variant="gradient" 
                   className="w-full flex items-center space-x-2"
                   onClick={() => {
-                    // This would trigger the create task modal
                     const createButton = document.querySelector('[data-create-task]') as HTMLButtonElement;
                     createButton?.click();
                   }}
@@ -88,7 +87,6 @@ const Feed: React.FC<FeedProps> = ({ onProfileClick }) => {
             />
           ))}
 
-          {/* Load More */}
           <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}

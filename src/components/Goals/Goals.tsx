@@ -3,7 +3,8 @@ import { motion } from 'framer-motion';
 import { Filter, Plus, Target } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
-import { useCurrentUser, useUserTasks, useUserStats } from '@/store/useStore';
+import { useAuth } from '@/stores/authStore';
+import { useUserTasks, useTaskStats } from '@/stores/taskStore';
 import GoalCard from './GoalCard';
 import { cn } from '@/lib/utils';
 
@@ -14,9 +15,9 @@ interface GoalsProps {
 const Goals: React.FC<GoalsProps> = ({ onCreateTask }) => {
   const [filter, setFilter] = useState<'all' | 'tasks' | 'goals' | 'completed'>('all');
   
-  const currentUser = useCurrentUser();
-  const myTasks = useUserTasks(currentUser.id);
-  const stats = useUserStats(currentUser.id);
+  const { user } = useAuth();
+  const myTasks = useUserTasks(user?.id || '');
+  const stats = useTaskStats(user?.id || '');
   
   const filteredTasks = myTasks.filter(task => {
     switch (filter) {

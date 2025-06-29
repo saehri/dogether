@@ -11,7 +11,6 @@ const AuthRoute: React.FC<AuthRouteProps> = ({ children, isAuthenticated }) => {
   const from = location.state?.from?.pathname || '/';
 
   if (isAuthenticated) {
-    // Redirect to intended page or dashboard
     return <Navigate to={from} replace />;
   }
 

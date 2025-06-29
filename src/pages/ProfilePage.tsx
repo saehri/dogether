@@ -3,23 +3,25 @@ import { motion } from 'framer-motion';
 import { useParams, useNavigate } from 'react-router-dom';
 import Profile from '@/components/Profile/Profile';
 import FriendProfile from '@/components/Profile/FriendProfile';
-import { useCurrentUser } from '@/store/useStore';
+import { useAuth, useAuthActions } from '@/stores/authStore';
 
-interface ProfilePageProps {
-  onLogout: () => void;
-}
-
-const ProfilePage: React.FC<ProfilePageProps> = ({ onLogout }) => {
+const ProfilePage: React.FC = () => {
   const { userId } = useParams<{ userId?: string }>();
   const navigate = useNavigate();
-  const currentUser = useCurrentUser();
+  const { user } = useAuth();
+  const { logout } = useAuthActions();
 
   const handleBack = () => {
     navigate('/');
   };
 
+  const handleLogout = () => {
+    logout();
+    navigate('/auth/login');
+  };
+
   // If no userId or userId matches current user, show own profile
-  const isOwnProfile = !userId || userId === currentUser.id;
+  const isOwnProfile = !userId || userId === user?.id;
 
   return (
     <motion.div
@@ -29,7 +31,7 @@ const ProfilePage: React.FC<ProfilePageProps> = ({ onLogout }) => {
       transition={{ duration: 0.3 }}
     >
       {isOwnProfile ? (
-        <Profile onLogout={onLogout} />
+        <Profile onLogout={handleLogout} />
       ) : (
         <FriendProfile friendId={userId!} onBack={handleBack} />
       )}

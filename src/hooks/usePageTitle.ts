@@ -1,15 +1,16 @@
 import { useEffect } from 'react';
 import { useLocation } from 'react-router-dom';
+import { APP_NAME } from '@/utils/constants';
 
 const pageTitles: Record<string, string> = {
-  '/': 'Feed - Dogether',
-  '/goals': 'My Goals - Dogether',
-  '/friends': 'Friends - Dogether',
-  '/badges': 'Badges - Dogether',
-  '/profile': 'Profile - Dogether',
-  '/settings': 'Settings - Dogether',
-  '/login': 'Sign In - Dogether',
-  '/register': 'Create Account - Dogether',
+  '/': `Feed - ${APP_NAME}`,
+  '/goals': `My Goals - ${APP_NAME}`,
+  '/friends': `Friends - ${APP_NAME}`,
+  '/badges': `Badges - ${APP_NAME}`,
+  '/profile': `Profile - ${APP_NAME}`,
+  '/settings': `Settings - ${APP_NAME}`,
+  '/auth/login': `Sign In - ${APP_NAME}`,
+  '/auth/register': `Create Account - ${APP_NAME}`,
 };
 
 export const usePageTitle = () => {
@@ -19,12 +20,11 @@ export const usePageTitle = () => {
     const path = location.pathname;
     let title = pageTitles[path];
 
-    // Handle dynamic routes
     if (!title) {
       if (path.startsWith('/profile/')) {
-        title = 'Friend Profile - Dogether';
+        title = `Friend Profile - ${APP_NAME}`;
       } else {
-        title = 'Dogether - Social Goals & Tasks';
+        title = `${APP_NAME} - Social Goals & Tasks`;
       }
     }
 

@@ -1,12 +1,11 @@
 import React from 'react';
 import { motion } from 'framer-motion';
 import Goals from '@/components/Goals/Goals';
+import { useUIActions } from '@/stores/uiStore';
 
-interface GoalsPageProps {
-  onCreateTask: () => void;
-}
+const GoalsPage: React.FC = () => {
+  const { setCreateTaskModalOpen } = useUIActions();
 
-const GoalsPage: React.FC<GoalsPageProps> = ({ onCreateTask }) => {
   return (
     <motion.div
       initial={{ opacity: 0, x: 20 }}
@@ -14,7 +13,7 @@ const GoalsPage: React.FC<GoalsPageProps> = ({ onCreateTask }) => {
       exit={{ opacity: 0, x: -20 }}
       transition={{ duration: 0.3 }}
     >
-      <Goals onCreateTask={onCreateTask} />
+      <Goals onCreateTask={() => setCreateTaskModalOpen(true)} />
     </motion.div>
   );
 };
