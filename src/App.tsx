@@ -8,6 +8,7 @@ import Friends from './components/Friends/Friends';
 import Badges from './components/Badges/Badges';
 import Profile from './components/Profile/Profile';
 import FriendProfile from './components/Profile/FriendProfile';
+import Settings from './components/Settings/Settings';
 import CreateTask from './components/CreateTask/CreateTask';
 import LoadingSpinner from './components/ui/loading-spinner';
 import ErrorBoundary from './components/ui/error-boundary';
@@ -73,12 +74,7 @@ function App() {
           />
         ) : <Feed onProfileClick={handleProfileClick} />;
       case 'settings':
-        return (
-          <div className="max-w-2xl mx-auto text-center py-12">
-            <h2 className="text-2xl font-bold text-gray-900 mb-4">Settings</h2>
-            <p className="text-gray-600">Settings panel coming soon...</p>
-          </div>
-        );
+        return <Settings />;
       default:
         return <Feed onProfileClick={handleProfileClick} />;
     }

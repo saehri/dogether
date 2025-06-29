@@ -25,6 +25,7 @@ interface AppState {
 interface AppActions {
   // User actions
   updateUser: (userId: string, updates: Partial<User>) => Promise<void>;
+  deleteUser: (userId: string) => Promise<void>;
   addBadgeToUser: (userId: string, badgeId: string) => Promise<void>;
   
   // Task actions
@@ -115,6 +116,29 @@ export const useStore = create<Store>()(
             }));
           } catch (error) {
             set({ error: 'Failed to update user', isLoading: false });
+            throw error;
+          }
+        },
+
+        deleteUser: async (userId: string) => {
+          set({ isLoading: true, error: null });
+          try {
+            await simulateApiDelay();
+            
+            set((state) => ({
+              users: state.users.filter(user => user.id !== userId),
+              tasks: state.tasks.filter(task => task.userId !== userId),
+              friends: state.friends.filter(friend => friend.id !== userId),
+              // If deleting current user, reset to initial state
+              ...(state.currentUser.id === userId && { 
+                currentUser: initialUser,
+                tasks: initialTasks,
+                friends: initialFriends 
+              }),
+              isLoading: false,
+            }));
+          } catch (error) {
+            set({ error: 'Failed to delete user', isLoading: false });
             throw error;
           }
         },
