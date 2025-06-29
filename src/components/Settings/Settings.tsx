@@ -22,12 +22,14 @@ import { Badge } from '@/components/ui/badge';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
 import { useCurrentUser, useStore } from '@/store/useStore';
 import { useAsyncOperation } from '@/hooks/useApi';
+import { useTheme } from '@/contexts/ThemeContext';
 import { cn } from '@/lib/utils';
 
 const Settings: React.FC = () => {
   const currentUser = useCurrentUser();
   const { updateUser, deleteUser } = useStore();
   const { loading, error, execute } = useAsyncOperation();
+  const { theme, setTheme } = useTheme();
 
   // Form states
   const [username, setUsername] = useState(currentUser.username);
@@ -44,7 +46,6 @@ const Settings: React.FC = () => {
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const [deleteConfirmText, setDeleteConfirmText] = useState('');
-  const [theme, setTheme] = useState<'light' | 'dark' | 'system'>('light');
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
 
   // Validation states
@@ -138,8 +139,6 @@ const Settings: React.FC = () => {
 
   const handleThemeChange = (newTheme: 'light' | 'dark' | 'system') => {
     setTheme(newTheme);
-    // In a real app, you'd apply the theme to the document
-    document.documentElement.classList.toggle('dark', newTheme === 'dark');
     setSuccessMessage(`Theme changed to ${newTheme}`);
     setTimeout(() => setSuccessMessage(null), 3000);
   };
