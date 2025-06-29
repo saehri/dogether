@@ -161,7 +161,7 @@ const Settings: React.FC = () => {
         <h2 className="text-2xl font-bold bg-gradient-to-r from-purple-600 to-blue-600 bg-clip-text text-transparent mb-2">
           Settings
         </h2>
-        <p className="text-gray-600">Manage your account and preferences</p>
+        <p className="text-muted-foreground">Manage your account and preferences</p>
       </motion.div>
 
       {/* Success Message */}
@@ -170,10 +170,10 @@ const Settings: React.FC = () => {
           initial={{ opacity: 0, y: -10 }}
           animate={{ opacity: 1, y: 0 }}
           exit={{ opacity: 0, y: -10 }}
-          className="bg-green-50 border border-green-200 rounded-lg p-4 flex items-center space-x-2"
+          className="bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded-lg p-4 flex items-center space-x-2"
         >
-          <Check className="w-5 h-5 text-green-600" />
-          <span className="text-green-800">{successMessage}</span>
+          <Check className="w-5 h-5 text-green-600 dark:text-green-400" />
+          <span className="text-green-800 dark:text-green-200">{successMessage}</span>
         </motion.div>
       )}
 
@@ -192,7 +192,7 @@ const Settings: React.FC = () => {
           </CardHeader>
           <CardContent className="space-y-4">
             <div>
-              <Label className="text-sm font-medium text-gray-700 mb-3 block">
+              <Label className="text-sm font-medium mb-3 block">
                 Theme
               </Label>
               <div className="grid grid-cols-3 gap-3">
@@ -200,8 +200,10 @@ const Settings: React.FC = () => {
                   <Card
                     key={option.value}
                     className={cn(
-                      "cursor-pointer transition-all hover:shadow-md",
-                      theme === option.value ? 'ring-2 ring-purple-500 bg-purple-50' : 'hover:bg-gray-50'
+                      "cursor-pointer transition-all hover:shadow-md border-2",
+                      theme === option.value 
+                        ? 'border-purple-500 bg-purple-50 dark:bg-purple-900/20 dark:border-purple-400' 
+                        : 'border-border hover:bg-accent'
                     )}
                     onClick={() => handleThemeChange(option.value as any)}
                   >
@@ -242,7 +244,7 @@ const Settings: React.FC = () => {
                 </Avatar>
                 <Label
                   htmlFor="avatar-upload"
-                  className="absolute -bottom-2 -right-2 w-8 h-8 bg-purple-600 rounded-full flex items-center justify-center cursor-pointer hover:bg-purple-700 transition-colors"
+                  className="absolute -bottom-2 -right-2 w-8 h-8 bg-purple-600 hover:bg-purple-700 rounded-full flex items-center justify-center cursor-pointer transition-colors"
                 >
                   <Camera className="w-4 h-4 text-white" />
                 </Label>
@@ -255,8 +257,8 @@ const Settings: React.FC = () => {
                 />
               </div>
               <div>
-                <h3 className="font-semibold text-gray-900">{currentUser.name}</h3>
-                <p className="text-gray-600">@{currentUser.username}</p>
+                <h3 className="font-semibold text-foreground">{currentUser.name}</h3>
+                <p className="text-muted-foreground">@{currentUser.username}</p>
                 <Badge variant="info" className="mt-1">
                   {currentUser.badges.length} badges earned
                 </Badge>
@@ -266,22 +268,22 @@ const Settings: React.FC = () => {
             {/* Form Fields */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div>
-                <Label htmlFor="username" className="text-sm font-medium text-gray-700 mb-2 block">
+                <Label htmlFor="username" className="text-sm font-medium mb-2 block">
                   Username *
                 </Label>
                 <Input
                   id="username"
                   value={username}
                   onChange={(e) => setUsername(e.target.value)}
-                  className={cn(errors.username && "border-red-300 focus:border-red-500")}
+                  className={cn(errors.username && "border-red-500 focus:border-red-500 dark:border-red-400")}
                 />
                 {errors.username && (
-                  <p className="text-xs text-red-600 mt-1">{errors.username}</p>
+                  <p className="text-xs text-red-600 dark:text-red-400 mt-1">{errors.username}</p>
                 )}
               </div>
 
               <div>
-                <Label htmlFor="email" className="text-sm font-medium text-gray-700 mb-2 block">
+                <Label htmlFor="email" className="text-sm font-medium mb-2 block">
                   Email
                 </Label>
                 <Input
@@ -289,18 +291,18 @@ const Settings: React.FC = () => {
                   type="email"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
-                  className={cn(errors.email && "border-red-300 focus:border-red-500")}
+                  className={cn(errors.email && "border-red-500 focus:border-red-500 dark:border-red-400")}
                 />
                 {errors.email && (
-                  <p className="text-xs text-red-600 mt-1">{errors.email}</p>
+                  <p className="text-xs text-red-600 dark:text-red-400 mt-1">{errors.email}</p>
                 )}
               </div>
             </div>
 
             {/* Error Display */}
             {error && (
-              <div className="bg-red-50 border border-red-200 rounded-lg p-3">
-                <p className="text-red-700 text-sm">{error}</p>
+              <div className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg p-3">
+                <p className="text-red-700 dark:text-red-300 text-sm">{error}</p>
               </div>
             )}
 
@@ -332,7 +334,7 @@ const Settings: React.FC = () => {
           </CardHeader>
           <CardContent className="space-y-4">
             <div>
-              <Label htmlFor="current-password" className="text-sm font-medium text-gray-700 mb-2 block">
+              <Label htmlFor="current-password" className="text-sm font-medium mb-2 block">
                 Current Password *
               </Label>
               <div className="relative">
@@ -341,7 +343,7 @@ const Settings: React.FC = () => {
                   type={showCurrentPassword ? "text" : "password"}
                   value={currentPassword}
                   onChange={(e) => setCurrentPassword(e.target.value)}
-                  className={cn(errors.currentPassword && "border-red-300 focus:border-red-500")}
+                  className={cn(errors.currentPassword && "border-red-500 focus:border-red-500 dark:border-red-400")}
                 />
                 <Button
                   type="button"
@@ -354,13 +356,13 @@ const Settings: React.FC = () => {
                 </Button>
               </div>
               {errors.currentPassword && (
-                <p className="text-xs text-red-600 mt-1">{errors.currentPassword}</p>
+                <p className="text-xs text-red-600 dark:text-red-400 mt-1">{errors.currentPassword}</p>
               )}
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
-                <Label htmlFor="new-password" className="text-sm font-medium text-gray-700 mb-2 block">
+                <Label htmlFor="new-password" className="text-sm font-medium mb-2 block">
                   New Password *
                 </Label>
                 <div className="relative">
@@ -369,7 +371,7 @@ const Settings: React.FC = () => {
                     type={showNewPassword ? "text" : "password"}
                     value={newPassword}
                     onChange={(e) => setNewPassword(e.target.value)}
-                    className={cn(errors.newPassword && "border-red-300 focus:border-red-500")}
+                    className={cn(errors.newPassword && "border-red-500 focus:border-red-500 dark:border-red-400")}
                   />
                   <Button
                     type="button"
@@ -382,12 +384,12 @@ const Settings: React.FC = () => {
                   </Button>
                 </div>
                 {errors.newPassword && (
-                  <p className="text-xs text-red-600 mt-1">{errors.newPassword}</p>
+                  <p className="text-xs text-red-600 dark:text-red-400 mt-1">{errors.newPassword}</p>
                 )}
               </div>
 
               <div>
-                <Label htmlFor="confirm-password" className="text-sm font-medium text-gray-700 mb-2 block">
+                <Label htmlFor="confirm-password" className="text-sm font-medium mb-2 block">
                   Confirm Password *
                 </Label>
                 <div className="relative">
@@ -396,7 +398,7 @@ const Settings: React.FC = () => {
                     type={showConfirmPassword ? "text" : "password"}
                     value={confirmPassword}
                     onChange={(e) => setConfirmPassword(e.target.value)}
-                    className={cn(errors.confirmPassword && "border-red-300 focus:border-red-500")}
+                    className={cn(errors.confirmPassword && "border-red-500 focus:border-red-500 dark:border-red-400")}
                   />
                   <Button
                     type="button"
@@ -409,7 +411,7 @@ const Settings: React.FC = () => {
                   </Button>
                 </div>
                 {errors.confirmPassword && (
-                  <p className="text-xs text-red-600 mt-1">{errors.confirmPassword}</p>
+                  <p className="text-xs text-red-600 dark:text-red-400 mt-1">{errors.confirmPassword}</p>
                 )}
               </div>
             </div>
@@ -433,17 +435,17 @@ const Settings: React.FC = () => {
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: 0.4 }}
       >
-        <Card className="border-red-200">
+        <Card className="border-red-200 dark:border-red-800">
           <CardHeader>
-            <CardTitle className="flex items-center space-x-2 text-red-600">
+            <CardTitle className="flex items-center space-x-2 text-red-600 dark:text-red-400">
               <AlertTriangle className="w-5 h-5" />
               <span>Danger Zone</span>
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="bg-red-50 border border-red-200 rounded-lg p-4">
-              <h3 className="font-semibold text-red-900 mb-2">Delete Account</h3>
-              <p className="text-red-700 text-sm mb-4">
+            <div className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg p-4">
+              <h3 className="font-semibold text-red-900 dark:text-red-200 mb-2">Delete Account</h3>
+              <p className="text-red-700 dark:text-red-300 text-sm mb-4">
                 Once you delete your account, there is no going back. This will permanently delete your profile, 
                 all your tasks, goals, and remove you from all friend lists.
               </p>
@@ -464,22 +466,22 @@ const Settings: React.FC = () => {
       <Dialog open={isDeleteModalOpen} onOpenChange={setIsDeleteModalOpen}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle className="text-red-600">Delete Account</DialogTitle>
+            <DialogTitle className="text-red-600 dark:text-red-400">Delete Account</DialogTitle>
             <DialogDescription>
               This action cannot be undone. This will permanently delete your account and all associated data.
             </DialogDescription>
           </DialogHeader>
           
           <div className="space-y-4">
-            <div className="bg-red-50 border border-red-200 rounded-lg p-4">
-              <p className="text-red-800 text-sm font-medium mb-2">
+            <div className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg p-4">
+              <p className="text-red-800 dark:text-red-200 text-sm font-medium mb-2">
                 To confirm deletion, type <span className="font-bold">DELETE</span> in the box below:
               </p>
               <Input
                 value={deleteConfirmText}
                 onChange={(e) => setDeleteConfirmText(e.target.value)}
                 placeholder="Type DELETE to confirm"
-                className="border-red-300 focus:border-red-500"
+                className="border-red-300 dark:border-red-700 focus:border-red-500 dark:focus:border-red-400"
               />
             </div>
 
