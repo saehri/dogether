@@ -160,7 +160,11 @@ const Settings: React.FC = () => {
         <h2 className="text-2xl font-bold bg-gradient-to-r from-purple-600 to-blue-600 bg-clip-text text-transparent mb-2">
           Settings
         </h2>
-        <p className="text-muted-foreground">Manage your account and preferences</p>
+        <p className={cn(
+          "text-gray-600 dark:text-gray-300"
+        )}>
+          Manage your account and preferences
+        </p>
       </motion.div>
 
       {/* Success Message */}
@@ -169,7 +173,10 @@ const Settings: React.FC = () => {
           initial={{ opacity: 0, y: -10 }}
           animate={{ opacity: 1, y: 0 }}
           exit={{ opacity: 0, y: -10 }}
-          className="bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded-lg p-4 flex items-center space-x-2"
+          className={cn(
+            "border rounded-lg p-4 flex items-center space-x-2",
+            "bg-green-50 border-green-200 dark:bg-green-900/20 dark:border-green-800/30"
+          )}
         >
           <Check className="w-5 h-5 text-green-600 dark:text-green-400" />
           <span className="text-green-800 dark:text-green-200">{successMessage}</span>
@@ -191,7 +198,10 @@ const Settings: React.FC = () => {
           </CardHeader>
           <CardContent className="space-y-4">
             <div>
-              <Label className="text-sm font-medium mb-3 block">
+              <Label className={cn(
+                "text-sm font-medium mb-3 block",
+                "text-gray-700 dark:text-gray-200"
+              )}>
                 Theme
               </Label>
               <div className="grid grid-cols-3 gap-3">
@@ -202,13 +212,18 @@ const Settings: React.FC = () => {
                       "cursor-pointer transition-all hover:shadow-md border-2",
                       theme === option.value 
                         ? 'border-purple-500 bg-purple-50 dark:bg-purple-900/20 dark:border-purple-400' 
-                        : 'border-border hover:bg-accent'
+                        : 'border-gray-200 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-800/50'
                     )}
                     onClick={() => handleThemeChange(option.value as any)}
                   >
                     <CardContent className="p-4 text-center">
                       <div className="text-2xl mb-2">{option.icon}</div>
-                      <div className="text-sm font-medium">{option.label}</div>
+                      <div className={cn(
+                        "text-sm font-medium",
+                        "text-gray-900 dark:text-gray-100"
+                      )}>
+                        {option.label}
+                      </div>
                     </CardContent>
                   </Card>
                 ))}
@@ -237,13 +252,13 @@ const Settings: React.FC = () => {
               <div className="relative">
                 <Avatar className="w-20 h-20">
                   <AvatarImage src={previewUrl || currentUser.avatar} alt={currentUser.name} />
-                  <AvatarFallback className="text-xl">
+                  <AvatarFallback className="text-xl bg-gradient-to-br from-purple-500 to-blue-600 text-white">
                     {currentUser.name.charAt(0)}
                   </AvatarFallback>
                 </Avatar>
                 <Label
                   htmlFor="avatar-upload"
-                  className="absolute -bottom-2 -right-2 w-8 h-8 bg-purple-600 hover:bg-purple-700 rounded-full flex items-center justify-center cursor-pointer transition-colors"
+                  className="absolute -bottom-2 -right-2 w-8 h-8 bg-purple-600 hover:bg-purple-700 dark:bg-purple-500 dark:hover:bg-purple-600 rounded-full flex items-center justify-center cursor-pointer transition-colors"
                 >
                   <Camera className="w-4 h-4 text-white" />
                 </Label>
@@ -256,8 +271,17 @@ const Settings: React.FC = () => {
                 />
               </div>
               <div>
-                <h3 className="font-semibold text-foreground">{currentUser.name}</h3>
-                <p className="text-muted-foreground">@{currentUser.username}</p>
+                <h3 className={cn(
+                  "font-semibold",
+                  "text-gray-900 dark:text-gray-100"
+                )}>
+                  {currentUser.name}
+                </h3>
+                <p className={cn(
+                  "text-gray-600 dark:text-gray-400"
+                )}>
+                  @{currentUser.username}
+                </p>
                 <Badge variant="info" className="mt-1">
                   {currentUser.badges.length} badges earned
                 </Badge>
@@ -267,7 +291,10 @@ const Settings: React.FC = () => {
             {/* Form Fields */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div>
-                <Label htmlFor="username" className="text-sm font-medium mb-2 block">
+                <Label htmlFor="username" className={cn(
+                  "text-sm font-medium mb-2 block",
+                  "text-gray-700 dark:text-gray-200"
+                )}>
                   Username *
                 </Label>
                 <Input
@@ -282,7 +309,10 @@ const Settings: React.FC = () => {
               </div>
 
               <div>
-                <Label htmlFor="email" className="text-sm font-medium mb-2 block">
+                <Label htmlFor="email" className={cn(
+                  "text-sm font-medium mb-2 block",
+                  "text-gray-700 dark:text-gray-200"
+                )}>
                   Email
                 </Label>
                 <Input
@@ -300,7 +330,10 @@ const Settings: React.FC = () => {
 
             {/* Error Display */}
             {error && (
-              <div className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg p-3">
+              <div className={cn(
+                "border rounded-lg p-3",
+                "bg-red-50 border-red-200 dark:bg-red-900/20 dark:border-red-800/30"
+              )}>
                 <p className="text-red-700 dark:text-red-300 text-sm">{error}</p>
               </div>
             )}
@@ -333,7 +366,10 @@ const Settings: React.FC = () => {
           </CardHeader>
           <CardContent className="space-y-4">
             <div>
-              <Label htmlFor="current-password" className="text-sm font-medium mb-2 block">
+              <Label htmlFor="current-password" className={cn(
+                "text-sm font-medium mb-2 block",
+                "text-gray-700 dark:text-gray-200"
+              )}>
                 Current Password *
               </Label>
               <div className="relative">
@@ -361,7 +397,10 @@ const Settings: React.FC = () => {
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
-                <Label htmlFor="new-password" className="text-sm font-medium mb-2 block">
+                <Label htmlFor="new-password" className={cn(
+                  "text-sm font-medium mb-2 block",
+                  "text-gray-700 dark:text-gray-200"
+                )}>
                   New Password *
                 </Label>
                 <div className="relative">
@@ -388,7 +427,10 @@ const Settings: React.FC = () => {
               </div>
 
               <div>
-                <Label htmlFor="confirm-password" className="text-sm font-medium mb-2 block">
+                <Label htmlFor="confirm-password" className={cn(
+                  "text-sm font-medium mb-2 block",
+                  "text-gray-700 dark:text-gray-200"
+                )}>
                   Confirm Password *
                 </Label>
                 <div className="relative">
@@ -434,7 +476,7 @@ const Settings: React.FC = () => {
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: 0.4 }}
       >
-        <Card className="border-red-200 dark:border-red-800">
+        <Card className="border-red-200 dark:border-red-800/30">
           <CardHeader>
             <CardTitle className="flex items-center space-x-2 text-red-600 dark:text-red-400">
               <AlertTriangle className="w-5 h-5" />
@@ -442,7 +484,10 @@ const Settings: React.FC = () => {
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg p-4">
+            <div className={cn(
+              "border rounded-lg p-4",
+              "bg-red-50 border-red-200 dark:bg-red-900/20 dark:border-red-800/30"
+            )}>
               <h3 className="font-semibold text-red-900 dark:text-red-200 mb-2">Delete Account</h3>
               <p className="text-red-700 dark:text-red-300 text-sm mb-4">
                 Once you delete your account, there is no going back. This will permanently delete your profile, 
@@ -472,7 +517,10 @@ const Settings: React.FC = () => {
           </DialogHeader>
           
           <div className="space-y-4">
-            <div className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg p-4">
+            <div className={cn(
+              "border rounded-lg p-4",
+              "bg-red-50 border-red-200 dark:bg-red-900/20 dark:border-red-800/30"
+            )}>
               <p className="text-red-800 dark:text-red-200 text-sm font-medium mb-2">
                 To confirm deletion, type <span className="font-bold">DELETE</span> in the box below:
               </p>
