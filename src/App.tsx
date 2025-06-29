@@ -97,7 +97,7 @@ function App() {
       case 'goals':
         return <Goals onCreateTask={() => setIsCreateTaskOpen(true)} />;
       case 'friends':
-        return <Friends />;
+        return <Friends onProfileClick={handleProfileClick} />;
       case 'badges':
         return <Badges />;
       case 'profile':

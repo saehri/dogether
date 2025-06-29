@@ -17,7 +17,11 @@ import {
 } from '@/data/mockData';
 import { cn } from '@/lib/utils';
 
-const Friends: React.FC = () => {
+interface FriendsProps {
+  onProfileClick?: (userId: string) => void;
+}
+
+const Friends: React.FC<FriendsProps> = ({ onProfileClick }) => {
   const [isAddFriendOpen, setIsAddFriendOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const [searchResults, setSearchResults] = useState<SearchableUser[]>([]);
@@ -178,6 +182,12 @@ const Friends: React.FC = () => {
     setTimeout(() => setShowSuggestions(false), 200);
   };
 
+  const handleFriendProfileClick = (friendId: string) => {
+    if (onProfileClick) {
+      onProfileClick(friendId);
+    }
+  };
+
   return (
     <div className="max-w-4xl mx-auto space-y-6">
       {/* Header */}
@@ -255,30 +265,49 @@ const Friends: React.FC = () => {
             <Card className="hover:shadow-md transition-all">
               <CardContent className="p-6 text-center">
                 <div className="relative inline-block mb-4">
-                  <Avatar className="w-16 h-16">
+                  <Avatar 
+                    className={cn(
+                      "w-16 h-16 cursor-pointer hover:ring-2 hover:ring-purple-300 dark:hover:ring-purple-500 transition-all",
+                      "border-2 border-purple-200 dark:border-purple-700"
+                    )}
+                    onClick={() => handleFriendProfileClick(friend.id)}
+                  >
                     <AvatarImage src={friend.avatar} alt={friend.name} />
-                    <AvatarFallback>{friend.name.charAt(0)}</AvatarFallback>
+                    <AvatarFallback className="bg-gradient-to-br from-purple-500 to-blue-600 text-white">
+                      {friend.name.charAt(0)}
+                    </AvatarFallback>
                   </Avatar>
                   {friend.isOnline && (
                     <div className="absolute -bottom-1 -right-1 w-5 h-5 bg-green-500 border-2 border-white rounded-full"></div>
                   )}
                 </div>
                 
-                <h3 className={cn(
-                  "font-semibold mb-1",
-                  "text-gray-900 dark:text-gray-100"
-                )}>
+                <h3 
+                  className={cn(
+                    "font-semibold mb-1 cursor-pointer hover:text-purple-600 dark:hover:text-purple-400 transition-colors",
+                    "text-gray-900 dark:text-gray-100"
+                  )}
+                  onClick={() => handleFriendProfileClick(friend.id)}
+                >
                   {friend.name}
                 </h3>
-                <p className={cn(
-                  "text-sm mb-4",
-                  "text-gray-600 dark:text-gray-200"
-                )}>
+                <p 
+                  className={cn(
+                    "text-sm mb-4 cursor-pointer hover:text-purple-500 dark:hover:text-purple-400 transition-colors",
+                    "text-gray-600 dark:text-gray-200"
+                  )}
+                  onClick={() => handleFriendProfileClick(friend.id)}
+                >
                   @{friend.username}
                 </p>
                 
                 <div className="flex justify-center">
-                  <Button variant="gradient" size="sm" className="w-full">
+                  <Button 
+                    variant="gradient" 
+                    size="sm" 
+                    className="w-full"
+                    onClick={() => handleFriendProfileClick(friend.id)}
+                  >
                     View Profile
                   </Button>
                 </div>
