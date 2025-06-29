@@ -117,13 +117,13 @@ export const authApi = {
     password: string; 
     date_of_birth: string; 
   }) =>
-    apiRequest('/auth/register', {
+    apiRequest('/register', {
       method: 'POST',
       data: userData,
     }),
 
   googleAuth: (token: string) =>
-    apiRequest('/auth/google', {
+    apiRequest('/google', {
       method: 'POST',
       data: { token },
     }),
@@ -136,24 +136,6 @@ export const authApi = {
   refreshToken: () =>
     apiRequest('/auth/refresh', {
       method: 'POST',
-    }),
-
-  verifyEmail: (token: string) =>
-    apiRequest('/auth/verify-email', {
-      method: 'POST',
-      data: { token },
-    }),
-
-  forgotPassword: (email: string) =>
-    apiRequest('/auth/forgot-password', {
-      method: 'POST',
-      data: { email },
-    }),
-
-  resetPassword: (token: string, password: string) =>
-    apiRequest('/auth/reset-password', {
-      method: 'POST',
-      data: { token, password },
     }),
 };
 
