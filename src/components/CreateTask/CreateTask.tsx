@@ -24,12 +24,16 @@ const CreateTask: React.FC<CreateTaskProps> = ({ isOpen, onClose, onCreateTask }
   const [duration, setDuration] = useState(7);
   const [targetCount, setTargetCount] = useState(7);
 
+  const isCreateDisabled = title.trim() === '';
+
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     
+    if (isCreateDisabled) return;
+    
     const newTask = {
       id: Date.now().toString(),
-      title,
+      title: title.trim(),
       description,
       type: taskType,
       userId: '1', // Current user
@@ -54,6 +58,12 @@ const CreateTask: React.FC<CreateTaskProps> = ({ isOpen, onClose, onCreateTask }
     setFrequency('daily');
     setDuration(7);
     setTargetCount(7);
+  };
+
+  const handleCreateClick = () => {
+    if (!isCreateDisabled) {
+      handleSubmit(new Event('submit') as any);
+    }
   };
 
   return (
@@ -105,7 +115,7 @@ const CreateTask: React.FC<CreateTaskProps> = ({ isOpen, onClose, onCreateTask }
             {/* Title */}
             <div>
               <Label htmlFor="title" className="text-sm font-medium text-gray-700 mb-2 block">
-                Title
+                Title *
               </Label>
               <Input
                 id="title"
@@ -113,7 +123,14 @@ const CreateTask: React.FC<CreateTaskProps> = ({ isOpen, onClose, onCreateTask }
                 onChange={(e) => setTitle(e.target.value)}
                 placeholder={taskType === 'task' ? 'e.g., Finish reading book' : 'e.g., Run 2km daily'}
                 required
+                className={cn(
+                  "transition-colors",
+                  title.trim() === '' && "border-red-300 focus:border-red-500 focus:ring-red-200"
+                )}
               />
+              {title.trim() === '' && (
+                <p className="text-xs text-red-600 mt-1">Title is required</p>
+              )}
             </div>
 
             {/* Description */}
@@ -193,10 +210,11 @@ const CreateTask: React.FC<CreateTaskProps> = ({ isOpen, onClose, onCreateTask }
               Cancel
             </Button>
             <Button
-              type="submit"
+              type="button"
               variant="gradient"
               className="flex-1"
-              onClick={handleSubmit}
+              onClick={handleCreateClick}
+              disabled={isCreateDisabled}
             >
               Create {taskType === 'task' ? 'Task' : 'Goal'}
             </Button>
