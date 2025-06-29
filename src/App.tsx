@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import AppRouter from '@/routes';
+import AppRouter from '@/router/AppRouter';
 import LoadingSpinner from '@/components/ui/loading-spinner';
 import ErrorBoundary from '@/components/ui/error-boundary';
 import { useAuth, useAuthActions } from '@/stores/authStore';
