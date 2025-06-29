@@ -1,8 +1,7 @@
 import React from 'react';
 import { motion } from 'framer-motion';
-import { Bell, Search, Plus, Menu } from 'lucide-react';
+import { Plus, Menu } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
 import { currentUser } from '@/data/mockData';
 
@@ -42,18 +41,6 @@ const Header: React.FC<HeaderProps> = ({ onMenuToggle, onCreateTask, onProfileCl
             </div>
           </div>
 
-          {/* Center - Search */}
-          <div className="hidden md:flex flex-1 max-w-md mx-8">
-            <div className="relative w-full">
-              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400" />
-              <Input
-                type="text"
-                placeholder="Search goals, friends..."
-                className="pl-10 bg-gray-50 border-gray-200"
-              />
-            </div>
-          </div>
-
           {/* Right side */}
           <div className="flex items-center space-x-3">
             <Button
@@ -64,13 +51,6 @@ const Header: React.FC<HeaderProps> = ({ onMenuToggle, onCreateTask, onProfileCl
               <Plus className="w-4 h-4" />
               <span className="hidden sm:inline">Create</span>
             </Button>
-
-            <div className="relative">
-              <Button variant="ghost" size="icon">
-                <Bell className="w-5 h-5" />
-              </Button>
-              <div className="absolute -top-1 -right-1 w-3 h-3 bg-red-500 rounded-full border-2 border-white"></div>
-            </div>
 
             <Avatar 
               className="w-8 h-8 border-2 border-purple-200 cursor-pointer hover:border-purple-400 transition-colors"
