@@ -26,6 +26,7 @@ interface AppActions {
   updateUser: (userId: string, updates: Partial<User>) => Promise<void>;
   deleteUser: (userId: string) => Promise<void>;
   addBadgeToUser: (userId: string, badgeId: string) => Promise<void>;
+  setCurrentUser: (user: User) => void;
   
   // Task actions
   createTask: (task: Omit<Task, 'id' | 'createdAt'>) => Promise<Task>;
@@ -85,7 +86,7 @@ const reviveNestedDates = (obj: any): any => {
 // Initial empty state - app should handle when no data exists
 const initialState: AppState = {
   currentUser: {
-    id: '1',
+    id: '',
     name: '',
     username: '',
     email: '',
@@ -108,6 +109,10 @@ export const useStore = create<Store>()(
         ...initialState,
 
         // User actions
+        setCurrentUser: (user: User) => {
+          set({ currentUser: user });
+        },
+
         updateUser: async (userId: string, updates: Partial<User>) => {
           set({ isLoading: true, error: null });
           try {

@@ -1,12 +1,13 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
-import { Eye, EyeOff, Mail, Lock, Chrome, ArrowRight, User } from 'lucide-react';
+import { Eye, EyeOff, Mail, Lock, Chrome, ArrowRight, AlertCircle, CheckCircle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardHeader } from '@/components/ui/card';
 import { authApi, setAuthToken } from '@/services/api';
+import { useStore } from '@/store/useStore';
 import { cn } from '@/lib/utils';
 
 interface LoginProps {
@@ -21,20 +22,44 @@ const Login: React.FC<LoginProps> = ({ onLogin, onGoogleLogin, onNavigateToRegis
   const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [errors, setErrors] = useState<Record<string, string>>({});
+  const [successMessage, setSuccessMessage] = useState<string | null>(null);
 
   const navigate = useNavigate();
   const location = useLocation();
   const from = location.state?.from?.pathname || '/';
+  const message = location.state?.message;
+
+  const { updateUser } = useStore();
+
+  // Show success message from registration
+  useEffect(() => {
+    if (message) {
+      setSuccessMessage(message);
+      // Clear message after 5 seconds
+      const timer = setTimeout(() => setSuccessMessage(null), 5000);
+      return () => clearTimeout(timer);
+    }
+  }, [message]);
 
   const validateForm = () => {
     const newErrors: Record<string, string> = {};
 
+    // Email/Username validation
     if (!email.trim()) {
       newErrors.email = 'Email or username is required';
-    } else if (email.includes('@') && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
-      newErrors.email = 'Please enter a valid email address';
+    } else if (email.includes('@')) {
+      // If it contains @, validate as email
+      if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+        newErrors.email = 'Please enter a valid email address';
+      }
+    } else {
+      // If no @, validate as username (basic validation)
+      if (email.trim().length < 3) {
+        newErrors.email = 'Username must be at least 3 characters';
+      }
     }
 
+    // Password validation
     if (!password) {
       newErrors.password = 'Password is required';
     } else if (password.length < 6) {
@@ -45,6 +70,11 @@ const Login: React.FC<LoginProps> = ({ onLogin, onGoogleLogin, onNavigateToRegis
     return Object.keys(newErrors).length === 0;
   };
 
+  const sanitizeInput = (input: string) => {
+    // Basic input sanitization
+    return input.trim().replace(/[<>]/g, '');
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
@@ -52,30 +82,54 @@ const Login: React.FC<LoginProps> = ({ onLogin, onGoogleLogin, onNavigateToRegis
 
     setIsLoading(true);
     setErrors({});
+    setSuccessMessage(null);
 
     try {
-      const response = await authApi.login({
-        email: email.trim(),
-        password
-      });
+      // Sanitize inputs
+      const sanitizedEmail = sanitizeInput(email);
+      const credentials = {
+        email: sanitizedEmail,
+        password: password // Don't sanitize password as it might contain special chars
+      };
+
+      const response = await authApi.login(credentials);
 
       if (response.success && response.data?.token) {
-        // Store the auth token
+        // Store the auth token securely
         setAuthToken(response.data.token);
         
+        // Update user data in store if provided
+        if (response.data.user) {
+          await updateUser(response.data.user.id, response.data.user);
+        }
+        
         // Call the parent component's onLogin handler
-        onLogin({ email: email.trim(), password });
+        onLogin(credentials);
         
         // Navigate to intended page
         navigate(from, { replace: true });
       } else {
-        setErrors({ general: response.data?.message || 'Login failed. Please try again.' });
+        setErrors({ 
+          general: response.data?.message || 'Login failed. Please check your credentials and try again.' 
+        });
       }
     } catch (error: any) {
       console.error('Login error:', error);
-      setErrors({ 
-        general: error.message || 'Login failed. Please check your credentials and try again.' 
-      });
+      
+      // Handle different types of errors
+      let errorMessage = 'Login failed. Please try again.';
+      
+      if (error.status === 401) {
+        errorMessage = 'Invalid email/username or password. Please check your credentials.';
+      } else if (error.status === 429) {
+        errorMessage = 'Too many login attempts. Please try again later.';
+      } else if (error.status === 500) {
+        errorMessage = 'Server error. Please try again later.';
+      } else if (error.message) {
+        errorMessage = error.message;
+      }
+      
+      setErrors({ general: errorMessage });
     } finally {
       setIsLoading(false);
     }
@@ -84,6 +138,7 @@ const Login: React.FC<LoginProps> = ({ onLogin, onGoogleLogin, onNavigateToRegis
   const handleGoogleLogin = async () => {
     setIsLoading(true);
     setErrors({});
+    setSuccessMessage(null);
 
     try {
       // In a real implementation, you would integrate with Google OAuth
@@ -96,6 +151,12 @@ const Login: React.FC<LoginProps> = ({ onLogin, onGoogleLogin, onNavigateToRegis
       setErrors({ general: 'Google login failed. Please try again.' });
     } finally {
       setIsLoading(false);
+    }
+  };
+
+  const clearError = (field: string) => {
+    if (errors[field]) {
+      setErrors(prev => ({ ...prev, [field]: '' }));
     }
   };
 
@@ -129,6 +190,22 @@ const Login: React.FC<LoginProps> = ({ onLogin, onGoogleLogin, onNavigateToRegis
             Welcome back! Sign in to continue your journey.
           </p>
         </motion.div>
+
+        {/* Success Message */}
+        {successMessage && (
+          <motion.div
+            initial={{ opacity: 0, y: -10 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -10 }}
+            className={cn(
+              "border rounded-lg p-4 flex items-center space-x-2 mb-6",
+              "bg-green-50 border-green-200 dark:bg-green-900/20 dark:border-green-800/30"
+            )}
+          >
+            <CheckCircle className="w-5 h-5 text-green-600 dark:text-green-400 flex-shrink-0" />
+            <span className="text-green-800 dark:text-green-200 text-sm">{successMessage}</span>
+          </motion.div>
+        )}
 
         {/* Login Card */}
         <motion.div
@@ -188,7 +265,7 @@ const Login: React.FC<LoginProps> = ({ onLogin, onGoogleLogin, onNavigateToRegis
                     "text-sm font-medium mb-2 block",
                     "text-gray-700 dark:text-gray-200"
                   )}>
-                    Email or Username
+                    Email or Username *
                   </Label>
                   <div className="relative">
                     <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 dark:text-gray-500" />
@@ -196,17 +273,25 @@ const Login: React.FC<LoginProps> = ({ onLogin, onGoogleLogin, onNavigateToRegis
                       id="email"
                       type="text"
                       value={email}
-                      onChange={(e) => setEmail(e.target.value)}
+                      onChange={(e) => {
+                        setEmail(e.target.value);
+                        clearError('email');
+                      }}
                       placeholder="Enter your email or username"
                       className={cn(
                         "pl-10 h-12",
                         errors.email && "border-red-500 focus:border-red-500 dark:border-red-400"
                       )}
                       disabled={isLoading}
+                      autoComplete="username"
+                      required
                     />
                   </div>
                   {errors.email && (
-                    <p className="text-xs text-red-600 dark:text-red-400 mt-1">{errors.email}</p>
+                    <p className="text-xs text-red-600 dark:text-red-400 mt-1 flex items-center space-x-1">
+                      <AlertCircle className="w-3 h-3" />
+                      <span>{errors.email}</span>
+                    </p>
                   )}
                 </div>
 
@@ -216,7 +301,7 @@ const Login: React.FC<LoginProps> = ({ onLogin, onGoogleLogin, onNavigateToRegis
                     "text-sm font-medium mb-2 block",
                     "text-gray-700 dark:text-gray-200"
                   )}>
-                    Password
+                    Password *
                   </Label>
                   <div className="relative">
                     <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 dark:text-gray-500" />
@@ -224,13 +309,18 @@ const Login: React.FC<LoginProps> = ({ onLogin, onGoogleLogin, onNavigateToRegis
                       id="password"
                       type={showPassword ? "text" : "password"}
                       value={password}
-                      onChange={(e) => setPassword(e.target.value)}
+                      onChange={(e) => {
+                        setPassword(e.target.value);
+                        clearError('password');
+                      }}
                       placeholder="Enter your password"
                       className={cn(
                         "pl-10 pr-10 h-12",
                         errors.password && "border-red-500 focus:border-red-500 dark:border-red-400"
                       )}
                       disabled={isLoading}
+                      autoComplete="current-password"
+                      required
                     />
                     <Button
                       type="button"
@@ -239,12 +329,16 @@ const Login: React.FC<LoginProps> = ({ onLogin, onGoogleLogin, onNavigateToRegis
                       className="absolute right-2 top-1/2 -translate-y-1/2 h-8 w-8"
                       onClick={() => setShowPassword(!showPassword)}
                       disabled={isLoading}
+                      tabIndex={-1}
                     >
                       {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
                     </Button>
                   </div>
                   {errors.password && (
-                    <p className="text-xs text-red-600 dark:text-red-400 mt-1">{errors.password}</p>
+                    <p className="text-xs text-red-600 dark:text-red-400 mt-1 flex items-center space-x-1">
+                      <AlertCircle className="w-3 h-3" />
+                      <span>{errors.password}</span>
+                    </p>
                   )}
                 </div>
 
@@ -254,6 +348,7 @@ const Login: React.FC<LoginProps> = ({ onLogin, onGoogleLogin, onNavigateToRegis
                     type="button"
                     variant="link"
                     className="text-sm text-purple-600 dark:text-purple-400 hover:text-purple-700 dark:hover:text-purple-300 p-0 h-auto"
+                    disabled={isLoading}
                   >
                     Forgot password?
                   </Button>
@@ -265,7 +360,10 @@ const Login: React.FC<LoginProps> = ({ onLogin, onGoogleLogin, onNavigateToRegis
                     "border rounded-lg p-3",
                     "bg-red-50 border-red-200 dark:bg-red-900/20 dark:border-red-800/30"
                   )}>
-                    <p className="text-red-700 dark:text-red-300 text-sm">{errors.general}</p>
+                    <div className="flex items-center space-x-2">
+                      <AlertCircle className="w-4 h-4 text-red-600 dark:text-red-400 flex-shrink-0" />
+                      <p className="text-red-700 dark:text-red-300 text-sm">{errors.general}</p>
+                    </div>
                   </div>
                 )}
 
@@ -274,7 +372,7 @@ const Login: React.FC<LoginProps> = ({ onLogin, onGoogleLogin, onNavigateToRegis
                   type="submit"
                   variant="gradient"
                   className="w-full h-12 flex items-center justify-center space-x-2"
-                  disabled={isLoading}
+                  disabled={isLoading || !email.trim() || !password}
                 >
                   {isLoading ? (
                     <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
@@ -296,7 +394,7 @@ const Login: React.FC<LoginProps> = ({ onLogin, onGoogleLogin, onNavigateToRegis
                   Don't have an account?{' '}
                   <Link
                     to="/register"
-                    className="text-purple-600 dark:text-purple-400 hover:text-purple-700 dark:hover:text-purple-300 font-semibold"
+                    className="text-purple-600 dark:text-purple-400 hover:text-purple-700 dark:hover:text-purple-300 font-semibold transition-colors"
                   >
                     Create one here
                   </Link>
@@ -317,7 +415,14 @@ const Login: React.FC<LoginProps> = ({ onLogin, onGoogleLogin, onNavigateToRegis
             "text-xs",
             "text-gray-500 dark:text-gray-400"
           )}>
-            By signing in, you agree to our Terms of Service and Privacy Policy
+            By signing in, you agree to our{' '}
+            <button className="text-purple-600 dark:text-purple-400 hover:underline">
+              Terms of Service
+            </button>
+            {' '}and{' '}
+            <button className="text-purple-600 dark:text-purple-400 hover:underline">
+              Privacy Policy
+            </button>
           </p>
         </motion.div>
       </motion.div>

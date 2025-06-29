@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { motion } from 'framer-motion';
 import { Link, useNavigate } from 'react-router-dom';
-import { Eye, EyeOff, Mail, Lock, User, Chrome, ArrowRight, Check, Calendar } from 'lucide-react';
+import { Eye, EyeOff, Mail, Lock, User, Chrome, ArrowRight, Check, Calendar, AlertCircle } from 'lucide-react';
 import { format } from 'date-fns';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -38,26 +38,34 @@ const Register: React.FC<RegisterProps> = ({ onRegister, onGoogleRegister, onNav
   const validateForm = () => {
     const newErrors: Record<string, string> = {};
 
+    // Full name validation
     if (!formData.fullname.trim()) {
       newErrors.fullname = 'Full name is required';
     } else if (formData.fullname.trim().length < 2) {
       newErrors.fullname = 'Name must be at least 2 characters';
+    } else if (!/^[a-zA-Z\s'-]+$/.test(formData.fullname.trim())) {
+      newErrors.fullname = 'Name can only contain letters, spaces, hyphens, and apostrophes';
     }
 
+    // Username validation
     if (!formData.username.trim()) {
       newErrors.username = 'Username is required';
     } else if (formData.username.trim().length < 3) {
       newErrors.username = 'Username must be at least 3 characters';
+    } else if (formData.username.trim().length > 20) {
+      newErrors.username = 'Username must be less than 20 characters';
     } else if (!/^[a-zA-Z0-9_]+$/.test(formData.username.trim())) {
       newErrors.username = 'Username can only contain letters, numbers, and underscores';
     }
 
+    // Email validation
     if (!formData.email.trim()) {
       newErrors.email = 'Email is required';
-    } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email)) {
+    } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email.trim())) {
       newErrors.email = 'Please enter a valid email address';
     }
 
+    // Password validation
     if (!formData.password) {
       newErrors.password = 'Password is required';
     } else if (formData.password.length < 8) {
@@ -66,12 +74,14 @@ const Register: React.FC<RegisterProps> = ({ onRegister, onGoogleRegister, onNav
       newErrors.password = 'Password must contain at least one uppercase letter, one lowercase letter, and one number';
     }
 
+    // Confirm password validation
     if (!formData.confirmPassword) {
       newErrors.confirmPassword = 'Please confirm your password';
     } else if (formData.password !== formData.confirmPassword) {
       newErrors.confirmPassword = 'Passwords do not match';
     }
 
+    // Date of birth validation
     if (!dateOfBirth) {
       newErrors.date_of_birth = 'Date of birth is required';
     } else {
@@ -84,16 +94,24 @@ const Register: React.FC<RegisterProps> = ({ onRegister, onGoogleRegister, onNav
       const actualAge = monthDiff < 0 || (monthDiff === 0 && dayDiff < 0) ? age - 1 : age;
       
       if (actualAge < 13) {
-        newErrors.date_of_birth = 'You must be at least 13 years old';
+        newErrors.date_of_birth = 'You must be at least 13 years old to register';
+      } else if (dateOfBirth > today) {
+        newErrors.date_of_birth = 'Date of birth cannot be in the future';
       }
     }
 
+    // Terms acceptance validation
     if (!acceptTerms) {
-      newErrors.terms = 'You must accept the terms and conditions';
+      newErrors.terms = 'You must accept the terms and conditions to register';
     }
 
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
+  };
+
+  const sanitizeInput = (input: string) => {
+    // Basic input sanitization
+    return input.trim().replace(/[<>]/g, '');
   };
 
   const handleInputChange = (field: string, value: string) => {
@@ -121,37 +139,56 @@ const Register: React.FC<RegisterProps> = ({ onRegister, onGoogleRegister, onNav
     setErrors({});
 
     try {
+      // Sanitize inputs
       const userData = {
-        username: formData.username.trim(),
-        fullname: formData.fullname.trim(),
-        email: formData.email.trim(),
-        password: formData.password,
+        username: sanitizeInput(formData.username),
+        fullname: sanitizeInput(formData.fullname),
+        email: sanitizeInput(formData.email),
+        password: formData.password, // Don't sanitize password
         date_of_birth: dateOfBirth ? format(dateOfBirth, 'yyyy-MM-dd') : ''
       };
 
       const response = await authApi.register(userData);
 
-      if (response.success && response.data?.token) {
-        // Store the auth token
-        setAuthToken(response.data.token);
+      if (response.success) {
+        // Store auth token if provided
+        if (response.data?.token) {
+          setAuthToken(response.data.token);
+        }
         
         // Call the parent component's onRegister handler
         onRegister(userData);
         
-        // Navigate to login page after successful registration
+        // Navigate to login page with success message
         navigate('/login', { 
           state: { 
             message: 'Registration successful! Please sign in with your new account.' 
           } 
         });
       } else {
-        setErrors({ general: response.data?.message || 'Registration failed. Please try again.' });
+        setErrors({ 
+          general: response.data?.message || 'Registration failed. Please try again.' 
+        });
       }
     } catch (error: any) {
       console.error('Registration error:', error);
-      setErrors({ 
-        general: error.message || 'Registration failed. Please check your information and try again.' 
-      });
+      
+      // Handle different types of errors
+      let errorMessage = 'Registration failed. Please try again.';
+      
+      if (error.status === 409) {
+        errorMessage = 'An account with this email or username already exists.';
+      } else if (error.status === 422) {
+        errorMessage = 'Please check your information and try again.';
+      } else if (error.status === 429) {
+        errorMessage = 'Too many registration attempts. Please try again later.';
+      } else if (error.status === 500) {
+        errorMessage = 'Server error. Please try again later.';
+      } else if (error.message) {
+        errorMessage = error.message;
+      }
+      
+      setErrors({ general: errorMessage });
     } finally {
       setIsLoading(false);
     }
@@ -197,6 +234,12 @@ const Register: React.FC<RegisterProps> = ({ onRegister, onGoogleRegister, onNav
   const passwordStrength = getPasswordStrength();
   const strengthColors = ['bg-red-500', 'bg-orange-500', 'bg-yellow-500', 'bg-blue-500', 'bg-green-500'];
   const strengthLabels = ['Very Weak', 'Weak', 'Fair', 'Good', 'Strong'];
+
+  const clearError = (field: string) => {
+    if (errors[field]) {
+      setErrors(prev => ({ ...prev, [field]: '' }));
+    }
+  };
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-purple-50 via-blue-50 to-indigo-100 dark:from-gray-900 dark:via-purple-900/20 dark:to-blue-900/20 flex items-center justify-center p-6">
@@ -287,7 +330,7 @@ const Register: React.FC<RegisterProps> = ({ onRegister, onGoogleRegister, onNav
                     "text-sm font-medium mb-2 block",
                     "text-gray-700 dark:text-gray-200"
                   )}>
-                    Full Name
+                    Full Name *
                   </Label>
                   <div className="relative">
                     <User className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 dark:text-gray-500" />
@@ -302,10 +345,15 @@ const Register: React.FC<RegisterProps> = ({ onRegister, onGoogleRegister, onNav
                         errors.fullname && "border-red-500 focus:border-red-500 dark:border-red-400"
                       )}
                       disabled={isLoading}
+                      autoComplete="name"
+                      required
                     />
                   </div>
                   {errors.fullname && (
-                    <p className="text-xs text-red-600 dark:text-red-400 mt-1">{errors.fullname}</p>
+                    <p className="text-xs text-red-600 dark:text-red-400 mt-1 flex items-center space-x-1">
+                      <AlertCircle className="w-3 h-3" />
+                      <span>{errors.fullname}</span>
+                    </p>
                   )}
                 </div>
 
@@ -315,7 +363,7 @@ const Register: React.FC<RegisterProps> = ({ onRegister, onGoogleRegister, onNav
                     "text-sm font-medium mb-2 block",
                     "text-gray-700 dark:text-gray-200"
                   )}>
-                    Username
+                    Username *
                   </Label>
                   <div className="relative">
                     <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 dark:text-gray-500 text-sm">@</span>
@@ -330,10 +378,15 @@ const Register: React.FC<RegisterProps> = ({ onRegister, onGoogleRegister, onNav
                         errors.username && "border-red-500 focus:border-red-500 dark:border-red-400"
                       )}
                       disabled={isLoading}
+                      autoComplete="username"
+                      required
                     />
                   </div>
                   {errors.username && (
-                    <p className="text-xs text-red-600 dark:text-red-400 mt-1">{errors.username}</p>
+                    <p className="text-xs text-red-600 dark:text-red-400 mt-1 flex items-center space-x-1">
+                      <AlertCircle className="w-3 h-3" />
+                      <span>{errors.username}</span>
+                    </p>
                   )}
                 </div>
 
@@ -343,7 +396,7 @@ const Register: React.FC<RegisterProps> = ({ onRegister, onGoogleRegister, onNav
                     "text-sm font-medium mb-2 block",
                     "text-gray-700 dark:text-gray-200"
                   )}>
-                    Email Address
+                    Email Address *
                   </Label>
                   <div className="relative">
                     <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 dark:text-gray-500" />
@@ -358,10 +411,15 @@ const Register: React.FC<RegisterProps> = ({ onRegister, onGoogleRegister, onNav
                         errors.email && "border-red-500 focus:border-red-500 dark:border-red-400"
                       )}
                       disabled={isLoading}
+                      autoComplete="email"
+                      required
                     />
                   </div>
                   {errors.email && (
-                    <p className="text-xs text-red-600 dark:text-red-400 mt-1">{errors.email}</p>
+                    <p className="text-xs text-red-600 dark:text-red-400 mt-1 flex items-center space-x-1">
+                      <AlertCircle className="w-3 h-3" />
+                      <span>{errors.email}</span>
+                    </p>
                   )}
                 </div>
 
@@ -371,7 +429,7 @@ const Register: React.FC<RegisterProps> = ({ onRegister, onGoogleRegister, onNav
                     "text-sm font-medium mb-2 block",
                     "text-gray-700 dark:text-gray-200"
                   )}>
-                    Date of Birth
+                    Date of Birth *
                   </Label>
                   <Popover>
                     <PopoverTrigger asChild>
@@ -408,7 +466,10 @@ const Register: React.FC<RegisterProps> = ({ onRegister, onGoogleRegister, onNav
                     </PopoverContent>
                   </Popover>
                   {errors.date_of_birth && (
-                    <p className="text-xs text-red-600 dark:text-red-400 mt-1">{errors.date_of_birth}</p>
+                    <p className="text-xs text-red-600 dark:text-red-400 mt-1 flex items-center space-x-1">
+                      <AlertCircle className="w-3 h-3" />
+                      <span>{errors.date_of_birth}</span>
+                    </p>
                   )}
                 </div>
 
@@ -418,7 +479,7 @@ const Register: React.FC<RegisterProps> = ({ onRegister, onGoogleRegister, onNav
                     "text-sm font-medium mb-2 block",
                     "text-gray-700 dark:text-gray-200"
                   )}>
-                    Password
+                    Password *
                   </Label>
                   <div className="relative">
                     <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 dark:text-gray-500" />
@@ -433,6 +494,8 @@ const Register: React.FC<RegisterProps> = ({ onRegister, onGoogleRegister, onNav
                         errors.password && "border-red-500 focus:border-red-500 dark:border-red-400"
                       )}
                       disabled={isLoading}
+                      autoComplete="new-password"
+                      required
                     />
                     <Button
                       type="button"
@@ -441,6 +504,7 @@ const Register: React.FC<RegisterProps> = ({ onRegister, onGoogleRegister, onNav
                       className="absolute right-2 top-1/2 -translate-y-1/2 h-8 w-8"
                       onClick={() => setShowPassword(!showPassword)}
                       disabled={isLoading}
+                      tabIndex={-1}
                     >
                       {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
                     </Button>
@@ -472,7 +536,10 @@ const Register: React.FC<RegisterProps> = ({ onRegister, onGoogleRegister, onNav
                   )}
                   
                   {errors.password && (
-                    <p className="text-xs text-red-600 dark:text-red-400 mt-1">{errors.password}</p>
+                    <p className="text-xs text-red-600 dark:text-red-400 mt-1 flex items-center space-x-1">
+                      <AlertCircle className="w-3 h-3" />
+                      <span>{errors.password}</span>
+                    </p>
                   )}
                 </div>
 
@@ -482,7 +549,7 @@ const Register: React.FC<RegisterProps> = ({ onRegister, onGoogleRegister, onNav
                     "text-sm font-medium mb-2 block",
                     "text-gray-700 dark:text-gray-200"
                   )}>
-                    Confirm Password
+                    Confirm Password *
                   </Label>
                   <div className="relative">
                     <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 dark:text-gray-500" />
@@ -497,6 +564,8 @@ const Register: React.FC<RegisterProps> = ({ onRegister, onGoogleRegister, onNav
                         errors.confirmPassword && "border-red-500 focus:border-red-500 dark:border-red-400"
                       )}
                       disabled={isLoading}
+                      autoComplete="new-password"
+                      required
                     />
                     <Button
                       type="button"
@@ -505,12 +574,16 @@ const Register: React.FC<RegisterProps> = ({ onRegister, onGoogleRegister, onNav
                       className="absolute right-2 top-1/2 -translate-y-1/2 h-8 w-8"
                       onClick={() => setShowConfirmPassword(!showConfirmPassword)}
                       disabled={isLoading}
+                      tabIndex={-1}
                     >
                       {showConfirmPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
                     </Button>
                   </div>
                   {errors.confirmPassword && (
-                    <p className="text-xs text-red-600 dark:text-red-400 mt-1">{errors.confirmPassword}</p>
+                    <p className="text-xs text-red-600 dark:text-red-400 mt-1 flex items-center space-x-1">
+                      <AlertCircle className="w-3 h-3" />
+                      <span>{errors.confirmPassword}</span>
+                    </p>
                   )}
                 </div>
 
@@ -518,12 +591,16 @@ const Register: React.FC<RegisterProps> = ({ onRegister, onGoogleRegister, onNav
                 <div className="flex items-start space-x-3">
                   <button
                     type="button"
-                    onClick={() => setAcceptTerms(!acceptTerms)}
+                    onClick={() => {
+                      setAcceptTerms(!acceptTerms);
+                      clearError('terms');
+                    }}
                     className={cn(
                       "w-5 h-5 rounded border-2 flex items-center justify-center transition-colors mt-0.5",
                       acceptTerms 
                         ? "bg-purple-600 border-purple-600 text-white" 
-                        : "border-gray-300 dark:border-gray-600 hover:border-purple-400"
+                        : "border-gray-300 dark:border-gray-600 hover:border-purple-400",
+                      errors.terms && "border-red-500"
                     )}
                     disabled={isLoading}
                   >
@@ -535,16 +612,25 @@ const Register: React.FC<RegisterProps> = ({ onRegister, onGoogleRegister, onNav
                       "text-gray-600 dark:text-gray-400"
                     )}>
                       I agree to the{' '}
-                      <Button variant="link" className="text-purple-600 dark:text-purple-400 p-0 h-auto text-sm">
+                      <button 
+                        type="button"
+                        className="text-purple-600 dark:text-purple-400 hover:underline"
+                      >
                         Terms of Service
-                      </Button>
+                      </button>
                       {' '}and{' '}
-                      <Button variant="link" className="text-purple-600 dark:text-purple-400 p-0 h-auto text-sm">
+                      <button 
+                        type="button"
+                        className="text-purple-600 dark:text-purple-400 hover:underline"
+                      >
                         Privacy Policy
-                      </Button>
+                      </button>
                     </p>
                     {errors.terms && (
-                      <p className="text-xs text-red-600 dark:text-red-400 mt-1">{errors.terms}</p>
+                      <p className="text-xs text-red-600 dark:text-red-400 mt-1 flex items-center space-x-1">
+                        <AlertCircle className="w-3 h-3" />
+                        <span>{errors.terms}</span>
+                      </p>
                     )}
                   </div>
                 </div>
@@ -555,7 +641,10 @@ const Register: React.FC<RegisterProps> = ({ onRegister, onGoogleRegister, onNav
                     "border rounded-lg p-3",
                     "bg-red-50 border-red-200 dark:bg-red-900/20 dark:border-red-800/30"
                   )}>
-                    <p className="text-red-700 dark:text-red-300 text-sm">{errors.general}</p>
+                    <div className="flex items-center space-x-2">
+                      <AlertCircle className="w-4 h-4 text-red-600 dark:text-red-400 flex-shrink-0" />
+                      <p className="text-red-700 dark:text-red-300 text-sm">{errors.general}</p>
+                    </div>
                   </div>
                 )}
 
@@ -564,7 +653,7 @@ const Register: React.FC<RegisterProps> = ({ onRegister, onGoogleRegister, onNav
                   type="submit"
                   variant="gradient"
                   className="w-full h-12 flex items-center justify-center space-x-2"
-                  disabled={isLoading}
+                  disabled={isLoading || !formData.fullname.trim() || !formData.username.trim() || !formData.email.trim() || !formData.password || !formData.confirmPassword || !dateOfBirth || !acceptTerms}
                 >
                   {isLoading ? (
                     <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
@@ -586,7 +675,7 @@ const Register: React.FC<RegisterProps> = ({ onRegister, onGoogleRegister, onNav
                   Already have an account?{' '}
                   <Link
                     to="/login"
-                    className="text-purple-600 dark:text-purple-400 hover:text-purple-700 dark:hover:text-purple-300 font-semibold"
+                    className="text-purple-600 dark:text-purple-400 hover:text-purple-700 dark:hover:text-purple-300 font-semibold transition-colors"
                   >
                     Sign in here
                   </Link>
