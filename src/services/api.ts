@@ -129,7 +129,7 @@ export const authApi = {
     }),
 
   logout: () =>
-    apiRequest('/auth/logout', {
+    apiRequest('/logout', {
       method: 'POST',
     }),
 
