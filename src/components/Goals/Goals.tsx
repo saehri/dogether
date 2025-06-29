@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { motion } from 'framer-motion';
-import { Filter, Plus } from 'lucide-react';
+import { Filter, Plus, Target } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { useCurrentUser, useUserTasks, useUserStats } from '@/store/useStore';
@@ -80,97 +80,109 @@ const Goals: React.FC<GoalsProps> = ({ onCreateTask }) => {
           </p>
         </div>
         
-        <Button variant="gradient" onClick={onCreateTask} className="flex items-center space-x-2">
+        <Button variant="gradient" onClick={onCreateTask} className="flex items-center space-x-2" data-create-task>
           <Plus className="w-4 h-4" />
           <span>New Goal</span>
         </Button>
       </motion.div>
 
-      {/* Stats */}
-      <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: 0.1 }}
-        className="grid grid-cols-1 md:grid-cols-4 gap-4"
-      >
-        {statsData.map((stat, index) => (
-          <Card key={index} className="overflow-hidden">
-            <CardContent className={`p-6 bg-gradient-to-br ${stat.gradient} text-white`}>
-              <h3 className="text-2xl font-bold">{stat.value}</h3>
-              <p className="text-white/80">{stat.title}</p>
-            </CardContent>
-          </Card>
-        ))}
-      </motion.div>
-
-      {/* Filters */}
-      <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: 0.2 }}
-        className="flex items-center space-x-4"
-      >
-        <Filter className={cn(
-          "w-5 h-5",
-          "text-gray-600 dark:text-gray-200"
-        )} />
-        <div className="flex space-x-2">
-          {filterOptions.map(({ key, label }) => (
-            <Button
-              key={key}
-              variant={filter === key ? "default" : "ghost"}
-              onClick={() => setFilter(key as typeof filter)}
-              className={filter === key ? "bg-gradient-to-r from-purple-500 to-blue-600" : ""}
-            >
-              {label}
-            </Button>
+      {/* Stats - Only show if there are tasks */}
+      {myTasks.length > 0 && (
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.1 }}
+          className="grid grid-cols-1 md:grid-cols-4 gap-4"
+        >
+          {statsData.map((stat, index) => (
+            <Card key={index} className="overflow-hidden">
+              <CardContent className={`p-6 bg-gradient-to-br ${stat.gradient} text-white`}>
+                <h3 className="text-2xl font-bold">{stat.value}</h3>
+                <p className="text-white/80">{stat.title}</p>
+              </CardContent>
+            </Card>
           ))}
-        </div>
-      </motion.div>
+        </motion.div>
+      )}
 
-      {/* Goals Grid */}
-      <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: 0.3 }}
-        className="grid grid-cols-1 md:grid-cols-2 gap-6"
-      >
-        {filteredTasks.map((task, index) => (
-          <motion.div
-            key={task.id}
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: index * 0.1 }}
-          >
-            <GoalCard task={task} />
-          </motion.div>
-        ))}
-      </motion.div>
+      {/* Filters - Only show if there are tasks */}
+      {myTasks.length > 0 && (
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.2 }}
+          className="flex items-center space-x-4"
+        >
+          <Filter className={cn(
+            "w-5 h-5",
+            "text-gray-600 dark:text-gray-200"
+          )} />
+          <div className="flex space-x-2">
+            {filterOptions.map(({ key, label }) => (
+              <Button
+                key={key}
+                variant={filter === key ? "default" : "ghost"}
+                onClick={() => setFilter(key as typeof filter)}
+                className={filter === key ? "bg-gradient-to-r from-purple-500 to-blue-600" : ""}
+              >
+                {label}
+              </Button>
+            ))}
+          </div>
+        </motion.div>
+      )}
 
-      {filteredTasks.length === 0 && (
+      {/* Goals Grid or Empty State */}
+      {filteredTasks.length === 0 ? (
         <motion.div
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
-          className="text-center py-12"
+          className="text-center py-16"
         >
-          <div className="w-16 h-16 bg-gray-100 dark:bg-gray-800 rounded-full flex items-center justify-center mx-auto mb-4">
-            <Plus className="w-8 h-8 text-gray-400 dark:text-gray-500" />
-          </div>
-          <h3 className={cn(
-            "text-xl font-semibold mb-2",
-            "text-gray-900 dark:text-gray-100"
-          )}>
-            No goals found
-          </h3>
-          <p className={cn(
-            "mb-6",
-            "text-gray-600 dark:text-gray-200"
-          )}>
-            Create your first goal to get started!
-          </p>
-          <Button variant="gradient" onClick={onCreateTask}>
-            Create Goal
-          </Button>
+          <Card className="max-w-md mx-auto">
+            <CardContent className="p-12 text-center">
+              <div className="w-20 h-20 bg-gradient-to-br from-purple-100 to-blue-100 dark:from-purple-900/20 dark:to-blue-900/20 rounded-full flex items-center justify-center mx-auto mb-6">
+                <Target className="w-10 h-10 text-purple-600 dark:text-purple-400" />
+              </div>
+              <h3 className={cn(
+                "text-xl font-semibold mb-3",
+                "text-gray-900 dark:text-gray-100"
+              )}>
+                {myTasks.length === 0 ? 'No goals yet' : `No ${filter === 'all' ? '' : filter} goals found`}
+              </h3>
+              <p className={cn(
+                "mb-6 leading-relaxed",
+                "text-gray-600 dark:text-gray-300"
+              )}>
+                {myTasks.length === 0 
+                  ? 'Start your journey by creating your first goal or task. Set targets, track progress, and achieve success!'
+                  : `You don't have any ${filter === 'all' ? '' : filter} goals yet. Try a different filter or create a new goal.`
+                }
+              </p>
+              <Button variant="gradient" onClick={onCreateTask} className="flex items-center space-x-2">
+                <Plus className="w-4 h-4" />
+                <span>Create Goal</span>
+              </Button>
+            </CardContent>
+          </Card>
+        </motion.div>
+      ) : (
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.3 }}
+          className="grid grid-cols-1 md:grid-cols-2 gap-6"
+        >
+          {filteredTasks.map((task, index) => (
+            <motion.div
+              key={task.id}
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: index * 0.1 }}
+            >
+              <GoalCard task={task} />
+            </motion.div>
+          ))}
         </motion.div>
       )}
     </div>

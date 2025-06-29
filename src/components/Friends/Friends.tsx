@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { UserPlus, Users, Zap, Search, X, MapPin, Calendar } from 'lucide-react';
+import { UserPlus, Users, Zap, Search, X, MapPin, Calendar, UserCheck } from 'lucide-react';
 import { Card, CardContent, CardHeader } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -248,74 +248,111 @@ const Friends: React.FC<FriendsProps> = ({ onProfileClick }) => {
         </Button>
       </motion.div>
 
-      {/* Friends List */}
-      <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: 0.3 }}
-        className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4"
-      >
-        {friends.map((friend, index) => (
-          <motion.div
-            key={friend.id}
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: index * 0.1 }}
-          >
-            <Card className="hover:shadow-md transition-all">
-              <CardContent className="p-6 text-center">
-                <div className="relative inline-block mb-4">
-                  <Avatar 
+      {/* Friends List or Empty State */}
+      {friends.length === 0 ? (
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.3 }}
+          className="text-center py-16"
+        >
+          <Card className="max-w-md mx-auto">
+            <CardContent className="p-12 text-center">
+              <div className="w-20 h-20 bg-gradient-to-br from-purple-100 to-blue-100 dark:from-purple-900/20 dark:to-blue-900/20 rounded-full flex items-center justify-center mx-auto mb-6">
+                <UserCheck className="w-10 h-10 text-purple-600 dark:text-purple-400" />
+              </div>
+              <h3 className={cn(
+                "text-xl font-semibold mb-3",
+                "text-gray-900 dark:text-gray-100"
+              )}>
+                No friends yet
+              </h3>
+              <p className={cn(
+                "mb-6 leading-relaxed",
+                "text-gray-600 dark:text-gray-300"
+              )}>
+                Start building your network! Add friends to share your goals, motivate each other, and celebrate achievements together.
+              </p>
+              <Button 
+                variant="gradient" 
+                className="flex items-center space-x-2"
+                onClick={() => setIsAddFriendOpen(true)}
+              >
+                <UserPlus className="w-4 h-4" />
+                <span>Find Friends</span>
+              </Button>
+            </CardContent>
+          </Card>
+        </motion.div>
+      ) : (
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.3 }}
+          className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4"
+        >
+          {friends.map((friend, index) => (
+            <motion.div
+              key={friend.id}
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: index * 0.1 }}
+            >
+              <Card className="hover:shadow-md transition-all">
+                <CardContent className="p-6 text-center">
+                  <div className="relative inline-block mb-4">
+                    <Avatar 
+                      className={cn(
+                        "w-16 h-16 cursor-pointer hover:ring-2 hover:ring-purple-300 dark:hover:ring-purple-500 transition-all",
+                        "border-2 border-purple-200 dark:border-purple-700"
+                      )}
+                      onClick={() => handleFriendProfileClick(friend.id)}
+                    >
+                      <AvatarImage src={friend.avatar} alt={friend.name} />
+                      <AvatarFallback className="bg-gradient-to-br from-purple-500 to-blue-600 text-white">
+                        {friend.name.charAt(0)}
+                      </AvatarFallback>
+                    </Avatar>
+                    {friend.isOnline && (
+                      <div className="absolute -bottom-1 -right-1 w-5 h-5 bg-green-500 border-2 border-white rounded-full"></div>
+                    )}
+                  </div>
+                  
+                  <h3 
                     className={cn(
-                      "w-16 h-16 cursor-pointer hover:ring-2 hover:ring-purple-300 dark:hover:ring-purple-500 transition-all",
-                      "border-2 border-purple-200 dark:border-purple-700"
+                      "font-semibold mb-1 cursor-pointer hover:text-purple-600 dark:hover:text-purple-400 transition-colors",
+                      "text-gray-900 dark:text-gray-100"
                     )}
                     onClick={() => handleFriendProfileClick(friend.id)}
                   >
-                    <AvatarImage src={friend.avatar} alt={friend.name} />
-                    <AvatarFallback className="bg-gradient-to-br from-purple-500 to-blue-600 text-white">
-                      {friend.name.charAt(0)}
-                    </AvatarFallback>
-                  </Avatar>
-                  {friend.isOnline && (
-                    <div className="absolute -bottom-1 -right-1 w-5 h-5 bg-green-500 border-2 border-white rounded-full"></div>
-                  )}
-                </div>
-                
-                <h3 
-                  className={cn(
-                    "font-semibold mb-1 cursor-pointer hover:text-purple-600 dark:hover:text-purple-400 transition-colors",
-                    "text-gray-900 dark:text-gray-100"
-                  )}
-                  onClick={() => handleFriendProfileClick(friend.id)}
-                >
-                  {friend.name}
-                </h3>
-                <p 
-                  className={cn(
-                    "text-sm mb-4 cursor-pointer hover:text-purple-500 dark:hover:text-purple-400 transition-colors",
-                    "text-gray-600 dark:text-gray-200"
-                  )}
-                  onClick={() => handleFriendProfileClick(friend.id)}
-                >
-                  @{friend.username}
-                </p>
-                
-                <div className="flex justify-center">
-                  <Button 
-                    variant="gradient" 
-                    size="sm" 
-                    className="w-full"
+                    {friend.name}
+                  </h3>
+                  <p 
+                    className={cn(
+                      "text-sm mb-4 cursor-pointer hover:text-purple-500 dark:hover:text-purple-400 transition-colors",
+                      "text-gray-600 dark:text-gray-200"
+                    )}
                     onClick={() => handleFriendProfileClick(friend.id)}
                   >
-                    View Profile
-                  </Button>
-                </div>
-              </CardContent>
-            </Card>
-          </motion.div>
-        ))}
-      </motion.div>
+                    @{friend.username}
+                  </p>
+                  
+                  <div className="flex justify-center">
+                    <Button 
+                      variant="gradient" 
+                      size="sm" 
+                      className="w-full"
+                      onClick={() => handleFriendProfileClick(friend.id)}
+                    >
+                      View Profile
+                    </Button>
+                  </div>
+                </CardContent>
+              </Card>
+            </motion.div>
+          ))}
+        </motion.div>
+      )}
 
       {/* Add Friend Dialog */}
       <Dialog open={isAddFriendOpen} onOpenChange={setIsAddFriendOpen}>
@@ -404,130 +441,6 @@ const Friends: React.FC<FriendsProps> = ({ onProfileClick }) => {
                   )}>
                     Searching for users...
                   </span>
-                </div>
-              </div>
-            )}
-
-            {/* Search Results */}
-            {!isSearching && searchResults.length > 0 && (
-              <div className="space-y-3">
-                <h3 className={cn(
-                  "text-sm font-medium",
-                  "text-gray-700 dark:text-gray-200"
-                )}>
-                  Search Results ({searchResults.length})
-                </h3>
-                
-                <div className="space-y-3">
-                  {searchResults.map((user) => (
-                    <motion.div
-                      key={user.id}
-                      initial={{ opacity: 0, y: 10 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      className={cn(
-                        "flex items-start space-x-3 p-4 rounded-lg border transition-colors",
-                        "bg-gray-50 border-gray-200 hover:bg-gray-100",
-                        "dark:bg-gray-800/50 dark:border-gray-700 dark:hover:bg-gray-700/50"
-                      )}
-                    >
-                      <div className="relative flex-shrink-0">
-                        <Avatar className="w-12 h-12">
-                          <AvatarImage src={user.avatar} alt={user.name} />
-                          <AvatarFallback className="bg-gradient-to-br from-purple-500 to-blue-600 text-white">
-                            {user.name.charAt(0)}
-                          </AvatarFallback>
-                        </Avatar>
-                        {user.isOnline && (
-                          <div className="absolute -bottom-0.5 -right-0.5 w-4 h-4 bg-green-500 border-2 border-white dark:border-gray-800 rounded-full"></div>
-                        )}
-                      </div>
-                      
-                      <div className="flex-1 min-w-0">
-                        <div className="flex items-start justify-between">
-                          <div className="flex-1 min-w-0">
-                            <h4 className={cn(
-                              "font-semibold truncate",
-                              "text-gray-900 dark:text-gray-100"
-                            )}>
-                              {user.name}
-                            </h4>
-                            <p className={cn(
-                              "text-sm truncate",
-                              "text-gray-600 dark:text-gray-300"
-                            )}>
-                              @{user.username}
-                            </p>
-                          </div>
-                          
-                          <Button
-                            size="icon"
-                            variant="ghost"
-                            onClick={() => handleAddFriend(user.id)}
-                            disabled={sendingRequestTo === user.id || requestStatus[user.id] === 'success'}
-                            className={cn(
-                              "flex-shrink-0 ml-2",
-                              requestStatus[user.id] === 'success' 
-                                ? "text-green-600 hover:text-green-700 hover:bg-green-50 dark:text-green-400 dark:hover:text-green-300 dark:hover:bg-green-900/20"
-                                : requestStatus[user.id] === 'error'
-                                ? "text-red-600 hover:text-red-700 hover:bg-red-50 dark:text-red-400 dark:hover:text-red-300 dark:hover:bg-red-900/20"
-                                : "text-purple-600 hover:text-purple-700 hover:bg-purple-50 dark:text-purple-400 dark:hover:text-purple-300 dark:hover:bg-purple-900/20"
-                            )}
-                          >
-                            {sendingRequestTo === user.id ? (
-                              <div className="w-4 h-4 border-2 border-purple-600/30 border-t-purple-600 rounded-full animate-spin" />
-                            ) : requestStatus[user.id] === 'success' ? (
-                              <span className="text-xs">✓</span>
-                            ) : requestStatus[user.id] === 'error' ? (
-                              <span className="text-xs">✗</span>
-                            ) : (
-                              <UserPlus className="w-4 h-4" />
-                            )}
-                          </Button>
-                        </div>
-                        
-                        {user.bio && (
-                          <p className={cn(
-                            "text-xs mt-1 line-clamp-2",
-                            "text-gray-500 dark:text-gray-400"
-                          )}>
-                            {user.bio}
-                          </p>
-                        )}
-                        
-                        <div className="flex items-center space-x-3 mt-2">
-                          {user.mutualFriends > 0 && (
-                            <Badge variant="info" className="text-xs">
-                              {user.mutualFriends} mutual friend{user.mutualFriends !== 1 ? 's' : ''}
-                            </Badge>
-                          )}
-                          
-                          {user.location && (
-                            <div className="flex items-center space-x-1">
-                              <MapPin className="w-3 h-3 text-gray-400 dark:text-gray-500" />
-                              <span className={cn(
-                                "text-xs",
-                                "text-gray-500 dark:text-gray-400"
-                              )}>
-                                {user.location}
-                              </span>
-                            </div>
-                          )}
-                          
-                          {user.joinedDate && (
-                            <div className="flex items-center space-x-1">
-                              <Calendar className="w-3 h-3 text-gray-400 dark:text-gray-500" />
-                              <span className={cn(
-                                "text-xs",
-                                "text-gray-500 dark:text-gray-400"
-                              )}>
-                                Joined {user.joinedDate.toLocaleDateString('en-US', { month: 'short', year: 'numeric' })}
-                              </span>
-                            </div>
-                          )}
-                        </div>
-                      </div>
-                    </motion.div>
-                  ))}
                 </div>
               </div>
             )}

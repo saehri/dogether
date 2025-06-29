@@ -1,6 +1,6 @@
 import React from 'react';
 import { motion } from 'framer-motion';
-import { Trophy, Lock, Star } from 'lucide-react';
+import { Trophy, Lock, Star, Award } from 'lucide-react';
 import { Card, CardContent, CardHeader } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
@@ -10,7 +10,7 @@ import { cn } from '@/lib/utils';
 const Badges: React.FC = () => {
   const unlockedBadges = currentUser.badges;
   const lockedBadges = badges.filter(badge => !unlockedBadges.find(ub => ub.id === badge.id));
-  const progressPercentage = (unlockedBadges.length / badges.length) * 100;
+  const progressPercentage = badges.length > 0 ? (unlockedBadges.length / badges.length) * 100 : 0;
 
   const stats = [
     {
@@ -72,137 +72,176 @@ const Badges: React.FC = () => {
         })}
       </motion.div>
 
-      {/* Unlocked Badges */}
-      {unlockedBadges.length > 0 && (
+      {/* Content based on badge availability */}
+      {badges.length === 0 ? (
+        /* No badges available */
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.2 }}
+          className="text-center py-16"
         >
-          <h3 className={cn(
-            "text-xl font-bold mb-4 flex items-center space-x-2",
-            "text-gray-900 dark:text-gray-100"
-          )}>
-            <Trophy className="w-6 h-6 text-yellow-500" />
-            <span>Earned Badges</span>
-          </h3>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-            {unlockedBadges.map((badge, index) => (
-              <motion.div
-                key={badge.id}
-                initial={{ opacity: 0, scale: 0.8 }}
-                animate={{ opacity: 1, scale: 1 }}
-                transition={{ delay: index * 0.1 }}
-              >
-                <Card className="hover:shadow-md transition-all relative overflow-hidden">
-                  <div className={`absolute inset-0 bg-gradient-to-br ${badge.color} opacity-5`}></div>
-                  <CardContent className="p-6 text-center relative">
-                    <div className={`w-16 h-16 bg-gradient-to-br ${badge.color} rounded-full flex items-center justify-center mx-auto mb-3 text-2xl`}>
-                      {badge.icon}
-                    </div>
-                    <h4 className={cn(
-                      "font-bold mb-1",
-                      "text-gray-900 dark:text-gray-100"
-                    )}>
-                      {badge.name}
-                    </h4>
+          <Card className="max-w-md mx-auto">
+            <CardContent className="p-12 text-center">
+              <div className="w-20 h-20 bg-gradient-to-br from-yellow-100 to-orange-100 dark:from-yellow-900/20 dark:to-orange-900/20 rounded-full flex items-center justify-center mx-auto mb-6">
+                <Award className="w-10 h-10 text-yellow-600 dark:text-yellow-400" />
+              </div>
+              <h3 className={cn(
+                "text-xl font-semibold mb-3",
+                "text-gray-900 dark:text-gray-100"
+              )}>
+                No badges available yet
+              </h3>
+              <p className={cn(
+                "leading-relaxed",
+                "text-gray-600 dark:text-gray-300"
+              )}>
+                Badges will become available as you start completing goals and tasks. Keep working towards your objectives to unlock achievements!
+              </p>
+            </CardContent>
+          </Card>
+        </motion.div>
+      ) : (
+        <>
+          {/* Unlocked Badges */}
+          {unlockedBadges.length > 0 && (
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.2 }}
+            >
+              <h3 className={cn(
+                "text-xl font-bold mb-4 flex items-center space-x-2",
+                "text-gray-900 dark:text-gray-100"
+              )}>
+                <Trophy className="w-6 h-6 text-yellow-500" />
+                <span>Earned Badges</span>
+              </h3>
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                {unlockedBadges.map((badge, index) => (
+                  <motion.div
+                    key={badge.id}
+                    initial={{ opacity: 0, scale: 0.8 }}
+                    animate={{ opacity: 1, scale: 1 }}
+                    transition={{ delay: index * 0.1 }}
+                  >
+                    <Card className="hover:shadow-md transition-all relative overflow-hidden">
+                      <div className={`absolute inset-0 bg-gradient-to-br ${badge.color} opacity-5`}></div>
+                      <CardContent className="p-6 text-center relative">
+                        <div className={`w-16 h-16 bg-gradient-to-br ${badge.color} rounded-full flex items-center justify-center mx-auto mb-3 text-2xl`}>
+                          {badge.icon}
+                        </div>
+                        <h4 className={cn(
+                          "font-bold mb-1",
+                          "text-gray-900 dark:text-gray-100"
+                        )}>
+                          {badge.name}
+                        </h4>
+                        <p className={cn(
+                          "text-sm mb-3",
+                          "text-gray-600 dark:text-gray-200"
+                        )}>
+                          {badge.description}
+                        </p>
+                        <Badge variant="success" className="flex items-center space-x-1 w-fit mx-auto">
+                          <Trophy className="w-3 h-3" />
+                          <span>Earned</span>
+                        </Badge>
+                      </CardContent>
+                    </Card>
+                  </motion.div>
+                ))}
+              </div>
+            </motion.div>
+          )}
+
+          {/* Locked Badges */}
+          {lockedBadges.length > 0 && (
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.3 }}
+            >
+              <h3 className={cn(
+                "text-xl font-bold mb-4 flex items-center space-x-2",
+                "text-gray-900 dark:text-gray-100"
+              )}>
+                <Lock className="w-6 h-6 text-gray-400" />
+                <span>Locked Badges</span>
+              </h3>
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                {lockedBadges.map((badge, index) => (
+                  <motion.div
+                    key={badge.id}
+                    initial={{ opacity: 0, scale: 0.8 }}
+                    animate={{ opacity: 1, scale: 1 }}
+                    transition={{ delay: index * 0.1 }}
+                  >
+                    <Card className="hover:shadow-md transition-all opacity-75">
+                      <CardContent className="p-6 text-center">
+                        <div className="w-16 h-16 bg-gray-200 dark:bg-gray-700 rounded-full flex items-center justify-center mx-auto mb-3 text-2xl grayscale">
+                          {badge.icon}
+                        </div>
+                        <h4 className={cn(
+                          "font-bold mb-1",
+                          "text-gray-600 dark:text-gray-200"
+                        )}>
+                          {badge.name}
+                        </h4>
+                        <p className={cn(
+                          "text-sm mb-3",
+                          "text-gray-500 dark:text-gray-300"
+                        )}>
+                          {badge.description}
+                        </p>
+                        <Badge variant="outline" className="flex items-center space-x-1 w-fit mx-auto">
+                          <Lock className="w-3 h-3" />
+                          <span>Locked</span>
+                        </Badge>
+                      </CardContent>
+                    </Card>
+                  </motion.div>
+                ))}
+              </div>
+            </motion.div>
+          )}
+
+          {/* Progress Hint */}
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.4 }}
+          >
+            <Card className="bg-gradient-to-r from-purple-50 to-blue-50 dark:from-purple-900/20 dark:to-blue-900/20">
+              <CardContent className="p-6 text-center">
+                <h3 className={cn(
+                  "text-lg font-semibold mb-2",
+                  "text-gray-900 dark:text-gray-100"
+                )}>
+                  Keep Going!
+                </h3>
+                <p className={cn(
+                  "mb-4",
+                  "text-gray-600 dark:text-gray-200"
+                )}>
+                  Complete more goals and tasks to unlock amazing badges and show off your achievements.
+                </p>
+                {badges.length > 0 && (
+                  <>
+                    <Progress value={progressPercentage} className="mb-2" />
                     <p className={cn(
-                      "text-sm mb-3",
+                      "text-sm",
                       "text-gray-600 dark:text-gray-200"
                     )}>
-                      {badge.description}
+                      {unlockedBadges.length} of {badges.length} badges earned
                     </p>
-                    <Badge variant="success" className="flex items-center space-x-1 w-fit mx-auto">
-                      <Trophy className="w-3 h-3" />
-                      <span>Earned</span>
-                    </Badge>
-                  </CardContent>
-                </Card>
-              </motion.div>
-            ))}
-          </div>
-        </motion.div>
+                  </>
+                )}
+              </CardContent>
+            </Card>
+          </motion.div>
+        </>
       )}
-
-      {/* Locked Badges */}
-      <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: 0.3 }}
-      >
-        <h3 className={cn(
-          "text-xl font-bold mb-4 flex items-center space-x-2",
-          "text-gray-900 dark:text-gray-100"
-        )}>
-          <Lock className="w-6 h-6 text-gray-400" />
-          <span>Locked Badges</span>
-        </h3>
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-          {lockedBadges.map((badge, index) => (
-            <motion.div
-              key={badge.id}
-              initial={{ opacity: 0, scale: 0.8 }}
-              animate={{ opacity: 1, scale: 1 }}
-              transition={{ delay: index * 0.1 }}
-            >
-              <Card className="hover:shadow-md transition-all opacity-75">
-                <CardContent className="p-6 text-center">
-                  <div className="w-16 h-16 bg-gray-200 dark:bg-gray-700 rounded-full flex items-center justify-center mx-auto mb-3 text-2xl grayscale">
-                    {badge.icon}
-                  </div>
-                  <h4 className={cn(
-                    "font-bold mb-1",
-                    "text-gray-600 dark:text-gray-200"
-                  )}>
-                    {badge.name}
-                  </h4>
-                  <p className={cn(
-                    "text-sm mb-3",
-                    "text-gray-500 dark:text-gray-300"
-                  )}>
-                    {badge.description}
-                  </p>
-                  <Badge variant="outline" className="flex items-center space-x-1 w-fit mx-auto">
-                    <Lock className="w-3 h-3" />
-                    <span>Locked</span>
-                  </Badge>
-                </CardContent>
-              </Card>
-            </motion.div>
-          ))}
-        </div>
-      </motion.div>
-
-      {/* Progress Hint */}
-      <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: 0.4 }}
-      >
-        <Card className="bg-gradient-to-r from-purple-50 to-blue-50 dark:from-purple-900/20 dark:to-blue-900/20">
-          <CardContent className="p-6 text-center">
-            <h3 className={cn(
-              "text-lg font-semibold mb-2",
-              "text-gray-900 dark:text-gray-100"
-            )}>
-              Keep Going!
-            </h3>
-            <p className={cn(
-              "mb-4",
-              "text-gray-600 dark:text-gray-200"
-            )}>
-              Complete more goals and tasks to unlock amazing badges and show off your achievements.
-            </p>
-            <Progress value={progressPercentage} className="mb-2" />
-            <p className={cn(
-              "text-sm",
-              "text-gray-600 dark:text-gray-200"
-            )}>
-              {unlockedBadges.length} of {badges.length} badges earned
-            </p>
-          </CardContent>
-        </Card>
-      </motion.div>
     </div>
   );
 };

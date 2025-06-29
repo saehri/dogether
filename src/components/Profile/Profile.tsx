@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { motion } from 'framer-motion';
-import { ChevronDown, ChevronUp, Trophy, Target, CheckCircle2, Calendar, Users, LogOut } from 'lucide-react';
+import { ChevronDown, ChevronUp, Trophy, Target, CheckCircle2, Calendar, Users, LogOut, User as UserIcon } from 'lucide-react';
 import { Card, CardContent, CardHeader } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
@@ -25,8 +25,6 @@ const Profile: React.FC<ProfileProps> = ({ onLogout }) => {
   const userBadges = currentUser.badges;
   const visibleBadges = showAllBadges ? userBadges : userBadges.slice(0, 5);
   const shouldShowToggle = userBadges.length > 5;
-
-  console.log(currentUser)
 
   const statsData = [
     {
@@ -59,7 +57,9 @@ const Profile: React.FC<ProfileProps> = ({ onLogout }) => {
     }
   ];
 
-  const userBio = "Passionate about personal growth and achieving goals. Love connecting with like-minded people who push each other to be better every day. Currently focusing on fitness, reading, and learning new skills!";
+  const userBio = currentUser.name 
+    ? `Hello! I'm ${currentUser.name}. I'm passionate about personal growth and achieving goals. Love connecting with like-minded people who push each other to be better every day.`
+    : "Welcome to Dogether! Complete your profile to share more about yourself with friends.";
 
   const handleLogout = () => {
     setIsLogoutModalOpen(false);
@@ -67,6 +67,9 @@ const Profile: React.FC<ProfileProps> = ({ onLogout }) => {
       onLogout();
     }
   };
+
+  // Check if user has basic profile info
+  const hasBasicInfo = currentUser.name && currentUser.username;
 
   return (
     <div className="max-w-4xl mx-auto space-y-8">
@@ -78,9 +81,11 @@ const Profile: React.FC<ProfileProps> = ({ onLogout }) => {
       >
         <div className="relative inline-block mb-6">
           <Avatar className="w-32 h-32 border-4 border-white shadow-xl">
-            <AvatarImage src={currentUser.avatar} alt={currentUser.name} />
+            {currentUser.avatar ? (
+              <AvatarImage src={currentUser.avatar} alt={currentUser.name || 'User'} />
+            ) : null}
             <AvatarFallback className="text-4xl font-bold bg-gradient-to-br from-purple-500 to-blue-600 text-white">
-              {currentUser.name.charAt(0)}
+              {currentUser.name ? currentUser.name.charAt(0) : <UserIcon className="w-16 h-16" />}
             </AvatarFallback>
           </Avatar>
           <div className="absolute -bottom-2 -right-2 w-8 h-8 bg-green-500 border-4 border-white rounded-full"></div>
@@ -90,13 +95,13 @@ const Profile: React.FC<ProfileProps> = ({ onLogout }) => {
           "text-3xl font-bold mb-2",
           "text-gray-900 dark:text-gray-100"
         )}>
-          {currentUser.name}
+          {currentUser.name || 'Welcome to Dogether!'}
         </h1>
         <p className={cn(
           "text-xl mb-4",
           "text-gray-600 dark:text-gray-200"
         )}>
-          @{currentUser.username}
+          {currentUser.username ? `@${currentUser.username}` : 'Complete your profile to get started'}
         </p>
 
         {/* Logout Button */}
@@ -130,86 +135,88 @@ const Profile: React.FC<ProfileProps> = ({ onLogout }) => {
         </Card>
       </motion.div>
 
-      {/* Stats with Bar Charts */}
-      <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: 0.1 }}
-      >
-        <h2 className={cn(
-          "text-2xl font-bold mb-6 text-center",
-          "text-gray-900 dark:text-gray-100"
-        )}>
-          My Statistics
-        </h2>
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          {statsData.map((stat, index) => {
-            const percentage = stat.total > 0 ? (stat.value / stat.total) * 100 : 0;
-            const Icon = stat.icon;
-            
-            return (
-              <motion.div
-                key={index}
-                initial={{ opacity: 0, x: -20 }}
-                animate={{ opacity: 1, x: 0 }}
-                transition={{ delay: index * 0.1 }}
-              >
-                <Card className="overflow-hidden">
-                  <CardContent className="p-6">
-                    <div className="flex items-center justify-between mb-4">
-                      <div className="flex items-center space-x-3">
-                        <div className={`w-10 h-10 bg-gradient-to-br ${stat.color} rounded-lg flex items-center justify-center`}>
-                          <Icon className="w-5 h-5 text-white" />
+      {/* Stats with Bar Charts - Only show if user has some activity */}
+      {(stats.totalTasks > 0 || userBadges.length > 0 || currentUser.friends.length > 0) && (
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.1 }}
+        >
+          <h2 className={cn(
+            "text-2xl font-bold mb-6 text-center",
+            "text-gray-900 dark:text-gray-100"
+          )}>
+            My Statistics
+          </h2>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            {statsData.map((stat, index) => {
+              const percentage = stat.total > 0 ? (stat.value / stat.total) * 100 : 0;
+              const Icon = stat.icon;
+              
+              return (
+                <motion.div
+                  key={index}
+                  initial={{ opacity: 0, x: -20 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  transition={{ delay: index * 0.1 }}
+                >
+                  <Card className="overflow-hidden">
+                    <CardContent className="p-6">
+                      <div className="flex items-center justify-between mb-4">
+                        <div className="flex items-center space-x-3">
+                          <div className={`w-10 h-10 bg-gradient-to-br ${stat.color} rounded-lg flex items-center justify-center`}>
+                            <Icon className="w-5 h-5 text-white" />
+                          </div>
+                          <div>
+                            <h3 className={cn(
+                              "font-semibold",
+                              "text-gray-900 dark:text-gray-100"
+                            )}>
+                              {stat.label}
+                            </h3>
+                            <p className={cn(
+                              "text-sm",
+                              "text-gray-600 dark:text-gray-200"
+                            )}>
+                              {stat.value} of {stat.total}
+                            </p>
+                          </div>
                         </div>
-                        <div>
-                          <h3 className={cn(
-                            "font-semibold",
+                        <div className="text-right">
+                          <div className={cn(
+                            "text-2xl font-bold",
                             "text-gray-900 dark:text-gray-100"
                           )}>
-                            {stat.label}
-                          </h3>
-                          <p className={cn(
+                            {stat.value}
+                          </div>
+                          <div className={cn(
                             "text-sm",
-                            "text-gray-600 dark:text-gray-200"
+                            "text-gray-500 dark:text-gray-300"
                           )}>
-                            {stat.value} of {stat.total}
-                          </p>
+                            {Math.round(percentage)}%
+                          </div>
                         </div>
                       </div>
-                      <div className="text-right">
-                        <div className={cn(
-                          "text-2xl font-bold",
-                          "text-gray-900 dark:text-gray-100"
-                        )}>
-                          {stat.value}
-                        </div>
-                        <div className={cn(
-                          "text-sm",
-                          "text-gray-500 dark:text-gray-300"
-                        )}>
-                          {Math.round(percentage)}%
+                      
+                      {/* Bar Chart */}
+                      <div className="relative">
+                        <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-3">
+                          <motion.div
+                            className={`h-3 bg-gradient-to-r ${stat.color} rounded-full`}
+                            initial={{ width: 0 }}
+                            animate={{ width: `${percentage}%` }}
+                            transition={{ duration: 1, delay: index * 0.2 }}
+                          />
                         </div>
                       </div>
-                    </div>
-                    
-                    {/* Bar Chart */}
-                    <div className="relative">
-                      <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-3">
-                        <motion.div
-                          className={`h-3 bg-gradient-to-r ${stat.color} rounded-full`}
-                          initial={{ width: 0 }}
-                          animate={{ width: `${percentage}%` }}
-                          transition={{ duration: 1, delay: index * 0.2 }}
-                        />
-                      </div>
-                    </div>
-                  </CardContent>
-                </Card>
-              </motion.div>
-            );
-          })}
-        </div>
-      </motion.div>
+                    </CardContent>
+                  </Card>
+                </motion.div>
+              );
+            })}
+          </div>
+        </motion.div>
+      )}
 
       {/* Badges Section */}
       <motion.div
@@ -225,9 +232,11 @@ const Profile: React.FC<ProfileProps> = ({ onLogout }) => {
             <Trophy className="w-7 h-7 text-yellow-500" />
             <span>My Badges</span>
           </h2>
-          <Badge variant="info" className="text-sm">
-            {userBadges.length} earned
-          </Badge>
+          {userBadges.length > 0 && (
+            <Badge variant="info" className="text-sm">
+              {userBadges.length} earned
+            </Badge>
+          )}
         </div>
 
         {userBadges.length > 0 ? (
@@ -320,48 +329,54 @@ const Profile: React.FC<ProfileProps> = ({ onLogout }) => {
         
         <Card>
           <CardContent className="p-6">
-            <div className="space-y-4">
-              {completedTasks.slice(0, 3).map((task, index) => (
-                <div key={task.id} className="flex items-center space-x-4 p-4 bg-gray-50 dark:bg-gray-800/50 rounded-lg">
-                  <div className={`w-10 h-10 bg-gradient-to-br ${task.type === 'goal' ? 'from-blue-500 to-purple-600' : 'from-orange-500 to-red-500'} rounded-lg flex items-center justify-center`}>
-                    {task.type === 'goal' ? (
-                      <Target className="w-5 h-5 text-white" />
-                    ) : (
-                      <CheckCircle2 className="w-5 h-5 text-white" />
-                    )}
+            {completedTasks.length > 0 ? (
+              <div className="space-y-4">
+                {completedTasks.slice(0, 3).map((task, index) => (
+                  <div key={task.id} className="flex items-center space-x-4 p-4 bg-gray-50 dark:bg-gray-800/50 rounded-lg">
+                    <div className={`w-10 h-10 bg-gradient-to-br ${task.type === 'goal' ? 'from-blue-500 to-purple-600' : 'from-orange-500 to-red-500'} rounded-lg flex items-center justify-center`}>
+                      {task.type === 'goal' ? (
+                        <Target className="w-5 h-5 text-white" />
+                      ) : (
+                        <CheckCircle2 className="w-5 h-5 text-white" />
+                      )}
+                    </div>
+                    <div className="flex-1">
+                      <h4 className={cn(
+                        "font-semibold",
+                        "text-gray-900 dark:text-gray-100"
+                      )}>
+                        {task.title}
+                      </h4>
+                      <p className={cn(
+                        "text-sm",
+                        "text-gray-600 dark:text-gray-200"
+                      )}>
+                        Completed {task.completedAt ? new Date(task.completedAt).toLocaleDateString() : ''}
+                      </p>
+                    </div>
+                    <Badge variant="success">
+                      <CheckCircle2 className="w-3 h-3 mr-1" />
+                      Done
+                    </Badge>
                   </div>
-                  <div className="flex-1">
-                    <h4 className={cn(
-                      "font-semibold",
-                      "text-gray-900 dark:text-gray-100"
-                    )}>
-                      {task.title}
-                    </h4>
-                    <p className={cn(
-                      "text-sm",
-                      "text-gray-600 dark:text-gray-200"
-                    )}>
-                      Completed {task.completedAt ? new Date(task.completedAt).toLocaleDateString() : ''}
-                    </p>
-                  </div>
-                  <Badge variant="success">
-                    <CheckCircle2 className="w-3 h-3 mr-1" />
-                    Done
-                  </Badge>
-                </div>
-              ))}
-              
-              {completedTasks.length === 0 && (
-                <div className="text-center py-8">
-                  <CheckCircle2 className="w-12 h-12 text-gray-300 dark:text-gray-600 mx-auto mb-3" />
-                  <p className={cn(
-                    "text-gray-500 dark:text-gray-300"
-                  )}>
-                    No completed activities yet
-                  </p>
-                </div>
-              )}
-            </div>
+                ))}
+              </div>
+            ) : (
+              <div className="text-center py-8">
+                <CheckCircle2 className="w-12 h-12 text-gray-300 dark:text-gray-600 mx-auto mb-3" />
+                <h3 className={cn(
+                  "text-lg font-semibold mb-2",
+                  "text-gray-600 dark:text-gray-200"
+                )}>
+                  No completed activities yet
+                </h3>
+                <p className={cn(
+                  "text-gray-500 dark:text-gray-300"
+                )}>
+                  Start creating and completing goals to see your activity here!
+                </p>
+              </div>
+            )}
           </CardContent>
         </Card>
       </motion.div>

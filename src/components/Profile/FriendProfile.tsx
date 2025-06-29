@@ -1,6 +1,6 @@
 import React from 'react';
 import { motion } from 'framer-motion';
-import { ArrowLeft, Trophy, Target, CheckCircle2, Calendar, Users, UserMinus } from 'lucide-react';
+import { ArrowLeft, Trophy, Target, CheckCircle2, Calendar, Users, UserMinus, UserX } from 'lucide-react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
@@ -18,14 +18,29 @@ const FriendProfile: React.FC<FriendProfileProps> = ({ friendId, onBack }) => {
   
   if (!friend) {
     return (
-      <div className="max-w-4xl mx-auto text-center py-12">
-        <h2 className={cn(
-          "text-2xl font-bold mb-4",
-          "text-gray-900 dark:text-gray-100"
-        )}>
-          Friend not found
-        </h2>
-        <Button onClick={onBack}>Go Back</Button>
+      <div className="max-w-4xl mx-auto text-center py-16">
+        <Card className="max-w-md mx-auto">
+          <CardContent className="p-12 text-center">
+            <div className="w-16 h-16 bg-gray-100 dark:bg-gray-800 rounded-full flex items-center justify-center mx-auto mb-4">
+              <UserX className="w-8 h-8 text-gray-400 dark:text-gray-500" />
+            </div>
+            <h2 className={cn(
+              "text-xl font-bold mb-3",
+              "text-gray-900 dark:text-gray-100"
+            )}>
+              Friend not found
+            </h2>
+            <p className={cn(
+              "mb-6",
+              "text-gray-600 dark:text-gray-300"
+            )}>
+              This friend may no longer be available or the profile doesn't exist.
+            </p>
+            <Button onClick={onBack} variant="gradient">
+              Go Back
+            </Button>
+          </CardContent>
+        </Card>
       </div>
     );
   }
@@ -37,27 +52,27 @@ const FriendProfile: React.FC<FriendProfileProps> = ({ friendId, onBack }) => {
   const completedGoals = goals.filter(goal => goal.completed);
   
   // Mock badges for friend
-  const friendBadges = badges.slice(0, 3); // Show first 3 badges as earned
+  const friendBadges = badges.slice(0, Math.min(3, badges.length)); // Show first 3 badges as earned
   
   const stats = [
     {
       label: 'Tasks Completed',
       value: completedTasks.length,
-      total: friendTasks.length,
+      total: Math.max(friendTasks.length, 1),
       color: 'from-green-500 to-emerald-600',
       icon: CheckCircle2
     },
     {
       label: 'Goals Achieved',
       value: completedGoals.length,
-      total: goals.length,
+      total: Math.max(goals.length, 1),
       color: 'from-blue-500 to-purple-600',
       icon: Target
     },
     {
       label: 'Badges Earned',
       value: friendBadges.length,
-      total: badges.length,
+      total: Math.max(badges.length, 1),
       color: 'from-yellow-500 to-orange-600',
       icon: Trophy
     },
@@ -70,7 +85,9 @@ const FriendProfile: React.FC<FriendProfileProps> = ({ friendId, onBack }) => {
     }
   ];
 
-  const friendBio = `Hey there! I'm ${friend.name} and I love setting goals and achieving them. Always looking for motivation and new challenges. Let's support each other on our journey to success!`;
+  const friendBio = friend.name 
+    ? `Hey there! I'm ${friend.name} and I love setting goals and achieving them. Always looking for motivation and new challenges. Let's support each other on our journey to success!`
+    : "This user hasn't added a bio yet.";
 
   const handleUnfriend = () => {
     // This would normally make an API call to unfriend the user
@@ -167,86 +184,88 @@ const FriendProfile: React.FC<FriendProfileProps> = ({ friendId, onBack }) => {
         </Card>
       </motion.div>
 
-      {/* Stats with Bar Charts */}
-      <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: 0.1 }}
-      >
-        <h2 className={cn(
-          "text-2xl font-bold mb-6 text-center",
-          "text-gray-900 dark:text-gray-100"
-        )}>
-          {friend.name}'s Statistics
-        </h2>
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          {stats.map((stat, index) => {
-            const percentage = stat.total > 0 ? (stat.value / stat.total) * 100 : 0;
-            const Icon = stat.icon;
-            
-            return (
-              <motion.div
-                key={index}
-                initial={{ opacity: 0, x: -20 }}
-                animate={{ opacity: 1, x: 0 }}
-                transition={{ delay: index * 0.1 }}
-              >
-                <Card className="overflow-hidden">
-                  <CardContent className="p-6">
-                    <div className="flex items-center justify-between mb-4">
-                      <div className="flex items-center space-x-3">
-                        <div className={`w-10 h-10 bg-gradient-to-br ${stat.color} rounded-lg flex items-center justify-center`}>
-                          <Icon className="w-5 h-5 text-white" />
+      {/* Stats with Bar Charts - Only show if there's activity */}
+      {(friendTasks.length > 0 || friendBadges.length > 0) && (
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.1 }}
+        >
+          <h2 className={cn(
+            "text-2xl font-bold mb-6 text-center",
+            "text-gray-900 dark:text-gray-100"
+          )}>
+            {friend.name}'s Statistics
+          </h2>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            {stats.map((stat, index) => {
+              const percentage = stat.total > 0 ? (stat.value / stat.total) * 100 : 0;
+              const Icon = stat.icon;
+              
+              return (
+                <motion.div
+                  key={index}
+                  initial={{ opacity: 0, x: -20 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  transition={{ delay: index * 0.1 }}
+                >
+                  <Card className="overflow-hidden">
+                    <CardContent className="p-6">
+                      <div className="flex items-center justify-between mb-4">
+                        <div className="flex items-center space-x-3">
+                          <div className={`w-10 h-10 bg-gradient-to-br ${stat.color} rounded-lg flex items-center justify-center`}>
+                            <Icon className="w-5 h-5 text-white" />
+                          </div>
+                          <div>
+                            <h3 className={cn(
+                              "font-semibold",
+                              "text-gray-900 dark:text-gray-100"
+                            )}>
+                              {stat.label}
+                            </h3>
+                            <p className={cn(
+                              "text-sm",
+                              "text-gray-700 dark:text-gray-200"
+                            )}>
+                              {stat.value} of {stat.total}
+                            </p>
+                          </div>
                         </div>
-                        <div>
-                          <h3 className={cn(
-                            "font-semibold",
+                        <div className="text-right">
+                          <div className={cn(
+                            "text-2xl font-bold",
                             "text-gray-900 dark:text-gray-100"
                           )}>
-                            {stat.label}
-                          </h3>
-                          <p className={cn(
+                            {stat.value}
+                          </div>
+                          <div className={cn(
                             "text-sm",
-                            "text-gray-700 dark:text-gray-200"
+                            "text-gray-600 dark:text-gray-300"
                           )}>
-                            {stat.value} of {stat.total}
-                          </p>
+                            {Math.round(percentage)}%
+                          </div>
                         </div>
                       </div>
-                      <div className="text-right">
-                        <div className={cn(
-                          "text-2xl font-bold",
-                          "text-gray-900 dark:text-gray-100"
-                        )}>
-                          {stat.value}
-                        </div>
-                        <div className={cn(
-                          "text-sm",
-                          "text-gray-600 dark:text-gray-300"
-                        )}>
-                          {Math.round(percentage)}%
+                      
+                      {/* Bar Chart */}
+                      <div className="relative">
+                        <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-3">
+                          <motion.div
+                            className={`h-3 bg-gradient-to-r ${stat.color} rounded-full`}
+                            initial={{ width: 0 }}
+                            animate={{ width: `${percentage}%` }}
+                            transition={{ duration: 1, delay: index * 0.2 }}
+                          />
                         </div>
                       </div>
-                    </div>
-                    
-                    {/* Bar Chart */}
-                    <div className="relative">
-                      <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-3">
-                        <motion.div
-                          className={`h-3 bg-gradient-to-r ${stat.color} rounded-full`}
-                          initial={{ width: 0 }}
-                          animate={{ width: `${percentage}%` }}
-                          transition={{ duration: 1, delay: index * 0.2 }}
-                        />
-                      </div>
-                    </div>
-                  </CardContent>
-                </Card>
-              </motion.div>
-            );
-          })}
-        </div>
-      </motion.div>
+                    </CardContent>
+                  </Card>
+                </motion.div>
+              );
+            })}
+          </div>
+        </motion.div>
+      )}
 
       {/* Badges Section */}
       <motion.div
@@ -262,9 +281,11 @@ const FriendProfile: React.FC<FriendProfileProps> = ({ friendId, onBack }) => {
             <Trophy className="w-7 h-7 text-yellow-500" />
             <span>{friend.name}'s Badges</span>
           </h2>
-          <Badge variant="info" className="text-sm">
-            {friendBadges.length} earned
-          </Badge>
+          {friendBadges.length > 0 && (
+            <Badge variant="info" className="text-sm">
+              {friendBadges.length} earned
+            </Badge>
+          )}
         </div>
 
         {friendBadges.length > 0 ? (
@@ -335,51 +356,57 @@ const FriendProfile: React.FC<FriendProfileProps> = ({ friendId, onBack }) => {
         
         <Card>
           <CardContent className="p-6">
-            <div className="space-y-4">
-              {completedTasks.slice(0, 3).map((task, index) => (
-                <div key={task.id} className={cn(
-                  "flex items-center space-x-4 p-4 rounded-lg",
-                  "bg-gray-50 dark:bg-gray-800/50"
-                )}>
-                  <div className={`w-10 h-10 bg-gradient-to-br ${task.type === 'goal' ? 'from-blue-500 to-purple-600' : 'from-orange-500 to-red-500'} rounded-lg flex items-center justify-center`}>
-                    {task.type === 'goal' ? (
-                      <Target className="w-5 h-5 text-white" />
-                    ) : (
-                      <CheckCircle2 className="w-5 h-5 text-white" />
-                    )}
-                  </div>
-                  <div className="flex-1">
-                    <h4 className={cn(
-                      "font-semibold",
-                      "text-gray-900 dark:text-gray-100"
-                    )}>
-                      {task.title}
-                    </h4>
-                    <p className={cn(
-                      "text-sm",
-                      "text-gray-700 dark:text-gray-200"
-                    )}>
-                      Completed {task.completedAt ? new Date(task.completedAt).toLocaleDateString() : ''}
-                    </p>
-                  </div>
-                  <Badge variant="success">
-                    <CheckCircle2 className="w-3 h-3 mr-1" />
-                    Done
-                  </Badge>
-                </div>
-              ))}
-              
-              {completedTasks.length === 0 && (
-                <div className="text-center py-8">
-                  <CheckCircle2 className="w-12 h-12 text-gray-300 dark:text-gray-600 mx-auto mb-3" />
-                  <p className={cn(
-                    "text-gray-600 dark:text-gray-300"
+            {completedTasks.length > 0 ? (
+              <div className="space-y-4">
+                {completedTasks.slice(0, 3).map((task, index) => (
+                  <div key={task.id} className={cn(
+                    "flex items-center space-x-4 p-4 rounded-lg",
+                    "bg-gray-50 dark:bg-gray-800/50"
                   )}>
-                    No completed activities yet
-                  </p>
-                </div>
-              )}
-            </div>
+                    <div className={`w-10 h-10 bg-gradient-to-br ${task.type === 'goal' ? 'from-blue-500 to-purple-600' : 'from-orange-500 to-red-500'} rounded-lg flex items-center justify-center`}>
+                      {task.type === 'goal' ? (
+                        <Target className="w-5 h-5 text-white" />
+                      ) : (
+                        <CheckCircle2 className="w-5 h-5 text-white" />
+                      )}
+                    </div>
+                    <div className="flex-1">
+                      <h4 className={cn(
+                        "font-semibold",
+                        "text-gray-900 dark:text-gray-100"
+                      )}>
+                        {task.title}
+                      </h4>
+                      <p className={cn(
+                        "text-sm",
+                        "text-gray-700 dark:text-gray-200"
+                      )}>
+                        Completed {task.completedAt ? new Date(task.completedAt).toLocaleDateString() : ''}
+                      </p>
+                    </div>
+                    <Badge variant="success">
+                      <CheckCircle2 className="w-3 h-3 mr-1" />
+                      Done
+                    </Badge>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <div className="text-center py-8">
+                <CheckCircle2 className="w-12 h-12 text-gray-300 dark:text-gray-600 mx-auto mb-3" />
+                <h3 className={cn(
+                  "text-lg font-semibold mb-2",
+                  "text-gray-600 dark:text-gray-200"
+                )}>
+                  No completed activities yet
+                </h3>
+                <p className={cn(
+                  "text-gray-500 dark:text-gray-300"
+                )}>
+                  {friend.name} hasn't completed any activities yet.
+                </p>
+              </div>
+            )}
           </CardContent>
         </Card>
       </motion.div>

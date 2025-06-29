@@ -1,7 +1,6 @@
 import { create } from 'zustand';
 import { devtools, persist } from 'zustand/middleware';
 import { User, Task, Friend, Badge } from '../types';
-import { currentUser as initialUser, tasks as initialTasks, friends as initialFriends, badges as initialBadges } from '../data/mockData';
 
 interface AppState {
   // User state
@@ -83,12 +82,21 @@ const reviveNestedDates = (obj: any): any => {
   return result;
 };
 
+// Initial empty state - app should handle when no data exists
 const initialState: AppState = {
-  currentUser: initialUser,
-  users: [initialUser],
-  tasks: initialTasks,
-  friends: initialFriends,
-  badges: initialBadges,
+  currentUser: {
+    id: '1',
+    name: '',
+    username: '',
+    email: '',
+    avatar: '',
+    badges: [],
+    friends: []
+  },
+  users: [],
+  tasks: [],
+  friends: [],
+  badges: [],
   isLoading: false,
   error: null,
 };
@@ -131,9 +139,9 @@ export const useStore = create<Store>()(
               friends: state.friends.filter(friend => friend.id !== userId),
               // If deleting current user, reset to initial state
               ...(state.currentUser.id === userId && { 
-                currentUser: initialUser,
-                tasks: initialTasks,
-                friends: initialFriends 
+                currentUser: initialState.currentUser,
+                tasks: [],
+                friends: []
               }),
               isLoading: false,
             }));
