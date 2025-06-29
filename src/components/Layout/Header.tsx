@@ -1,5 +1,6 @@
 import React from 'react';
 import { motion } from 'framer-motion';
+import { Link, useNavigate } from 'react-router-dom';
 import { Plus, Menu } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
@@ -13,6 +14,12 @@ interface HeaderProps {
 }
 
 const Header: React.FC<HeaderProps> = ({ onMenuToggle, onCreateTask, onProfileClick, onLogoClick }) => {
+  const navigate = useNavigate();
+
+  const handleProfileClick = () => {
+    navigate('/profile');
+  };
+
   return (
     <motion.header 
       initial={{ y: -20, opacity: 0 }}
@@ -32,9 +39,9 @@ const Header: React.FC<HeaderProps> = ({ onMenuToggle, onCreateTask, onProfileCl
               <Menu className="w-5 h-5" />
             </Button>
             
-            <div 
-              className="flex items-center space-x-2 cursor-pointer hover:opacity-80 transition-opacity"
-              onClick={onLogoClick}
+            <Link 
+              to="/"
+              className="flex items-center space-x-2 hover:opacity-80 transition-opacity"
             >
               <div className="w-8 h-8 bg-gradient-to-br from-purple-500 to-blue-600 rounded-lg flex items-center justify-center">
                 <span className="text-white font-bold text-sm">D</span>
@@ -42,7 +49,7 @@ const Header: React.FC<HeaderProps> = ({ onMenuToggle, onCreateTask, onProfileCl
               <h1 className="text-xl font-bold bg-gradient-to-r from-purple-600 to-blue-600 bg-clip-text text-transparent">
                 Dogether
               </h1>
-            </div>
+            </Link>
           </div>
 
           {/* Right side */}
@@ -51,6 +58,7 @@ const Header: React.FC<HeaderProps> = ({ onMenuToggle, onCreateTask, onProfileCl
               variant="gradient"
               onClick={onCreateTask}
               className="flex items-center space-x-2"
+              data-create-task
             >
               <Plus className="w-4 h-4" />
               <span className="hidden sm:inline">Create</span>
@@ -58,10 +66,10 @@ const Header: React.FC<HeaderProps> = ({ onMenuToggle, onCreateTask, onProfileCl
 
             <Avatar 
               className="w-8 h-8 border-2 border-purple-200 dark:border-purple-700 cursor-pointer hover:border-purple-400 dark:hover:border-purple-500 transition-colors"
-              onClick={onProfileClick}
+              onClick={handleProfileClick}
             >
               <AvatarImage src={currentUser.avatar} alt={currentUser.name} />
-              <AvatarFallback>{currentUser.name.charAt(0)}</AvatarFallback>
+              <AvatarFallback>{currentUser.name ? currentUser.name.charAt(0) : 'U'}</AvatarFallback>
             </Avatar>
           </div>
         </div>

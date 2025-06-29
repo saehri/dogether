@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { motion } from 'framer-motion';
+import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { Eye, EyeOff, Mail, Lock, User, Chrome, ArrowRight, Check, Calendar } from 'lucide-react';
 import { format } from 'date-fns';
 import { Button } from '@/components/ui/button';
@@ -31,6 +32,10 @@ const Register: React.FC<RegisterProps> = ({ onRegister, onGoogleRegister, onNav
   const [isLoading, setIsLoading] = useState(false);
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [acceptTerms, setAcceptTerms] = useState(false);
+
+  const navigate = useNavigate();
+  const location = useLocation();
+  const from = location.state?.from?.pathname || '/';
 
   const validateForm = () => {
     const newErrors: Record<string, string> = {};
@@ -134,6 +139,9 @@ const Register: React.FC<RegisterProps> = ({ onRegister, onGoogleRegister, onNav
         
         // Call the parent component's onRegister handler
         onRegister(userData);
+        
+        // Navigate to intended page
+        navigate(from, { replace: true });
       } else {
         setErrors({ general: response.data?.message || 'Registration failed. Please try again.' });
       }
@@ -156,6 +164,7 @@ const Register: React.FC<RegisterProps> = ({ onRegister, onGoogleRegister, onNav
       // For now, we'll simulate the process
       await new Promise(resolve => setTimeout(resolve, 1000));
       onGoogleRegister();
+      navigate(from, { replace: true });
     } catch (error: any) {
       console.error('Google registration error:', error);
       setErrors({ general: 'Google registration failed. Please try again.' });
@@ -196,14 +205,14 @@ const Register: React.FC<RegisterProps> = ({ onRegister, onGoogleRegister, onNav
           transition={{ delay: 0.1 }}
           className="text-center mb-8"
         >
-          <div className="flex items-center justify-center space-x-3 mb-4">
+          <Link to="/" className="flex items-center justify-center space-x-3 mb-4">
             <div className="w-12 h-12 bg-gradient-to-br from-purple-500 to-blue-600 rounded-xl flex items-center justify-center shadow-lg">
               <span className="text-white font-bold text-xl">D</span>
             </div>
             <h1 className="text-3xl font-bold bg-gradient-to-r from-purple-600 to-blue-600 bg-clip-text text-transparent">
               Dogether
             </h1>
-          </div>
+          </Link>
           <p className={cn(
             "text-lg",
             "text-gray-600 dark:text-gray-300"
@@ -567,14 +576,12 @@ const Register: React.FC<RegisterProps> = ({ onRegister, onGoogleRegister, onNav
                   "text-gray-600 dark:text-gray-400"
                 )}>
                   Already have an account?{' '}
-                  <Button
-                    type="button"
-                    variant="link"
-                    className="text-purple-600 dark:text-purple-400 hover:text-purple-700 dark:hover:text-purple-300 p-0 h-auto font-semibold"
-                    onClick={onNavigateToLogin}
+                  <Link
+                    to="/login"
+                    className="text-purple-600 dark:text-purple-400 hover:text-purple-700 dark:hover:text-purple-300 font-semibold"
                   >
                     Sign in here
-                  </Button>
+                  </Link>
                 </p>
               </div>
             </CardContent>

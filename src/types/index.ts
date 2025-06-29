@@ -49,3 +49,11 @@ export interface Friend {
   avatar: string;
   isOnline: boolean;
 }
+
+// Route types
+export interface RouteConfig {
+  path: string;
+  element: React.ComponentType<any>;
+  protected?: boolean;
+  title?: string;
+}

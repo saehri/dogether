@@ -1,5 +1,6 @@
 import React from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
+import { Link, useLocation } from 'react-router-dom';
 import { Home, Target, Users, Trophy, Settings, User, X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
@@ -8,20 +9,28 @@ interface SidebarProps {
   isOpen: boolean;
   onClose: () => void;
   activeTab: string;
-  onTabChange: (tab: string) => void;
 }
 
-const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose, activeTab, onTabChange }) => {
+const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose, activeTab }) => {
+  const location = useLocation();
+
   const menuItems = [
-    { id: 'feed', label: 'Feed', icon: Home },
-    { id: 'goals', label: 'My Goals', icon: Target },
-    { id: 'friends', label: 'Friends', icon: Users },
-    { id: 'badges', label: 'Badges', icon: Trophy },
-    { id: 'profile', label: 'Profile', icon: User },
-    { id: 'settings', label: 'Settings', icon: Settings },
+    { id: '/', label: 'Feed', icon: Home, path: '/' },
+    { id: '/goals', label: 'My Goals', icon: Target, path: '/goals' },
+    { id: '/friends', label: 'Friends', icon: Users, path: '/friends' },
+    { id: '/badges', label: 'Badges', icon: Trophy, path: '/badges' },
+    { id: '/profile', label: 'Profile', icon: User, path: '/profile' },
+    { id: '/settings', label: 'Settings', icon: Settings, path: '/settings' },
   ];
 
   const HEADER_HEIGHT = 64; // 16 * 4 = 64px (h-16)
+
+  const isActiveRoute = (path: string) => {
+    if (path === '/') {
+      return location.pathname === '/';
+    }
+    return location.pathname.startsWith(path);
+  };
 
   return (
     <>
@@ -53,14 +62,14 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose, activeTab, onTabChan
       >
         {/* Mobile Header - Only show on mobile */}
         <div className="flex items-center justify-between p-6 border-b border-gray-200/50 dark:border-gray-700/50 lg:hidden">
-          <div className="flex items-center space-x-2">
+          <Link to="/" className="flex items-center space-x-2">
             <div className="w-8 h-8 bg-gradient-to-br from-purple-500 to-blue-600 rounded-lg flex items-center justify-center">
               <span className="text-white font-bold text-sm">D</span>
             </div>
             <h1 className="text-xl font-bold bg-gradient-to-r from-purple-600 to-blue-600 bg-clip-text text-transparent">
               Dogether
             </h1>
-          </div>
+          </Link>
           <Button variant="ghost" size="icon" onClick={onClose}>
             <X className="w-5 h-5" />
           </Button>
@@ -70,7 +79,7 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose, activeTab, onTabChan
         <nav className="flex-1 p-4 space-y-2 overflow-y-auto">
           {menuItems.map((item) => {
             const Icon = item.icon;
-            const isActive = activeTab === item.id;
+            const isActive = isActiveRoute(item.path);
             
             return (
               <Button
@@ -80,15 +89,19 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose, activeTab, onTabChan
                   "w-full justify-start space-x-3 h-12",
                   isActive && "bg-gradient-to-r from-purple-500 to-blue-600 text-white shadow-lg"
                 )}
-                onClick={() => {
-                  onTabChange(item.id);
-                  if (window.innerWidth < 1024) {
-                    onClose();
-                  }
-                }}
+                asChild
               >
-                <Icon className="w-5 h-5" />
-                <span className="font-medium">{item.label}</span>
+                <Link
+                  to={item.path}
+                  onClick={() => {
+                    if (window.innerWidth < 1024) {
+                      onClose();
+                    }
+                  }}
+                >
+                  <Icon className="w-5 h-5" />
+                  <span className="font-medium">{item.label}</span>
+                </Link>
               </Button>
             );
           })}
@@ -99,7 +112,7 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose, activeTab, onTabChan
           <div className="bg-gradient-to-r from-purple-50 to-blue-50 dark:from-purple-900/20 dark:to-blue-900/20 rounded-xl p-3">
             <div className="text-center">
               <p className="text-sm font-medium text-gray-800 dark:text-gray-200">Keep it up!</p>
-              <p className="text-xs text-gray-600 dark:text-gray-400 mt-1">5 goals completed this week</p>
+              <p className="text-xs text-gray-600 dark:text-gray-400 mt-1">Start creating goals to track progress</p>
             </div>
           </div>
         </div>

@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { motion } from 'framer-motion';
+import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { Eye, EyeOff, Mail, Lock, Chrome, ArrowRight, User } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -20,6 +21,10 @@ const Login: React.FC<LoginProps> = ({ onLogin, onGoogleLogin, onNavigateToRegis
   const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [errors, setErrors] = useState<Record<string, string>>({});
+
+  const navigate = useNavigate();
+  const location = useLocation();
+  const from = location.state?.from?.pathname || '/';
 
   const validateForm = () => {
     const newErrors: Record<string, string> = {};
@@ -60,6 +65,9 @@ const Login: React.FC<LoginProps> = ({ onLogin, onGoogleLogin, onNavigateToRegis
         
         // Call the parent component's onLogin handler
         onLogin({ email: email.trim(), password });
+        
+        // Navigate to intended page
+        navigate(from, { replace: true });
       } else {
         setErrors({ general: response.data?.message || 'Login failed. Please try again.' });
       }
@@ -82,6 +90,7 @@ const Login: React.FC<LoginProps> = ({ onLogin, onGoogleLogin, onNavigateToRegis
       // For now, we'll simulate the process
       await new Promise(resolve => setTimeout(resolve, 1000));
       onGoogleLogin();
+      navigate(from, { replace: true });
     } catch (error: any) {
       console.error('Google login error:', error);
       setErrors({ general: 'Google login failed. Please try again.' });
@@ -105,14 +114,14 @@ const Login: React.FC<LoginProps> = ({ onLogin, onGoogleLogin, onNavigateToRegis
           transition={{ delay: 0.1 }}
           className="text-center mb-8"
         >
-          <div className="flex items-center justify-center space-x-3 mb-4">
+          <Link to="/" className="flex items-center justify-center space-x-3 mb-4">
             <div className="w-12 h-12 bg-gradient-to-br from-purple-500 to-blue-600 rounded-xl flex items-center justify-center shadow-lg">
               <span className="text-white font-bold text-xl">D</span>
             </div>
             <h1 className="text-3xl font-bold bg-gradient-to-r from-purple-600 to-blue-600 bg-clip-text text-transparent">
               Dogether
             </h1>
-          </div>
+          </Link>
           <p className={cn(
             "text-lg",
             "text-gray-600 dark:text-gray-300"
@@ -285,14 +294,12 @@ const Login: React.FC<LoginProps> = ({ onLogin, onGoogleLogin, onNavigateToRegis
                   "text-gray-600 dark:text-gray-400"
                 )}>
                   Don't have an account?{' '}
-                  <Button
-                    type="button"
-                    variant="link"
-                    className="text-purple-600 dark:text-purple-400 hover:text-purple-700 dark:hover:text-purple-300 p-0 h-auto font-semibold"
-                    onClick={onNavigateToRegister}
+                  <Link
+                    to="/register"
+                    className="text-purple-600 dark:text-purple-400 hover:text-purple-700 dark:hover:text-purple-300 font-semibold"
                   >
                     Create one here
-                  </Button>
+                  </Link>
                 </p>
               </div>
             </CardContent>
