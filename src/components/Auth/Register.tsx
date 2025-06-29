@@ -1,10 +1,13 @@
 import React, { useState } from 'react';
 import { motion } from 'framer-motion';
 import { Eye, EyeOff, Mail, Lock, User, Chrome, ArrowRight, Check, Calendar } from 'lucide-react';
+import { format } from 'date-fns';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardHeader } from '@/components/ui/card';
+import { Calendar as CalendarComponent } from '@/components/ui/calendar';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { authApi, setAuthToken } from '@/services/api';
 import { cn } from '@/lib/utils';
 
@@ -20,9 +23,9 @@ const Register: React.FC<RegisterProps> = ({ onRegister, onGoogleRegister, onNav
     username: '',
     email: '',
     password: '',
-    confirmPassword: '',
-    date_of_birth: ''
+    confirmPassword: ''
   });
+  const [dateOfBirth, setDateOfBirth] = useState<Date | undefined>(undefined);
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
@@ -66,13 +69,18 @@ const Register: React.FC<RegisterProps> = ({ onRegister, onGoogleRegister, onNav
       newErrors.confirmPassword = 'Passwords do not match';
     }
 
-    if (!formData.date_of_birth) {
+    if (!dateOfBirth) {
       newErrors.date_of_birth = 'Date of birth is required';
     } else {
-      const birthDate = new Date(formData.date_of_birth);
       const today = new Date();
-      const age = today.getFullYear() - birthDate.getFullYear();
-      if (age < 13) {
+      const age = today.getFullYear() - dateOfBirth.getFullYear();
+      const monthDiff = today.getMonth() - dateOfBirth.getMonth();
+      const dayDiff = today.getDate() - dateOfBirth.getDate();
+      
+      // More accurate age calculation
+      const actualAge = monthDiff < 0 || (monthDiff === 0 && dayDiff < 0) ? age - 1 : age;
+      
+      if (actualAge < 13) {
         newErrors.date_of_birth = 'You must be at least 13 years old';
       }
     }
@@ -93,6 +101,14 @@ const Register: React.FC<RegisterProps> = ({ onRegister, onGoogleRegister, onNav
     }
   };
 
+  const handleDateChange = (date: Date | undefined) => {
+    setDateOfBirth(date);
+    // Clear error when user selects a date
+    if (errors.date_of_birth) {
+      setErrors(prev => ({ ...prev, date_of_birth: '' }));
+    }
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
@@ -107,7 +123,7 @@ const Register: React.FC<RegisterProps> = ({ onRegister, onGoogleRegister, onNav
         fullname: formData.fullname.trim(),
         email: formData.email.trim(),
         password: formData.password,
-        date_of_birth: formData.date_of_birth
+        date_of_birth: dateOfBirth ? format(dateOfBirth, 'yyyy-MM-dd') : ''
       };
 
       const response = await authApi.register(userData);
@@ -332,28 +348,48 @@ const Register: React.FC<RegisterProps> = ({ onRegister, onGoogleRegister, onNav
                   )}
                 </div>
 
-                {/* Date of Birth Field */}
+                {/* Date of Birth Field with Calendar Picker */}
                 <div>
-                  <Label htmlFor="date_of_birth" className={cn(
+                  <Label className={cn(
                     "text-sm font-medium mb-2 block",
                     "text-gray-700 dark:text-gray-200"
                   )}>
                     Date of Birth
                   </Label>
-                  <div className="relative">
-                    <Calendar className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 dark:text-gray-500" />
-                    <Input
-                      id="date_of_birth"
-                      type="date"
-                      value={formData.date_of_birth}
-                      onChange={(e) => handleInputChange('date_of_birth', e.target.value)}
-                      className={cn(
-                        "pl-10 h-12",
-                        errors.date_of_birth && "border-red-500 focus:border-red-500 dark:border-red-400"
-                      )}
-                      disabled={isLoading}
-                    />
-                  </div>
+                  <Popover>
+                    <PopoverTrigger asChild>
+                      <Button
+                        variant="outline"
+                        className={cn(
+                          "w-full h-12 justify-start text-left font-normal",
+                          !dateOfBirth && "text-muted-foreground",
+                          errors.date_of_birth && "border-red-500 focus:border-red-500 dark:border-red-400"
+                        )}
+                        disabled={isLoading}
+                      >
+                        <Calendar className="mr-3 h-4 w-4 text-gray-400 dark:text-gray-500" />
+                        {dateOfBirth ? (
+                          format(dateOfBirth, "PPP")
+                        ) : (
+                          <span>Pick your date of birth</span>
+                        )}
+                      </Button>
+                    </PopoverTrigger>
+                    <PopoverContent className="w-auto p-0" align="start">
+                      <CalendarComponent
+                        mode="single"
+                        selected={dateOfBirth}
+                        onSelect={handleDateChange}
+                        disabled={(date) =>
+                          date > new Date() || date < new Date("1900-01-01")
+                        }
+                        initialFocus
+                        captionLayout="dropdown-buttons"
+                        fromYear={1900}
+                        toYear={new Date().getFullYear()}
+                      />
+                    </PopoverContent>
+                  </Popover>
                   {errors.date_of_birth && (
                     <p className="text-xs text-red-600 dark:text-red-400 mt-1">{errors.date_of_birth}</p>
                   )}
