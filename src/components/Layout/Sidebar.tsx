@@ -45,14 +45,14 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose, activeTab, onTabChan
           x: isOpen || window.innerWidth >= 1024 ? 0 : -300 
         }}
         transition={{ type: 'spring', damping: 25, stiffness: 200 }}
-        className="fixed left-0 z-50 w-64 bg-white/90 backdrop-blur-lg border-r border-gray-200/50 flex flex-col lg:translate-x-0"
+        className="fixed left-0 z-50 w-64 bg-white/90 dark:bg-gray-900/90 backdrop-blur-lg border-r border-gray-200/50 dark:border-gray-700/50 flex flex-col lg:translate-x-0"
         style={{
           top: `${HEADER_HEIGHT}px`,
           height: `calc(100vh - ${HEADER_HEIGHT}px)`
         }}
       >
         {/* Mobile Header - Only show on mobile */}
-        <div className="flex items-center justify-between p-6 border-b border-gray-200/50 lg:hidden">
+        <div className="flex items-center justify-between p-6 border-b border-gray-200/50 dark:border-gray-700/50 lg:hidden">
           <div className="flex items-center space-x-2">
             <div className="w-8 h-8 bg-gradient-to-br from-purple-500 to-blue-600 rounded-lg flex items-center justify-center">
               <span className="text-white font-bold text-sm">D</span>
@@ -95,11 +95,11 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose, activeTab, onTabChan
         </nav>
 
         {/* User Info */}
-        <div className="p-4 border-t border-gray-200/50 flex-shrink-0">
-          <div className="bg-gradient-to-r from-purple-50 to-blue-50 rounded-xl p-3">
+        <div className="p-4 border-t border-gray-200/50 dark:border-gray-700/50 flex-shrink-0">
+          <div className="bg-gradient-to-r from-purple-50 to-blue-50 dark:from-purple-900/20 dark:to-blue-900/20 rounded-xl p-3">
             <div className="text-center">
-              <p className="text-sm font-medium text-gray-800">Keep it up!</p>
-              <p className="text-xs text-gray-600 mt-1">5 goals completed this week</p>
+              <p className="text-sm font-medium text-gray-800 dark:text-gray-200">Keep it up!</p>
+              <p className="text-xs text-gray-600 dark:text-gray-400 mt-1">5 goals completed this week</p>
             </div>
           </div>
         </div>

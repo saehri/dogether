@@ -17,7 +17,7 @@ const Header: React.FC<HeaderProps> = ({ onMenuToggle, onCreateTask, onProfileCl
     <motion.header 
       initial={{ y: -20, opacity: 0 }}
       animate={{ y: 0, opacity: 1 }}
-      className="bg-white/80 backdrop-blur-lg border-b border-gray-200/50 sticky top-0 z-50"
+      className="bg-white/80 dark:bg-gray-900/80 backdrop-blur-lg border-b border-gray-200/50 dark:border-gray-700/50 sticky top-0 z-50"
     >
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between h-16">
@@ -57,7 +57,7 @@ const Header: React.FC<HeaderProps> = ({ onMenuToggle, onCreateTask, onProfileCl
             </Button>
 
             <Avatar 
-              className="w-8 h-8 border-2 border-purple-200 cursor-pointer hover:border-purple-400 transition-colors"
+              className="w-8 h-8 border-2 border-purple-200 dark:border-purple-700 cursor-pointer hover:border-purple-400 dark:hover:border-purple-500 transition-colors"
               onClick={onProfileClick}
             >
               <AvatarImage src={currentUser.avatar} alt={currentUser.name} />
