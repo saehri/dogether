@@ -19,6 +19,10 @@ function App() {
     console.log('Creating task:', task);
   };
 
+  const handleLogoClick = () => {
+    setActiveTab('feed');
+  };
+
   const renderContent = () => {
     switch (activeTab) {
       case 'feed':
@@ -50,6 +54,7 @@ function App() {
         onMenuToggle={() => setIsSidebarOpen(!isSidebarOpen)}
         onCreateTask={() => setIsCreateTaskOpen(true)}
         onProfileClick={() => setActiveTab('profile')}
+        onLogoClick={handleLogoClick}
       />
 
       <div className="flex">

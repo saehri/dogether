@@ -9,9 +9,10 @@ interface HeaderProps {
   onMenuToggle: () => void;
   onCreateTask: () => void;
   onProfileClick: () => void;
+  onLogoClick?: () => void;
 }
 
-const Header: React.FC<HeaderProps> = ({ onMenuToggle, onCreateTask, onProfileClick }) => {
+const Header: React.FC<HeaderProps> = ({ onMenuToggle, onCreateTask, onProfileClick, onLogoClick }) => {
   return (
     <motion.header 
       initial={{ y: -20, opacity: 0 }}
@@ -31,7 +32,10 @@ const Header: React.FC<HeaderProps> = ({ onMenuToggle, onCreateTask, onProfileCl
               <Menu className="w-5 h-5" />
             </Button>
             
-            <div className="flex items-center space-x-2">
+            <div 
+              className="flex items-center space-x-2 cursor-pointer hover:opacity-80 transition-opacity"
+              onClick={onLogoClick}
+            >
               <div className="w-8 h-8 bg-gradient-to-br from-purple-500 to-blue-600 rounded-lg flex items-center justify-center">
                 <span className="text-white font-bold text-sm">D</span>
               </div>
