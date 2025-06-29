@@ -31,7 +31,7 @@ const initialState: UIState = {
 
 export const useUIStore = create<UIStore>()(
   devtools(
-    (set, get) => ({
+    (set, _) => ({
       ...initialState,
 
       setLoading: (loading) => set({ isLoading: loading }),

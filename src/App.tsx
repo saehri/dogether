@@ -1,11 +1,12 @@
-import React, { useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import AppRouter from '@/router/AppRouter';
-import LoadingSpinner from '@/components/ui/loading-spinner';
-import ErrorBoundary from '@/components/ui/error-boundary';
-import { useAuth, useAuthActions } from '@/stores/authStore';
-import { useUI, useUIActions } from '@/stores/uiStore';
-import { getAuthToken, removeAuthToken } from '@/utils/api';
+import { useUI, useUIActions } from '../src/stores/uiStore';
+import { getAuthToken, removeAuthToken } from '../src/utils/api';
+import { useAuth, useAuthActions } from '../src/stores/authStore';
+
+import AppRouter from '../src/router/AppRouter';
+import ErrorBoundary from '../src/components/ui/error-boundary';
+import LoadingSpinner from '../src/components/ui/loading-spinner';
 
 function App() {
   const [isInitializing, setIsInitializing] = useState(true);

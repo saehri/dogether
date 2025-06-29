@@ -1,23 +1,23 @@
 import React, { Suspense } from 'react';
 import { createBrowserRouter, Navigate } from 'react-router-dom';
-import AuthLayout from '@/layouts/AuthLayout';
-import LoadingSpinner from '@/components/ui/loading-spinner';
+import AuthLayout from '../layouts/AuthLayout';
+import LoadingSpinner from '../components/ui/loading-spinner';
 
 // Lazy load pages
-const LoginPage = React.lazy(() => import('@/pages/LoginPage'));
-const RegisterPage = React.lazy(() => import('@/pages/RegisterPage'));
+const LoginPage = React.lazy(() => import('../pages/LoginPage'));
+const RegisterPage = React.lazy(() => import('../pages/RegisterPage'));
 
 // Protected route wrapper
-const ProtectedRoute: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  // This would check authentication status from your store
-  const isAuthenticated = false; // Replace with actual auth check
+// const ProtectedRoute: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+//   // This would check authentication status from your store
+//   const isAuthenticated = false; // Replace with actual auth check
   
-  if (!isAuthenticated) {
-    return <Navigate to="/auth/login" replace />;
-  }
+//   if (!isAuthenticated) {
+//     return <Navigate to="/login" replace />;
+//   }
   
-  return <>{children}</>;
-};
+//   return <>{children}</>;
+// };
 
 // Auth route wrapper (redirect if already authenticated)
 const AuthRoute: React.FC<{ children: React.ReactNode }> = ({ children }) => {
@@ -60,11 +60,11 @@ export const router = createBrowserRouter([
   },
   {
     path: '/',
-    element: <Navigate to="/auth/login" replace />,
+    element: <Navigate to="/login" replace />,
   },
   {
     path: '*',
-    element: <Navigate to="/auth/login" replace />,
+    element: <Navigate to="/login" replace />,
   },
 ]);
 

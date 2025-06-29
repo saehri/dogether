@@ -5,6 +5,7 @@ export interface User {
   email?: string;
   avatar: string;
   badges: Badge[];
+  bio: string;
   friends: string[];
 }
 

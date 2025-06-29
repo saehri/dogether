@@ -1,7 +1,8 @@
 import React from 'react';
 import { motion } from 'framer-motion';
-import Goals from '@/components/Goals/Goals';
-import { useUIActions } from '@/stores/uiStore';
+import { useUIActions } from '../stores/uiStore';
+
+import Goals from '../components/Goals/Goals';
 
 const GoalsPage: React.FC = () => {
   const { setCreateTaskModalOpen } = useUIActions();

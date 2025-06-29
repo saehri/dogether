@@ -2,7 +2,6 @@ import React, { useState } from 'react';
 import { motion } from 'framer-motion';
 import { 
   User, 
-  Mail, 
   Lock, 
   Camera, 
   Palette, 
@@ -13,27 +12,27 @@ import {
   AlertTriangle,
   Check
 } from 'lucide-react';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
-import { Badge } from '@/components/ui/badge';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
-import { useCurrentUser, useStore } from '@/store/useStore';
-import { useAsyncOperation } from '@/hooks/useApi';
-import { useTheme } from '@/contexts/ThemeContext';
-import { cn } from '@/lib/utils';
+
+import { useTheme } from '../../contexts/ThemeContext';
+import { cn } from '../../lib/utils';
+
+import { Input } from '../../components/ui/input';
+import { Label } from '../../components/ui/label';
+import { Badge } from '../../components/ui/badge';
+import { Button } from '../../components/ui/button';
+import { Avatar, AvatarImage, AvatarFallback } from '../../components/ui/avatar';
+import { Card, CardContent, CardHeader, CardTitle } from '../../components/ui/card';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '../../components/ui/dialog';
+import { useAuthStore } from '../../stores/authStore';
+
 
 const Settings: React.FC = () => {
-  const currentUser = useCurrentUser();
-  const { updateUser, deleteUser } = useStore();
-  const { loading, error, execute } = useAsyncOperation();
+  const {user} = useAuthStore();
   const { theme, setTheme } = useTheme();
 
   // Form states
-  const [username, setUsername] = useState(currentUser.username);
-  const [email, setEmail] = useState(currentUser.email || '');
+  const [username, setUsername] = useState(user?.username || "");
+  const [email, setEmail] = useState(user?.email || '');
   const [currentPassword, setCurrentPassword] = useState('');
   const [newPassword, setNewPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
@@ -90,51 +89,51 @@ const Settings: React.FC = () => {
   const handleSaveProfile = async () => {
     if (!validateForm()) return;
 
-    await execute(async () => {
-      const updates: any = {
-        username: username.trim(),
-        email: email.trim(),
-      };
+    // await execute(async () => {
+    //   const updates: any = {
+    //     username: username.trim(),
+    //     email: email.trim(),
+    //   };
 
-      // Handle profile picture upload
-      if (selectedFile) {
-        // In a real app, you'd upload to a service like Cloudinary or AWS S3
-        updates.avatar = URL.createObjectURL(selectedFile);
-      }
+    //   // Handle profile picture upload
+    //   if (selectedFile) {
+    //     // In a real app, you'd upload to a service like Cloudinary or AWS S3
+    //     updates.avatar = URL.createObjectURL(selectedFile);
+    //   }
 
-      await updateUser(currentUser.id, updates);
-      setSuccessMessage('Profile updated successfully!');
+    //   await updateUser(user.id, updates);
+    //   setSuccessMessage('Profile updated successfully!');
       
-      // Clear success message after 3 seconds
-      setTimeout(() => setSuccessMessage(null), 3000);
-    });
+    //   // Clear success message after 3 seconds
+    //   setTimeout(() => setSuccessMessage(null), 3000);
+    // });
   };
 
   const handleChangePassword = async () => {
-    if (!validateForm()) return;
+    // if (!validateForm()) return;
 
-    await execute(async () => {
-      // In a real app, you'd verify the current password and update it
-      // For now, we'll just simulate the process
-      await new Promise(resolve => setTimeout(resolve, 1000));
+    // await execute(async () => {
+    //   // In a real app, you'd verify the current password and update it
+    //   // For now, we'll just simulate the process
+    //   await new Promise(resolve => setTimeout(resolve, 1000));
       
-      setCurrentPassword('');
-      setNewPassword('');
-      setConfirmPassword('');
-      setSuccessMessage('Password changed successfully!');
+    //   setCurrentPassword('');
+    //   setNewPassword('');
+    //   setConfirmPassword('');
+    //   setSuccessMessage('Password changed successfully!');
       
-      setTimeout(() => setSuccessMessage(null), 3000);
-    });
+    //   setTimeout(() => setSuccessMessage(null), 3000);
+    // });
   };
 
   const handleDeleteAccount = async () => {
-    if (deleteConfirmText !== 'DELETE') return;
+    // if (deleteConfirmText !== 'DELETE') return;
 
-    await execute(async () => {
-      await deleteUser(currentUser.id);
-      // In a real app, you'd redirect to login or landing page
-      setSuccessMessage('Account deleted successfully');
-    });
+    // await execute(async () => {
+    //   await deleteUser(user.id);
+    //   // In a real app, you'd redirect to login or landing page
+    //   setSuccessMessage('Account deleted successfully');
+    // });
   };
 
   const handleThemeChange = (newTheme: 'light' | 'dark' | 'system') => {
@@ -251,9 +250,9 @@ const Settings: React.FC = () => {
             <div className="flex items-center space-x-6">
               <div className="relative">
                 <Avatar className="w-20 h-20">
-                  <AvatarImage src={previewUrl || currentUser.avatar} alt={currentUser.name} />
+                  <AvatarImage src={previewUrl || user?.avatar} alt={user?.name} />
                   <AvatarFallback className="text-xl bg-gradient-to-br from-purple-500 to-blue-600 text-white">
-                    {currentUser.name.charAt(0)}
+                    {user?.name.charAt(0)}
                   </AvatarFallback>
                 </Avatar>
                 <Label
@@ -275,15 +274,15 @@ const Settings: React.FC = () => {
                   "font-semibold",
                   "text-gray-900 dark:text-gray-100"
                 )}>
-                  {currentUser.name}
+                  {user?.name}
                 </h3>
                 <p className={cn(
                   "text-gray-600 dark:text-gray-400"
                 )}>
-                  @{currentUser.username}
+                  @{user?.username}
                 </p>
                 <Badge variant="info" className="mt-1">
-                  {currentUser.badges.length} badges earned
+                  {/* {user?.badges.length} badges earned */}
                 </Badge>
               </div>
             </div>
@@ -329,23 +328,22 @@ const Settings: React.FC = () => {
             </div>
 
             {/* Error Display */}
-            {error && (
+            {/* {error && (
               <div className={cn(
                 "border rounded-lg p-3",
                 "bg-red-50 border-red-200 dark:bg-red-900/20 dark:border-red-800/30"
               )}>
                 <p className="text-red-700 dark:text-red-300 text-sm">{error}</p>
               </div>
-            )}
+            )} */}
 
             <Button
               onClick={handleSaveProfile}
-              disabled={loading}
               variant="gradient"
               className="flex items-center space-x-2"
             >
               <Save className="w-4 h-4" />
-              <span>{loading ? 'Saving...' : 'Save Profile'}</span>
+              {/* <span>{loading ? 'Saving...' : 'Save Profile'}</span> */}
             </Button>
           </CardContent>
         </Card>
@@ -459,12 +457,12 @@ const Settings: React.FC = () => {
 
             <Button
               onClick={handleChangePassword}
-              disabled={loading || !newPassword}
+              // disabled={loading || !newPassword}
               variant="gradient"
               className="flex items-center space-x-2"
             >
               <Lock className="w-4 h-4" />
-              <span>{loading ? 'Changing...' : 'Change Password'}</span>
+              {/* <span>{loading ? 'Changing...' : 'Change Password'}</span> */}
             </Button>
           </CardContent>
         </Card>
@@ -540,7 +538,7 @@ const Settings: React.FC = () => {
                   setIsDeleteModalOpen(false);
                   setDeleteConfirmText('');
                 }}
-                disabled={loading}
+                // disabled={loading}
               >
                 Cancel
               </Button>
@@ -548,9 +546,9 @@ const Settings: React.FC = () => {
                 variant="destructive"
                 className="flex-1"
                 onClick={handleDeleteAccount}
-                disabled={deleteConfirmText !== 'DELETE' || loading}
+                // disabled={deleteConfirmText !== 'DELETE' || loading}
               >
-                {loading ? 'Deleting...' : 'Delete Account'}
+                {/* {loading ? 'Deleting...' : 'Delete Account'} */}
               </Button>
             </div>
           </div>

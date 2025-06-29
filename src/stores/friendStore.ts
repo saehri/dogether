@@ -1,6 +1,6 @@
 import { create } from 'zustand';
 import { devtools, persist } from 'zustand/middleware';
-import { Friend } from '@/types';
+import { Friend } from '../types';
 
 interface FriendState {
   friends: Friend[];

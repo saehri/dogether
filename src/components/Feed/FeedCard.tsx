@@ -1,36 +1,25 @@
 import React from 'react';
 import { motion } from 'framer-motion';
 import { Heart, Share, Calendar, Target, CheckCircle2 } from 'lucide-react';
-import { Card, CardContent, CardFooter, CardHeader } from '@/components/ui/card';
-import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
-import { Badge } from '@/components/ui/badge';
-import { Button } from '@/components/ui/button';
-import { Progress } from '@/components/ui/progress';
-import { Task } from '@/types';
-import { useCurrentUser, useFriends } from '@/store/useStore';
-import { cn } from '@/lib/utils';
+import { Card, CardContent, CardFooter, CardHeader } from '../../components/ui/card';
+import { Task } from '../../types';
+import { cn } from '../../lib/utils';
+
+import { Badge } from '../../components/ui/badge';
+import { Button } from '../../components/ui/button';
+import { Progress } from '../../components/ui/progress';
+
+import { Avatar, AvatarImage, AvatarFallback } from '../../components/ui/avatar';
 
 interface FeedCardProps {
   task: Task;
   index: number;
-  onProfileClick: (userId: string) => void;
 }
 
-const FeedCard: React.FC<FeedCardProps> = ({ task, index, onProfileClick }) => {
-  const currentUser = useCurrentUser();
-  const friends = useFriends();
-  
-  const user = task.userId === currentUser.id ? currentUser : friends.find(f => f.id === task.userId);
-  
-  if (!user) return null;
-
+const FeedCard: React.FC<FeedCardProps> = ({ task, index}) => {
   const isGoal = task.type === 'goal';
   const progress = isGoal && task.goalDetails ? 
     (task.goalDetails.currentCount / task.goalDetails.targetCount) * 100 : 100;
-
-  const handleUserClick = () => {
-    onProfileClick(user.id);
-  };
 
   return (
     <motion.div
@@ -49,11 +38,10 @@ const FeedCard: React.FC<FeedCardProps> = ({ task, index, onProfileClick }) => {
                 "w-10 h-10 cursor-pointer hover:ring-2 hover:ring-purple-300 dark:hover:ring-purple-500 transition-all",
                 "border-2 border-purple-200 dark:border-purple-700"
               )}
-              onClick={handleUserClick}
             >
-              <AvatarImage src={user.avatar} alt={user.name} />
+              <AvatarImage src={''} alt={''} />
               <AvatarFallback className="bg-gradient-to-br from-purple-500 to-blue-600 text-white">
-                {user.name.charAt(0)}
+                {/* {user.name.charAt(0)} */}
               </AvatarFallback>
             </Avatar>
             <div className="flex-1">
@@ -63,18 +51,16 @@ const FeedCard: React.FC<FeedCardProps> = ({ task, index, onProfileClick }) => {
                     "font-semibold cursor-pointer hover:text-purple-600 dark:hover:text-purple-400 transition-colors",
                     "text-gray-900 dark:text-gray-100"
                   )}
-                  onClick={handleUserClick}
                 >
-                  {user.name}
+                  {''}
                 </h3>
                 <span 
                   className={cn(
                     "text-sm cursor-pointer hover:text-purple-500 dark:hover:text-purple-400 transition-colors",
                     "text-gray-500 dark:text-gray-300"
                   )}
-                  onClick={handleUserClick}
                 >
-                  @{user.username}
+                  @{''}
                 </span>
               </div>
               <div className={cn(

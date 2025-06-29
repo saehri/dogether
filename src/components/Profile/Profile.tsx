@@ -1,142 +1,161 @@
 import React, { useState } from 'react';
 import { motion } from 'framer-motion';
-import { ChevronDown, ChevronUp, Trophy, Target, CheckCircle2, Calendar, Users, LogOut, User as UserIcon } from 'lucide-react';
-import { Card, CardContent, CardHeader } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
-import { Badge } from '@/components/ui/badge';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
-import { useCurrentUser, useBadges, useUserStats, useCompletedTasks } from '@/store/useStore';
-import { cn } from '@/lib/utils';
+import { cn } from '../../lib/utils';
+import { removeAuthToken } from '../../services/api';
 
-interface ProfileProps {
-  onLogout?: () => void;
-}
+import {
+	ChevronDown,
+	ChevronUp,
+	Trophy,
+	Calendar,
+	LogOut,
+	User as UserIcon,
+} from 'lucide-react';
 
-const Profile: React.FC<ProfileProps> = ({ onLogout }) => {
-  const [showAllBadges, setShowAllBadges] = useState(false);
-  const [isLogoutModalOpen, setIsLogoutModalOpen] = useState(false);
-  
-  const currentUser = useCurrentUser();
-  const allBadges = useBadges();
-  const stats = useUserStats(currentUser.id);
-  const completedTasks = useCompletedTasks(currentUser.id);
-  
-  const userBadges = currentUser.badges;
-  const visibleBadges = showAllBadges ? userBadges : userBadges.slice(0, 5);
-  const shouldShowToggle = userBadges.length > 5;
+import { Card, CardContent } from '../../components/ui/card';
+import { Button } from '../../components/ui/button';
+import {
+	Avatar,
+	AvatarImage,
+	AvatarFallback,
+} from '../../components/ui/avatar';
+import { Badge } from '../../components/ui/badge';
+import {
+	Dialog,
+	DialogContent,
+	DialogHeader,
+	DialogTitle,
+	DialogDescription,
+} from '../../components/ui/dialog';
+import { useAuthActions, useAuthStore } from '../../stores/authStore';
+import { useBadgeStore } from '../../stores/badgeStore';
 
-  const statsData = [
-    {
-      label: 'Tasks Completed',
-      value: stats.completedTasks,
-      total: stats.totalTasks,
-      color: 'from-green-500 to-emerald-600',
-      icon: CheckCircle2
-    },
-    {
-      label: 'Goals Achieved',
-      value: stats.completedGoals,
-      total: stats.totalGoals,
-      color: 'from-blue-500 to-purple-600',
-      icon: Target
-    },
-    {
-      label: 'Badges Earned',
-      value: userBadges.length,
-      total: allBadges.length,
-      color: 'from-yellow-500 to-orange-600',
-      icon: Trophy
-    },
-    {
-      label: 'Friends',
-      value: currentUser.friends.length,
-      total: 50, // Max friends for visualization
-      color: 'from-purple-500 to-pink-600',
-      icon: Users
-    }
-  ];
+interface ProfileProps {}
 
-  const userBio = currentUser.name 
-    ? `Hello! I'm ${currentUser.name}. I'm passionate about personal growth and achieving goals. Love connecting with like-minded people who push each other to be better every day.`
-    : "Welcome to Dogether! Complete your profile to share more about yourself with friends.";
+const Profile: React.FC<ProfileProps> = () => {
+	const [showAllBadges, setShowAllBadges] = useState(false);
+	const [isLogoutModalOpen, setIsLogoutModalOpen] = useState(false);
 
-  const handleLogout = () => {
-    setIsLogoutModalOpen(false);
-    if (onLogout) {
-      onLogout();
-    }
-  };
+	const { user } = useAuthStore();
+	const { logout, setAuthenticated } = useAuthActions();
+	const { badges } = useBadgeStore();
 
-  // Check if user has basic profile info
-  const hasBasicInfo = currentUser.name && currentUser.username;
+	const visibleBadges = showAllBadges ? badges : badges.slice(0, 5);
+	const shouldShowToggle = badges.length > 5;
 
-  return (
-    <div className="max-w-4xl mx-auto space-y-8">
-      {/* Profile Header */}
-      <motion.div
-        initial={{ opacity: 0, y: -20 }}
-        animate={{ opacity: 1, y: 0 }}
-        className="text-center"
-      >
-        <div className="relative inline-block mb-6">
-          <Avatar className="w-32 h-32 border-4 border-white shadow-xl">
-            {currentUser.avatar ? (
-              <AvatarImage src={currentUser.avatar} alt={currentUser.name || 'User'} />
-            ) : null}
-            <AvatarFallback className="text-4xl font-bold bg-gradient-to-br from-purple-500 to-blue-600 text-white">
-              {currentUser.name ? currentUser.name.charAt(0) : <UserIcon className="w-16 h-16" />}
-            </AvatarFallback>
-          </Avatar>
-          <div className="absolute -bottom-2 -right-2 w-8 h-8 bg-green-500 border-4 border-white rounded-full"></div>
-        </div>
-        
-        <h1 className={cn(
-          "text-3xl font-bold mb-2",
-          "text-gray-900 dark:text-gray-100"
-        )}>
-          {currentUser.name || 'Welcome to Dogether!'}
-        </h1>
-        <p className={cn(
-          "text-xl mb-4",
-          "text-gray-600 dark:text-gray-200"
-        )}>
-          {currentUser.username ? `@${currentUser.username}` : 'Complete your profile to get started'}
-        </p>
+	// const statsData = [
+	//   {
+	//     label: 'Tasks Completed',
+	//     value: stats.completedTasks,
+	//     total: stats.totalTasks,
+	//     color: 'from-green-500 to-emerald-600',
+	//     icon: CheckCircle2
+	//   },
+	//   {
+	//     label: 'Goals Achieved',
+	//     value: stats.completedGoals,
+	//     total: stats.totalGoals,
+	//     color: 'from-blue-500 to-purple-600',
+	//     icon: Target
+	//   },
+	//   {
+	//     label: 'Badges Earned',
+	//     value: badges.length,
+	//     total: allBadges.length,
+	//     color: 'from-yellow-500 to-orange-600',
+	//     icon: Trophy
+	//   },
+	//   {
+	//     label: 'Friends',
+	//     value: user.friends.length,
+	//     total: 50, // Max friends for visualization
+	//     color: 'from-purple-500 to-pink-600',
+	//     icon: Users
+	//   }
+	// ];
 
-        {/* Logout Button */}
-        <div className="flex justify-center mb-6">
-          <Button
-            variant="outline"
-            onClick={() => setIsLogoutModalOpen(true)}
-            className="flex items-center space-x-2 text-red-600 border-red-200 hover:bg-red-50 hover:border-red-300 dark:text-red-400 dark:border-red-800/30 dark:hover:bg-red-900/20"
-          >
-            <LogOut className="w-4 h-4" />
-            <span>Sign Out</span>
-          </Button>
-        </div>
-        
-        {/* Bio */}
-        <Card className="max-w-2xl mx-auto">
-          <CardContent className="p-6">
-            <h2 className={cn(
-              "text-lg font-semibold mb-3",
-              "text-gray-900 dark:text-gray-100"
-            )}>
-              About Me
-            </h2>
-            <p className={cn(
-              "leading-relaxed",
-              "text-gray-700 dark:text-gray-200"
-            )}>
-              {userBio}
-            </p>
-          </CardContent>
-        </Card>
-      </motion.div>
+	const handleLogout = () => {
+		setIsLogoutModalOpen(false);
+		logout();
+		removeAuthToken();
+		setAuthenticated(false);
+	};
 
-      {/* Stats with Bar Charts - Only show if user has some activity */}
-      {(stats.totalTasks > 0 || userBadges.length > 0 || currentUser.friends.length > 0) && (
+	return (
+		<div className="max-w-4xl mx-auto space-y-8">
+			{/* Profile Header */}
+			<motion.div
+				initial={{ opacity: 0, y: -20 }}
+				animate={{ opacity: 1, y: 0 }}
+				className="text-center"
+			>
+				<div className="relative inline-block mb-6">
+					<Avatar className="w-32 h-32 border-4 border-white shadow-xl">
+						{user?.avatar ? (
+							<AvatarImage src={user.avatar} alt={user.name || 'User'} />
+						) : null}
+						<AvatarFallback className="text-4xl font-bold bg-gradient-to-br from-purple-500 to-blue-600 text-white">
+							{user?.name ? (
+								user.name.charAt(0)
+							) : (
+								<UserIcon className="w-16 h-16" />
+							)}
+						</AvatarFallback>
+					</Avatar>
+					<div className="absolute -bottom-2 -right-2 w-8 h-8 bg-green-500 border-4 border-white rounded-full"></div>
+				</div>
+
+				<h1
+					className={cn(
+						'text-3xl font-bold mb-2',
+						'text-gray-900 dark:text-gray-100'
+					)}
+				>
+					{user?.name || 'Welcome to Dogether!'}
+				</h1>
+				<p className={cn('text-xl mb-4', 'text-gray-600 dark:text-gray-200')}>
+					{user?.username
+						? `@${user.username}`
+						: 'Complete your profile to get started'}
+				</p>
+
+				{/* Logout Button */}
+				<div className="flex justify-center mb-6">
+					<Button
+						variant="outline"
+						onClick={() => setIsLogoutModalOpen(true)}
+						className="flex items-center space-x-2 text-red-600 border-red-200 hover:bg-red-50 hover:border-red-300 dark:text-red-400 dark:border-red-800/30 dark:hover:bg-red-900/20"
+					>
+						<LogOut className="w-4 h-4" />
+						<span>Sign Out</span>
+					</Button>
+				</div>
+
+				{/* Bio */}
+				<Card className="max-w-2xl mx-auto">
+					<CardContent className="p-6">
+						<h2
+							className={cn(
+								'text-lg font-semibold mb-3',
+								'text-gray-900 dark:text-gray-100'
+							)}
+						>
+							About Me
+						</h2>
+						<p
+							className={cn(
+								'leading-relaxed',
+								'text-gray-700 dark:text-gray-200'
+							)}
+						>
+							{user?.bio}
+						</p>
+					</CardContent>
+				</Card>
+			</motion.div>
+
+			{/* Stats with Bar Charts - Only show if user has some activity */}
+			{/* {(stats.totalTasks > 0 || badges.length > 0 || user.friends.length > 0) && (
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
@@ -198,7 +217,6 @@ const Profile: React.FC<ProfileProps> = ({ onLogout }) => {
                         </div>
                       </div>
                       
-                      {/* Bar Chart */}
                       <div className="relative">
                         <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-3">
                           <motion.div
@@ -216,118 +234,128 @@ const Profile: React.FC<ProfileProps> = ({ onLogout }) => {
             })}
           </div>
         </motion.div>
-      )}
+      )} */}
 
-      {/* Badges Section */}
-      <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: 0.2 }}
-      >
-        <div className="flex items-center justify-between mb-6">
-          <h2 className={cn(
-            "text-2xl font-bold flex items-center space-x-2",
-            "text-gray-900 dark:text-gray-100"
-          )}>
-            <Trophy className="w-7 h-7 text-yellow-500" />
-            <span>My Badges</span>
-          </h2>
-          {userBadges.length > 0 && (
-            <Badge variant="info" className="text-sm">
-              {userBadges.length} earned
-            </Badge>
-          )}
-        </div>
+			{/* Badges Section */}
+			<motion.div
+				initial={{ opacity: 0, y: 20 }}
+				animate={{ opacity: 1, y: 0 }}
+				transition={{ delay: 0.2 }}
+			>
+				<div className="flex items-center justify-between mb-6">
+					<h2
+						className={cn(
+							'text-2xl font-bold flex items-center space-x-2',
+							'text-gray-900 dark:text-gray-100'
+						)}
+					>
+						<Trophy className="w-7 h-7 text-yellow-500" />
+						<span>My Badges</span>
+					</h2>
+					{badges.length > 0 && (
+						<Badge variant="info" className="text-sm">
+							{badges.length} earned
+						</Badge>
+					)}
+				</div>
 
-        {userBadges.length > 0 ? (
-          <Card>
-            <CardContent className="p-6">
-              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4">
-                {visibleBadges.map((badge, index) => (
-                  <motion.div
-                    key={badge.id}
-                    initial={{ opacity: 0, scale: 0.8 }}
-                    animate={{ opacity: 1, scale: 1 }}
-                    transition={{ delay: index * 0.1 }}
-                    className="text-center"
-                  >
-                    <div className={`w-16 h-16 bg-gradient-to-br ${badge.color} rounded-full flex items-center justify-center mx-auto mb-3 text-2xl shadow-lg`}>
-                      {badge.icon}
-                    </div>
-                    <h4 className={cn(
-                      "font-semibold text-sm mb-1",
-                      "text-gray-900 dark:text-gray-100"
-                    )}>
-                      {badge.name}
-                    </h4>
-                    <p className={cn(
-                      "text-xs line-clamp-2",
-                      "text-gray-600 dark:text-gray-200"
-                    )}>
-                      {badge.description}
-                    </p>
-                  </motion.div>
-                ))}
-              </div>
+				{badges.length > 0 ? (
+					<Card>
+						<CardContent className="p-6">
+							<div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4">
+								{visibleBadges.map((badge, index) => (
+									<motion.div
+										key={badge.id}
+										initial={{ opacity: 0, scale: 0.8 }}
+										animate={{ opacity: 1, scale: 1 }}
+										transition={{ delay: index * 0.1 }}
+										className="text-center"
+									>
+										<div
+											className={`w-16 h-16 bg-gradient-to-br ${badge.color} rounded-full flex items-center justify-center mx-auto mb-3 text-2xl shadow-lg`}
+										>
+											{badge.icon}
+										</div>
+										<h4
+											className={cn(
+												'font-semibold text-sm mb-1',
+												'text-gray-900 dark:text-gray-100'
+											)}
+										>
+											{badge.name}
+										</h4>
+										<p
+											className={cn(
+												'text-xs line-clamp-2',
+												'text-gray-600 dark:text-gray-200'
+											)}
+										>
+											{badge.description}
+										</p>
+									</motion.div>
+								))}
+							</div>
 
-              {shouldShowToggle && (
-                <div className="text-center mt-6">
-                  <Button
-                    variant="ghost"
-                    onClick={() => setShowAllBadges(!showAllBadges)}
-                    className="flex items-center space-x-2 mx-auto"
-                  >
-                    {showAllBadges ? (
-                      <>
-                        <ChevronUp className="w-4 h-4" />
-                        <span>Show Less</span>
-                      </>
-                    ) : (
-                      <>
-                        <ChevronDown className="w-4 h-4" />
-                        <span>Show All ({userBadges.length - 5} more)</span>
-                      </>
-                    )}
-                  </Button>
-                </div>
-              )}
-            </CardContent>
-          </Card>
-        ) : (
-          <Card>
-            <CardContent className="p-12 text-center">
-              <Trophy className="w-16 h-16 text-gray-300 dark:text-gray-600 mx-auto mb-4" />
-              <h3 className={cn(
-                "text-xl font-semibold mb-2",
-                "text-gray-600 dark:text-gray-200"
-              )}>
-                No badges yet
-              </h3>
-              <p className={cn(
-                "text-gray-500 dark:text-gray-300"
-              )}>
-                Complete goals and tasks to earn your first badge!
-              </p>
-            </CardContent>
-          </Card>
-        )}
-      </motion.div>
+							{shouldShowToggle && (
+								<div className="text-center mt-6">
+									<Button
+										variant="ghost"
+										onClick={() => setShowAllBadges(!showAllBadges)}
+										className="flex items-center space-x-2 mx-auto"
+									>
+										{showAllBadges ? (
+											<>
+												<ChevronUp className="w-4 h-4" />
+												<span>Show Less</span>
+											</>
+										) : (
+											<>
+												<ChevronDown className="w-4 h-4" />
+												<span>Show All ({badges.length - 5} more)</span>
+											</>
+										)}
+									</Button>
+								</div>
+							)}
+						</CardContent>
+					</Card>
+				) : (
+					<Card>
+						<CardContent className="p-12 text-center">
+							<Trophy className="w-16 h-16 text-gray-300 dark:text-gray-600 mx-auto mb-4" />
+							<h3
+								className={cn(
+									'text-xl font-semibold mb-2',
+									'text-gray-600 dark:text-gray-200'
+								)}
+							>
+								No badges yet
+							</h3>
+							<p className={cn('text-gray-500 dark:text-gray-300')}>
+								Complete goals and tasks to earn your first badge!
+							</p>
+						</CardContent>
+					</Card>
+				)}
+			</motion.div>
 
-      {/* Recent Activity */}
-      <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: 0.3 }}
-      >
-        <h2 className={cn(
-          "text-2xl font-bold mb-6 flex items-center space-x-2",
-          "text-gray-900 dark:text-gray-100"
-        )}>
-          <Calendar className="w-7 h-7 text-blue-500" />
-          <span>Recent Activity</span>
-        </h2>
-        
-        <Card>
+			{/* Recent Activity */}
+			<motion.div
+				initial={{ opacity: 0, y: 20 }}
+				animate={{ opacity: 1, y: 0 }}
+				transition={{ delay: 0.3 }}
+			>
+				<h2
+					className={cn(
+						'text-2xl font-bold mb-6 flex items-center space-x-2',
+						'text-gray-900 dark:text-gray-100'
+					)}
+				>
+					<Calendar className="w-7 h-7 text-blue-500" />
+					<span>Recent Activity</span>
+				</h2>
+
+				{/* <Card>
           <CardContent className="p-6">
             {completedTasks.length > 0 ? (
               <div className="space-y-4">
@@ -378,43 +406,45 @@ const Profile: React.FC<ProfileProps> = ({ onLogout }) => {
               </div>
             )}
           </CardContent>
-        </Card>
-      </motion.div>
+        </Card> */}
+			</motion.div>
 
-      {/* Logout Confirmation Modal */}
-      <Dialog open={isLogoutModalOpen} onOpenChange={setIsLogoutModalOpen}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle className="flex items-center space-x-2">
-              <LogOut className="w-5 h-5 text-red-500" />
-              <span>Sign Out</span>
-            </DialogTitle>
-            <DialogDescription>
-              Are you sure you want to sign out? You'll need to log in again to access your account.
-            </DialogDescription>
-          </DialogHeader>
-          
-          <div className="flex space-x-3 mt-6">
-            <Button
-              variant="outline"
-              className="flex-1"
-              onClick={() => setIsLogoutModalOpen(false)}
-            >
-              Cancel
-            </Button>
-            <Button
-              variant="destructive"
-              className="flex-1 flex items-center space-x-2"
-              onClick={handleLogout}
-            >
-              <LogOut className="w-4 h-4" />
-              <span>Sign Out</span>
-            </Button>
-          </div>
-        </DialogContent>
-      </Dialog>
-    </div>
-  );
+			{/* Logout Confirmation Modal */}
+			<Dialog open={isLogoutModalOpen} onOpenChange={setIsLogoutModalOpen}>
+				<DialogContent>
+					<DialogHeader>
+						<DialogTitle className="flex items-center space-x-2">
+							<LogOut className="w-5 h-5 text-red-500" />
+							<span>Sign Out</span>
+						</DialogTitle>
+						<DialogDescription>
+							Are you sure you want to sign out? You'll need to log in again to
+							access your account.
+						</DialogDescription>
+					</DialogHeader>
+
+					<div className="flex space-x-3 mt-6">
+						<Button
+							variant="outline"
+							className="flex-1"
+							onClick={() => setIsLogoutModalOpen(false)}
+						>
+							Cancel
+						</Button>
+						<Button
+							variant="destructive"
+							className="flex-1 flex items-center space-x-2"
+							onClick={handleLogout}
+						>
+							<LogOut className="w-4 h-4" />
+							<span>Sign Out</span>
+						</Button>
+					</div>
+				</DialogContent>
+			</Dialog>
+		</div>
+	);
 };
 
 export default Profile;
+

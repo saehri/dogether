@@ -1,6 +1,6 @@
 import { create } from 'zustand';
 import { devtools, persist } from 'zustand/middleware';
-import { Task } from '@/types';
+import { Task } from '../types';
 
 interface TaskState {
   tasks: Task[];

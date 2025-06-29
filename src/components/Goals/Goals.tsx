@@ -1,12 +1,13 @@
 import React, { useState } from 'react';
+import { cn } from '../../lib/utils';
 import { motion } from 'framer-motion';
+import { useAuth } from '../../stores/authStore';
+import { Button } from '../../components/ui/button';
 import { Filter, Plus, Target } from 'lucide-react';
-import { Button } from '@/components/ui/button';
-import { Card, CardContent } from '@/components/ui/card';
-import { useAuth } from '@/stores/authStore';
-import { useUserTasks, useTaskStats } from '@/stores/taskStore';
+import { Card, CardContent } from '../../components/ui/card';
+import { useUserTasks, useTaskStats } from '../../stores/taskStore';
+
 import GoalCard from './GoalCard';
-import { cn } from '@/lib/utils';
 
 interface GoalsProps {
   onCreateTask: () => void;
@@ -80,11 +81,6 @@ const Goals: React.FC<GoalsProps> = ({ onCreateTask }) => {
             Track your progress and achieve your goals
           </p>
         </div>
-        
-        <Button variant="gradient" onClick={onCreateTask} className="flex items-center space-x-2" data-create-task>
-          <Plus className="w-4 h-4" />
-          <span>New Goal</span>
-        </Button>
       </motion.div>
 
       {/* Stats - Only show if there are tasks */}

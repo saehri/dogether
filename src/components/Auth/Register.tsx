@@ -1,24 +1,22 @@
 import React, { useState } from 'react';
 import { motion } from 'framer-motion';
 import { Link, useNavigate } from 'react-router-dom';
-import { Eye, EyeOff, Mail, Lock, User, Chrome, ArrowRight, Check, Calendar, AlertCircle } from 'lucide-react';
+import { Eye, EyeOff, Mail, Lock, User, ArrowRight, Check, Calendar, AlertCircle } from 'lucide-react';
+import { cn } from '../../lib/utils';
 import { format } from 'date-fns';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Card, CardContent, CardHeader } from '@/components/ui/card';
-import { Calendar as CalendarComponent } from '@/components/ui/calendar';
-import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
-import { authApi, setAuthToken } from '@/services/api';
-import { cn } from '@/lib/utils';
+import { authApi, setAuthToken } from '../../services/api';
+
+import { Button } from '../../components/ui/button';
+import { Input } from '../../components/ui/input';
+import { Label } from '../../components/ui/label';
+import { Card, CardContent, CardHeader } from '../../components/ui/card';
+import { Calendar as CalendarComponent } from '../../components/ui/calendar';
+import { Popover, PopoverContent, PopoverTrigger } from '../../components/ui/popover';
 
 interface RegisterProps {
-  onRegister: (userData: { username: string; fullname: string; email: string; password: string; date_of_birth: string }) => void;
-  onGoogleRegister: () => void;
-  onNavigateToLogin: () => void;
 }
 
-const Register: React.FC<RegisterProps> = ({ onRegister, onGoogleRegister, onNavigateToLogin }) => {
+const Register: React.FC<RegisterProps> = () => {
   const [formData, setFormData] = useState({
     fullname: '',
     username: '',
@@ -155,10 +153,7 @@ const Register: React.FC<RegisterProps> = ({ onRegister, onGoogleRegister, onNav
         if (response.data?.token) {
           setAuthToken(response.data.token);
         }
-        
-        // Call the parent component's onRegister handler
-        onRegister(userData);
-        
+                
         // Navigate to login page with success message
         navigate('/login', { 
           state: { 
@@ -189,30 +184,6 @@ const Register: React.FC<RegisterProps> = ({ onRegister, onGoogleRegister, onNav
       }
       
       setErrors({ general: errorMessage });
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  const handleGoogleRegister = async () => {
-    setIsLoading(true);
-    setErrors({});
-
-    try {
-      // In a real implementation, you would integrate with Google OAuth
-      // For now, we'll simulate the process
-      await new Promise(resolve => setTimeout(resolve, 1000));
-      onGoogleRegister();
-      
-      // Navigate to login page after successful Google registration
-      navigate('/login', { 
-        state: { 
-          message: 'Google registration successful! Please sign in.' 
-        } 
-      });
-    } catch (error: any) {
-      console.error('Google registration error:', error);
-      setErrors({ general: 'Google registration failed. Please try again.' });
     } finally {
       setIsLoading(false);
     }
@@ -296,7 +267,7 @@ const Register: React.FC<RegisterProps> = ({ onRegister, onGoogleRegister, onNav
 
             <CardContent className="space-y-6">
               {/* Google Register Button */}
-              <Button
+              {/* <Button
                 type="button"
                 variant="outline"
                 className="w-full h-12 flex items-center justify-center space-x-3 border-2 hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-all"
@@ -305,10 +276,10 @@ const Register: React.FC<RegisterProps> = ({ onRegister, onGoogleRegister, onNav
               >
                 <Chrome className="w-5 h-5 text-blue-600" />
                 <span className="font-medium">Continue with Google</span>
-              </Button>
+              </Button> */}
 
               {/* Divider */}
-              <div className="relative">
+              {/* <div className="relative">
                 <div className="absolute inset-0 flex items-center">
                   <div className="w-full border-t border-gray-300 dark:border-gray-600"></div>
                 </div>
@@ -320,7 +291,7 @@ const Register: React.FC<RegisterProps> = ({ onRegister, onGoogleRegister, onNav
                     Or register with email
                   </span>
                 </div>
-              </div>
+              </div> */}
 
               {/* Register Form */}
               <form onSubmit={handleSubmit} className="space-y-4">

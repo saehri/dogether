@@ -1,11 +1,12 @@
 import React from 'react';
+import { cn } from '../../lib/utils';
 import { motion } from 'framer-motion';
-import { Button } from '@/components/ui/button';
-import { Card, CardContent } from '@/components/ui/card';
 import { Plus, Users } from 'lucide-react';
-import { useTasks } from '@/stores/taskStore';
+import { useTasks } from '../../stores/taskStore';
+
 import FeedCard from './FeedCard';
-import { cn } from '@/lib/utils';
+import { Button } from '../../components/ui/button';
+import { Card, CardContent } from '../../components/ui/card';
 
 interface FeedProps {
   onProfileClick: (userId: string) => void;

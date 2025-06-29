@@ -1,34 +1,28 @@
 import React, { useState } from 'react';
 import { Outlet, useLocation } from 'react-router-dom';
 import { AnimatePresence } from 'framer-motion';
+
 import Header from './Header';
 import Sidebar from './Sidebar';
 import CreateTask from '../CreateTask/CreateTask';
-import { useStore } from '@/store/useStore';
+import { useTaskStore } from '../../stores/taskStore';
 
 const Layout: React.FC = () => {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [isCreateTaskOpen, setIsCreateTaskOpen] = useState(false);
   const location = useLocation();
   
-  const { createTask } = useStore();
+  const { addTask } = useTaskStore();
 
   const handleCreateTask = async (taskData: any) => {
     try {
-      await createTask(taskData);
+      await addTask(taskData);
       setIsCreateTaskOpen(false);
     } catch (error) {
       console.error('Failed to create task:', error);
     }
   };
 
-  const handleLogoClick = () => {
-    // Navigation will be handled by Link components
-  };
-
-  const handleProfileClick = () => {
-    // Navigation will be handled by Link components
-  };
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-purple-50 via-blue-50 to-indigo-100 dark:from-gray-900 dark:via-purple-900/20 dark:to-blue-900/20">
@@ -36,8 +30,6 @@ const Layout: React.FC = () => {
       <Header
         onMenuToggle={() => setIsSidebarOpen(!isSidebarOpen)}
         onCreateTask={() => setIsCreateTaskOpen(true)}
-        onProfileClick={handleProfileClick}
-        onLogoClick={handleLogoClick}
       />
 
       <div className="flex">
@@ -45,7 +37,6 @@ const Layout: React.FC = () => {
         <Sidebar
           isOpen={isSidebarOpen}
           onClose={() => setIsSidebarOpen(false)}
-          activeTab={location.pathname}
         />
 
         {/* Main Content - Adjusted for fixed sidebar */}

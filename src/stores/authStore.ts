@@ -1,9 +1,10 @@
 import { create } from 'zustand';
 import { devtools, persist } from 'zustand/middleware';
-import { User } from '@/types';
+import { User } from '../types';
 
 interface AuthState {
   user: User | null;
+  token: string | null;
   isAuthenticated: boolean;
   isLoading: boolean;
   error: string | null;
@@ -11,6 +12,7 @@ interface AuthState {
 
 interface AuthActions {
   setUser: (user: User | null) => void;
+  setToken: (token: string | null) => void;
   setAuthenticated: (authenticated: boolean) => void;
   setLoading: (loading: boolean) => void;
   setError: (error: string | null) => void;
@@ -23,6 +25,7 @@ type AuthStore = AuthState & AuthActions;
 
 const initialState: AuthState = {
   user: null,
+  token: null,
   isAuthenticated: false,
   isLoading: false,
   error: null,
@@ -31,41 +34,40 @@ const initialState: AuthState = {
 export const useAuthStore = create<AuthStore>()(
   devtools(
     persist(
-      (set, get) => ({
+      (set) => ({
         ...initialState,
 
         setUser: (user) => set({ user }),
-        
+        setToken: (token) => set({ token }),
         setAuthenticated: (authenticated) => set({ isAuthenticated: authenticated }),
-        
         setLoading: (loading) => set({ isLoading: loading }),
-        
         setError: (error) => set({ error }),
-        
+
         login: (user, token) => {
-          localStorage.setItem('authToken', token);
           set({
             user,
+            token,
             isAuthenticated: true,
             error: null,
           });
         },
-        
+
         logout: () => {
-          localStorage.removeItem('authToken');
           set({
             user: null,
+            token: null,
             isAuthenticated: false,
             error: null,
           });
         },
-        
+
         clearError: () => set({ error: null }),
       }),
       {
         name: 'auth-store',
         partialize: (state) => ({
           user: state.user,
+          token: state.token,
           isAuthenticated: state.isAuthenticated,
         }),
       }
@@ -74,20 +76,25 @@ export const useAuthStore = create<AuthStore>()(
   )
 );
 
-// Selectors
-export const useAuth = () => useAuthStore((state) => ({
-  user: state.user,
-  isAuthenticated: state.isAuthenticated,
-  isLoading: state.isLoading,
-  error: state.error,
-}));
+// State selector
+export const useAuth = (): AuthState =>
+  useAuthStore((state) => ({
+    user: state.user,
+    token: state.token,
+    isAuthenticated: state.isAuthenticated,
+    isLoading: state.isLoading,
+    error: state.error,
+  }));
 
-export const useAuthActions = () => useAuthStore((state) => ({
-  setUser: state.setUser,
-  setAuthenticated: state.setAuthenticated,
-  setLoading: state.setLoading,
-  setError: state.setError,
-  login: state.login,
-  logout: state.logout,
-  clearError: state.clearError,
-}));
+// Actions selector
+export const useAuthActions = (): AuthActions =>
+  useAuthStore((state) => ({
+    setUser: state.setUser,
+    setToken: state.setToken,
+    setAuthenticated: state.setAuthenticated,
+    setLoading: state.setLoading,
+    setError: state.setError,
+    login: state.login,
+    logout: state.logout,
+    clearError: state.clearError,
+  }));
