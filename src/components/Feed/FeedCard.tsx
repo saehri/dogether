@@ -7,7 +7,7 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Progress } from '@/components/ui/progress';
 import { Task } from '@/types';
-import { friends, currentUser } from '@/data/mockData';
+import { useCurrentUser, useFriends } from '@/store/useStore';
 
 interface FeedCardProps {
   task: Task;
@@ -16,6 +16,9 @@ interface FeedCardProps {
 }
 
 const FeedCard: React.FC<FeedCardProps> = ({ task, index, onProfileClick }) => {
+  const currentUser = useCurrentUser();
+  const friends = useFriends();
+  
   const user = task.userId === currentUser.id ? currentUser : friends.find(f => f.id === task.userId);
   
   if (!user) return null;

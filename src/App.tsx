@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import Header from './components/Layout/Header';
 import Sidebar from './components/Layout/Sidebar';
@@ -9,7 +9,9 @@ import Badges from './components/Badges/Badges';
 import Profile from './components/Profile/Profile';
 import FriendProfile from './components/Profile/FriendProfile';
 import CreateTask from './components/CreateTask/CreateTask';
-import { currentUser } from './data/mockData';
+import LoadingSpinner from './components/ui/loading-spinner';
+import ErrorBoundary from './components/ui/error-boundary';
+import { useStore, useCurrentUser, useLoading, useError } from './store/useStore';
 
 function App() {
   const [activeTab, setActiveTab] = useState('feed');
@@ -17,9 +19,18 @@ function App() {
   const [isCreateTaskOpen, setIsCreateTaskOpen] = useState(false);
   const [viewingFriendId, setViewingFriendId] = useState<string | null>(null);
 
-  const handleCreateTask = (task: any) => {
-    // This would normally make an API call to your backend
-    console.log('Creating task:', task);
+  const currentUser = useCurrentUser();
+  const isLoading = useLoading();
+  const error = useError();
+  const { createTask, setError } = useStore();
+
+  const handleCreateTask = async (taskData: any) => {
+    try {
+      await createTask(taskData);
+      setIsCreateTaskOpen(false);
+    } catch (error) {
+      console.error('Failed to create task:', error);
+    }
   };
 
   const handleLogoClick = () => {
@@ -73,53 +84,91 @@ function App() {
     }
   };
 
-  return (
-    <div className="min-h-screen bg-gradient-to-br from-purple-50 via-blue-50 to-indigo-100">
-      {/* Header */}
-      <Header
-        onMenuToggle={() => setIsSidebarOpen(!isSidebarOpen)}
-        onCreateTask={() => setIsCreateTaskOpen(true)}
-        onProfileClick={() => setActiveTab('profile')}
-        onLogoClick={handleLogoClick}
-      />
+  // Clear error after 5 seconds
+  useEffect(() => {
+    if (error) {
+      const timer = setTimeout(() => {
+        setError(null);
+      }, 5000);
+      return () => clearTimeout(timer);
+    }
+  }, [error, setError]);
 
-      <div className="flex">
-        {/* Sidebar - Always Fixed */}
-        <Sidebar
-          isOpen={isSidebarOpen}
-          onClose={() => setIsSidebarOpen(false)}
-          activeTab={activeTab}
-          onTabChange={(tab) => {
-            setActiveTab(tab);
-            setViewingFriendId(null);
-          }}
+  return (
+    <ErrorBoundary>
+      <div className="min-h-screen bg-gradient-to-br from-purple-50 via-blue-50 to-indigo-100">
+        {/* Global Loading Overlay */}
+        {isLoading && <LoadingSpinner />}
+
+        {/* Global Error Toast */}
+        <AnimatePresence>
+          {error && (
+            <motion.div
+              initial={{ opacity: 0, y: -50 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -50 }}
+              className="fixed top-4 right-4 z-50 bg-red-500 text-white px-6 py-3 rounded-lg shadow-lg"
+            >
+              <div className="flex items-center space-x-2">
+                <span>⚠️</span>
+                <span>{error}</span>
+                <button
+                  onClick={() => setError(null)}
+                  className="ml-2 text-white hover:text-gray-200"
+                >
+                  ✕
+                </button>
+              </div>
+            </motion.div>
+          )}
+        </AnimatePresence>
+
+        {/* Header */}
+        <Header
+          onMenuToggle={() => setIsSidebarOpen(!isSidebarOpen)}
+          onCreateTask={() => setIsCreateTaskOpen(true)}
+          onProfileClick={() => setActiveTab('profile')}
+          onLogoClick={handleLogoClick}
         />
 
-        {/* Main Content - Adjusted for fixed sidebar */}
-        <main className="flex-1 lg:ml-64 p-6">
-          <motion.div
-            key={activeTab + (viewingFriendId || '')}
-            initial={{ opacity: 0, x: 20 }}
-            animate={{ opacity: 1, x: 0 }}
-            exit={{ opacity: 0, x: -20 }}
-            transition={{ duration: 0.3 }}
-          >
-            {renderContent()}
-          </motion.div>
-        </main>
-      </div>
-
-      {/* Create Task Modal */}
-      <AnimatePresence>
-        {isCreateTaskOpen && (
-          <CreateTask
-            isOpen={isCreateTaskOpen}
-            onClose={() => setIsCreateTaskOpen(false)}
-            onCreateTask={handleCreateTask}
+        <div className="flex">
+          {/* Sidebar - Always Fixed */}
+          <Sidebar
+            isOpen={isSidebarOpen}
+            onClose={() => setIsSidebarOpen(false)}
+            activeTab={activeTab}
+            onTabChange={(tab) => {
+              setActiveTab(tab);
+              setViewingFriendId(null);
+            }}
           />
-        )}
-      </AnimatePresence>
-    </div>
+
+          {/* Main Content - Adjusted for fixed sidebar */}
+          <main className="flex-1 lg:ml-64 p-6">
+            <motion.div
+              key={activeTab + (viewingFriendId || '')}
+              initial={{ opacity: 0, x: 20 }}
+              animate={{ opacity: 1, x: 0 }}
+              exit={{ opacity: 0, x: -20 }}
+              transition={{ duration: 0.3 }}
+            >
+              {renderContent()}
+            </motion.div>
+          </main>
+        </div>
+
+        {/* Create Task Modal */}
+        <AnimatePresence>
+          {isCreateTaskOpen && (
+            <CreateTask
+              isOpen={isCreateTaskOpen}
+              onClose={() => setIsCreateTaskOpen(false)}
+              onCreateTask={handleCreateTask}
+            />
+          )}
+        </AnimatePresence>
+      </div>
+    </ErrorBoundary>
   );
 }
 

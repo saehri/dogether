@@ -5,40 +5,39 @@ import { Card, CardContent, CardHeader } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
-import { currentUser, badges, tasks } from '@/data/mockData';
+import { useCurrentUser, useBadges, useUserStats, useCompletedTasks } from '@/store/useStore';
 
 const Profile: React.FC = () => {
   const [showAllBadges, setShowAllBadges] = useState(false);
+  
+  const currentUser = useCurrentUser();
+  const allBadges = useBadges();
+  const stats = useUserStats(currentUser.id);
+  const completedTasks = useCompletedTasks(currentUser.id);
   
   const userBadges = currentUser.badges;
   const visibleBadges = showAllBadges ? userBadges : userBadges.slice(0, 5);
   const shouldShowToggle = userBadges.length > 5;
 
-  // Calculate user stats
-  const userTasks = tasks.filter(task => task.userId === currentUser.id);
-  const completedTasks = userTasks.filter(task => task.completed);
-  const goals = userTasks.filter(task => task.type === 'goal');
-  const completedGoals = goals.filter(goal => goal.completed);
-  
-  const stats = [
+  const statsData = [
     {
       label: 'Tasks Completed',
-      value: completedTasks.length,
-      total: userTasks.length,
+      value: stats.completedTasks,
+      total: stats.totalTasks,
       color: 'from-green-500 to-emerald-600',
       icon: CheckCircle2
     },
     {
       label: 'Goals Achieved',
-      value: completedGoals.length,
-      total: goals.length,
+      value: stats.completedGoals,
+      total: stats.totalGoals,
       color: 'from-blue-500 to-purple-600',
       icon: Target
     },
     {
       label: 'Badges Earned',
       value: userBadges.length,
-      total: badges.length,
+      total: allBadges.length,
       color: 'from-yellow-500 to-orange-600',
       icon: Trophy
     },
@@ -91,8 +90,8 @@ const Profile: React.FC = () => {
       >
         <h2 className="text-2xl font-bold text-gray-900 mb-6 text-center">My Statistics</h2>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          {stats.map((stat, index) => {
-            const percentage = (stat.value / stat.total) * 100;
+          {statsData.map((stat, index) => {
+            const percentage = stat.total > 0 ? (stat.value / stat.total) * 100 : 0;
             const Icon = stat.icon;
             
             return (

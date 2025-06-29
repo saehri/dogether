@@ -3,7 +3,7 @@ import { motion } from 'framer-motion';
 import { Filter, Plus } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
-import { tasks, currentUser } from '@/data/mockData';
+import { useCurrentUser, useUserTasks, useUserStats } from '@/store/useStore';
 import GoalCard from './GoalCard';
 
 interface GoalsProps {
@@ -13,7 +13,9 @@ interface GoalsProps {
 const Goals: React.FC<GoalsProps> = ({ onCreateTask }) => {
   const [filter, setFilter] = useState<'all' | 'tasks' | 'goals' | 'completed'>('all');
   
-  const myTasks = tasks.filter(task => task.userId === currentUser.id);
+  const currentUser = useCurrentUser();
+  const myTasks = useUserTasks(currentUser.id);
+  const stats = useUserStats(currentUser.id);
   
   const filteredTasks = myTasks.filter(task => {
     switch (filter) {
@@ -28,29 +30,25 @@ const Goals: React.FC<GoalsProps> = ({ onCreateTask }) => {
     }
   });
 
-  const handleCompleteTask = (taskId: string, evidence: File) => {
-    console.log(`Completing task ${taskId} with evidence:`, evidence);
-  };
-
-  const stats = [
+  const statsData = [
     {
       title: 'Total Goals',
-      value: myTasks.length,
+      value: stats.totalTasks,
       gradient: 'from-purple-500 to-blue-600'
     },
     {
       title: 'Completed',
-      value: myTasks.filter(t => t.completed).length,
+      value: stats.completedTasks,
       gradient: 'from-green-500 to-emerald-600'
     },
     {
       title: 'In Progress',
-      value: myTasks.filter(t => !t.completed).length,
+      value: stats.totalTasks - stats.completedTasks,
       gradient: 'from-orange-500 to-red-500'
     },
     {
       title: 'Success Rate',
-      value: `${Math.round((myTasks.filter(t => t.completed).length / myTasks.length) * 100) || 0}%`,
+      value: `${Math.round(stats.completionRate)}%`,
       gradient: 'from-blue-500 to-cyan-600'
     }
   ];
@@ -90,7 +88,7 @@ const Goals: React.FC<GoalsProps> = ({ onCreateTask }) => {
         transition={{ delay: 0.1 }}
         className="grid grid-cols-1 md:grid-cols-4 gap-4"
       >
-        {stats.map((stat, index) => (
+        {statsData.map((stat, index) => (
           <Card key={index} className="overflow-hidden">
             <CardContent className={`p-6 bg-gradient-to-br ${stat.gradient} text-white`}>
               <h3 className="text-2xl font-bold">{stat.value}</h3>
@@ -136,7 +134,7 @@ const Goals: React.FC<GoalsProps> = ({ onCreateTask }) => {
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: index * 0.1 }}
           >
-            <GoalCard task={task} onCompleteTask={handleCompleteTask} />
+            <GoalCard task={task} />
           </motion.div>
         ))}
       </motion.div>

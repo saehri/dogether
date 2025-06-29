@@ -1,7 +1,7 @@
 import React from 'react';
 import { motion } from 'framer-motion';
 import { Button } from '@/components/ui/button';
-import { tasks } from '@/data/mockData';
+import { useTasks } from '@/store/useStore';
 import FeedCard from './FeedCard';
 
 interface FeedProps {
@@ -9,6 +9,8 @@ interface FeedProps {
 }
 
 const Feed: React.FC<FeedProps> = ({ onProfileClick }) => {
+  const tasks = useTasks();
+
   return (
     <div className="max-w-2xl mx-auto space-y-6">
       <motion.div

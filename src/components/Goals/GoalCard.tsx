@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { motion } from 'framer-motion';
-import { Calendar, Target, Camera, CheckCircle2, Clock } from 'lucide-react';
+import { Calendar, Target, Camera, CheckCircle2, Clock, Trash2 } from 'lucide-react';
 import { Card, CardContent, CardHeader } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -9,15 +9,19 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } f
 import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
 import { Task } from '@/types';
+import { useStore } from '@/store/useStore';
+import { useAsyncOperation } from '@/hooks/useApi';
 
 interface GoalCardProps {
   task: Task;
-  onCompleteTask: (taskId: string, evidence: File) => void;
 }
 
-const GoalCard: React.FC<GoalCardProps> = ({ task, onCompleteTask }) => {
+const GoalCard: React.FC<GoalCardProps> = ({ task }) => {
   const [isEvidenceModalOpen, setIsEvidenceModalOpen] = useState(false);
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
+  
+  const { completeTask, deleteTask } = useStore();
+  const { loading, error, execute } = useAsyncOperation();
 
   const isGoal = task.type === 'goal';
   const progress = isGoal && task.goalDetails ? 
@@ -30,11 +34,21 @@ const GoalCard: React.FC<GoalCardProps> = ({ task, onCompleteTask }) => {
     }
   };
 
-  const handleComplete = () => {
-    if (selectedFile) {
-      onCompleteTask(task.id, selectedFile);
+  const handleComplete = async () => {
+    if (!selectedFile && !task.completed) return;
+    
+    await execute(async () => {
+      await completeTask(task.id, selectedFile || undefined);
       setIsEvidenceModalOpen(false);
       setSelectedFile(null);
+    });
+  };
+
+  const handleDelete = async () => {
+    if (confirm('Are you sure you want to delete this task?')) {
+      await execute(async () => {
+        await deleteTask(task.id);
+      });
     }
   };
 
@@ -63,9 +77,20 @@ const GoalCard: React.FC<GoalCardProps> = ({ task, onCompleteTask }) => {
                 </div>
               </div>
               
-              <Badge variant={task.completed ? "success" : isGoal ? "info" : "warning"}>
-                {task.completed ? 'Completed' : isGoal ? 'Goal' : 'Task'}
-              </Badge>
+              <div className="flex items-center space-x-2">
+                <Badge variant={task.completed ? "success" : isGoal ? "info" : "warning"}>
+                  {task.completed ? 'Completed' : isGoal ? 'Goal' : 'Task'}
+                </Badge>
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  onClick={handleDelete}
+                  disabled={loading}
+                  className="text-red-500 hover:text-red-700 hover:bg-red-50"
+                >
+                  <Trash2 className="w-4 h-4" />
+                </Button>
+              </div>
             </div>
           </CardHeader>
 
@@ -104,15 +129,23 @@ const GoalCard: React.FC<GoalCardProps> = ({ task, onCompleteTask }) => {
               </div>
             )}
 
+            {/* Error Display */}
+            {error && (
+              <div className="bg-red-50 border border-red-200 rounded-lg p-3">
+                <p className="text-red-700 text-sm">{error}</p>
+              </div>
+            )}
+
             {/* Actions */}
             {!task.completed && (
               <Button
                 variant="gradient"
                 className="w-full flex items-center space-x-2"
                 onClick={() => setIsEvidenceModalOpen(true)}
+                disabled={loading}
               >
                 <Camera className="w-4 h-4" />
-                <span>Complete with Evidence</span>
+                <span>{loading ? 'Processing...' : 'Complete with Evidence'}</span>
               </Button>
             )}
           </CardContent>
@@ -165,6 +198,7 @@ const GoalCard: React.FC<GoalCardProps> = ({ task, onCompleteTask }) => {
                 variant="outline"
                 className="flex-1"
                 onClick={() => setIsEvidenceModalOpen(false)}
+                disabled={loading}
               >
                 Cancel
               </Button>
@@ -172,9 +206,9 @@ const GoalCard: React.FC<GoalCardProps> = ({ task, onCompleteTask }) => {
                 variant="gradient"
                 className="flex-1"
                 onClick={handleComplete}
-                disabled={!selectedFile}
+                disabled={!selectedFile || loading}
               >
-                Complete Task
+                {loading ? 'Completing...' : 'Complete Task'}
               </Button>
             </div>
           </div>
