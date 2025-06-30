@@ -24,7 +24,7 @@ import { useAuthActions } from '../../stores/authStore';
 interface LoginProps {}
 
 const Login: React.FC<LoginProps> = () => {
-	const [email, setEmail] = useState('');
+	const [login, setLogin] = useState('');
 	const [password, setPassword] = useState('');
 	const [showPassword, setShowPassword] = useState(false);
 	const [isLoading, setIsLoading] = useState(false);
@@ -51,17 +51,17 @@ const Login: React.FC<LoginProps> = () => {
 		const newErrors: Record<string, string> = {};
 
 		// Email/Username validation
-		if (!email.trim()) {
-			newErrors.email = 'Email or username is required';
-		} else if (email.includes('@')) {
-			// If it contains @, validate as email
-			if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
-				newErrors.email = 'Please enter a valid email address';
+		if (!login.trim()) {
+			newErrors.login = 'Email or username is required';
+		} else if (login.includes('@')) {
+			// If it contains @, validate as login
+			if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(login)) {
+				newErrors.login = 'Please enter a valid credentials';
 			}
 		} else {
 			// If no @, validate as username (basic validation)
-			if (email.trim().length < 3) {
-				newErrors.email = 'Username must be at least 3 characters';
+			if (login.trim().length < 3) {
+				newErrors.login = 'Username must be at least 3 characters';
 			}
 		}
 
@@ -92,9 +92,9 @@ const Login: React.FC<LoginProps> = () => {
 
 		try {
 			// Sanitize inputs
-			const sanitizedEmail = sanitizeInput(email);
+			const sanitizedCredentials = sanitizeInput(login);
 			const credentials = {
-				email: sanitizedEmail,
+				login: sanitizedCredentials,
 				password: password, // Don't sanitize password as it might contain special chars
 			};
 
@@ -227,7 +227,7 @@ const Login: React.FC<LoginProps> = () => {
 								{/* Email/Username Field */}
 								<div>
 									<Label
-										htmlFor="email"
+										htmlFor="login"
 										className={cn(
 											'text-sm font-medium mb-2 block',
 											'text-gray-700 dark:text-gray-200'
@@ -238,12 +238,12 @@ const Login: React.FC<LoginProps> = () => {
 									<div className="relative">
 										<Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 dark:text-gray-500" />
 										<Input
-											id="email"
+											id="login"
 											type="text"
-											value={email}
+											value={login}
 											onChange={(e) => {
-												setEmail(e.target.value);
-												clearError('email');
+												setLogin(e.target.value);
+												clearError('login');
 											}}
 											placeholder="Enter your email or username"
 											className={cn(
@@ -353,7 +353,7 @@ const Login: React.FC<LoginProps> = () => {
 									type="submit"
 									variant="gradient"
 									className="w-full h-12 flex items-center justify-center space-x-2"
-									disabled={isLoading || !email.trim() || !password}
+									disabled={isLoading || !login.trim() || !password}
 								>
 									{isLoading ? (
 										<div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />

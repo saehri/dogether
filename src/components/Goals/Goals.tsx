@@ -81,8 +81,6 @@ const Goals: React.FC<GoalsProps> = () => {
 	const taskData: Task[] = tasks?.todos || [];
 	const goalData: Task[] = goals?.goals || [];
 
-	console.log(goals, tasks);
-
 	return (
 		<div className="max-w-4xl mx-auto space-y-6">
 			<motion.div

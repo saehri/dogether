@@ -9,7 +9,7 @@ import {
 // Authentication API endpoints
 export const authApi = {
 	login: async (credentials: {
-		email: string;
+		login: string;
 		password: string;
 	}): Promise<ApiResponse<any>> => {
 		return apiRequest('/login', {
