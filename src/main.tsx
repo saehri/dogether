@@ -1,9 +1,11 @@
+import { SWRConfig } from 'swr';
 import { StrictMode } from 'react';
 import { createRoot } from 'react-dom/client';
-import App from './App.tsx';
-// import { ThemeProvider } from './contexts/ThemeContext.tsx';
+
+import { ThemeProvider } from './contexts/ThemeContext.tsx';
 import './index.css';
-import { SWRConfig } from 'swr';
+
+import App from './App.tsx';
 
 createRoot(document.getElementById('root')!).render(
 	<StrictMode>
@@ -14,9 +16,9 @@ createRoot(document.getElementById('root')!).render(
 					fetch(resource, init).then((res) => res.json()),
 			}}
 		>
-			{/* <ThemeProvider> */}
-			<App />
-			{/* </ThemeProvider> */}
+			<ThemeProvider>
+				<App />
+			</ThemeProvider>
 		</SWRConfig>
 	</StrictMode>
 );

@@ -182,8 +182,8 @@ const Settings: React.FC = () => {
 					animate={{ opacity: 1, y: 0 }}
 					exit={{ opacity: 0, y: -10 }}
 					className={cn(
-						'border rounded-lg p-4 flex items-center space-x-2',
-						'bg-green-50 border-green-200 dark:bg-green-900/20 dark:border-green-800/30'
+						'border rounded-lg p-4 flex items-center space-x-2 fixed top-10 left-1/2 -translate-x-1/2 z-[100]',
+						'bg-green-50 border-green-200 dark:bg-green-900 dark:border-green-800/30'
 					)}
 				>
 					<Check className="w-5 h-5 text-green-600 dark:text-green-400" />
