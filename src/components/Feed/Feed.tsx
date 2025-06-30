@@ -55,8 +55,6 @@ const Feed: React.FC<FeedProps> = () => {
 
 	if (!tasks.length) return <EmptyFeed />;
 
-	console.log(tasks);
-
 	return (
 		<div className="max-w-2xl mx-auto space-y-6">
 			<div className="space-y-6">
