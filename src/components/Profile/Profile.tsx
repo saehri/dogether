@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { motion } from 'framer-motion';
 import { cn } from '../../lib/utils';
 import { removeAuthToken } from '../../services/api';
@@ -10,19 +10,10 @@ import {
 	Calendar,
 	LogOut,
 	User as UserIcon,
-	Edit3,
-	Save,
-	X,
-	Camera,
-	Check,
-	AlertCircle,
 } from 'lucide-react';
 
 import { Card, CardContent } from '../../components/ui/card';
 import { Button } from '../../components/ui/button';
-import { Input } from '../../components/ui/input';
-import { Textarea } from '../../components/ui/textarea';
-import { Label } from '../../components/ui/label';
 import {
 	Avatar,
 	AvatarImage,
@@ -36,7 +27,7 @@ import {
 	DialogTitle,
 	DialogDescription,
 } from '../../components/ui/dialog';
-import { useAuthActions, useAuth } from '../../stores/authStore';
+import { useAuthActions, useAuthStore } from '../../stores/authStore';
 import { useBadgeStore } from '../../stores/badgeStore';
 
 interface ProfileProps {}
@@ -44,119 +35,44 @@ interface ProfileProps {}
 const Profile: React.FC<ProfileProps> = () => {
 	const [showAllBadges, setShowAllBadges] = useState(false);
 	const [isLogoutModalOpen, setIsLogoutModalOpen] = useState(false);
-	const [isEditMode, setIsEditMode] = useState(false);
-	const [selectedFile, setSelectedFile] = useState<File | null>(null);
-	const [previewUrl, setPreviewUrl] = useState<string | null>(null);
-	const [successMessage, setSuccessMessage] = useState<string | null>(null);
 
-	// Form states
-	const [formData, setFormData] = useState({
-		fullname: '',
-		username: '',
-		email: '',
-		bio: '',
-		date_of_birth: '',
-	});
-
-	const { user, isLoading, error } = useAuth();
-	const { 
-		logout, 
-		setAuthenticated, 
-		fetchProfile, 
-		updateProfile, 
-		uploadProfilePicture,
-		clearError 
-	} = useAuthActions();
+	const { user } = useAuthStore();
+	const { logout, setAuthenticated } = useAuthActions();
 	const { badges } = useBadgeStore();
-
-	// Load user data into form when user changes
-	useEffect(() => {
-		if (user) {
-			setFormData({
-				fullname: user.name || '',
-				username: user.username || '',
-				email: user.email || '',
-				bio: user.bio || '',
-				date_of_birth: '', // Will need to be added to User type if available
-			});
-		}
-	}, [user]);
-
-	// Fetch profile on component mount
-	useEffect(() => {
-		if (!user) {
-			fetchProfile();
-		}
-	}, [user, fetchProfile]);
-
-	// Clear success message after 3 seconds
-	useEffect(() => {
-		if (successMessage) {
-			const timer = setTimeout(() => setSuccessMessage(null), 3000);
-			return () => clearTimeout(timer);
-		}
-	}, [successMessage]);
 
 	const visibleBadges = showAllBadges ? badges : badges.slice(0, 5);
 	const shouldShowToggle = badges.length > 5;
 
-	const handleInputChange = (field: string, value: string) => {
-		setFormData(prev => ({ ...prev, [field]: value }));
-	};
-
-	const handleFileSelect = (event: React.ChangeEvent<HTMLInputElement>) => {
-		const file = event.target.files?.[0];
-		if (file) {
-			setSelectedFile(file);
-			const url = URL.createObjectURL(file);
-			setPreviewUrl(url);
-		}
-	};
-
-	const handleSaveProfile = async () => {
-		try {
-			// Upload profile picture if selected
-			if (selectedFile) {
-				await uploadProfilePicture(selectedFile);
-				setSelectedFile(null);
-				setPreviewUrl(null);
-			}
-
-			// Update profile data
-			const updates: any = {};
-			if (formData.fullname !== user?.name) updates.fullname = formData.fullname;
-			if (formData.username !== user?.username) updates.username = formData.username;
-			if (formData.email !== user?.email) updates.email = formData.email;
-			if (formData.bio !== user?.bio) updates.bio = formData.bio;
-			if (formData.date_of_birth) updates.date_of_birth = formData.date_of_birth;
-
-			if (Object.keys(updates).length > 0) {
-				await updateProfile(updates);
-			}
-
-			setIsEditMode(false);
-			setSuccessMessage('Profile updated successfully!');
-		} catch (error) {
-			console.error('Failed to save profile:', error);
-		}
-	};
-
-	const handleCancelEdit = () => {
-		// Reset form data to original user data
-		if (user) {
-			setFormData({
-				fullname: user.name || '',
-				username: user.username || '',
-				email: user.email || '',
-				bio: user.bio || '',
-				date_of_birth: '',
-			});
-		}
-		setSelectedFile(null);
-		setPreviewUrl(null);
-		setIsEditMode(false);
-		clearError();
-	};
+	// const statsData = [
+	//   {
+	//     label: 'Tasks Completed',
+	//     value: stats.completedTasks,
+	//     total: stats.totalTasks,
+	//     color: 'from-green-500 to-emerald-600',
+	//     icon: CheckCircle2
+	//   },
+	//   {
+	//     label: 'Goals Achieved',
+	//     value: stats.completedGoals,
+	//     total: stats.totalGoals,
+	//     color: 'from-blue-500 to-purple-600',
+	//     icon: Target
+	//   },
+	//   {
+	//     label: 'Badges Earned',
+	//     value: badges.length,
+	//     total: allBadges.length,
+	//     color: 'from-yellow-500 to-orange-600',
+	//     icon: Trophy
+	//   },
+	//   {
+	//     label: 'Friends',
+	//     value: user.friends.length,
+	//     total: 50, // Max friends for visualization
+	//     color: 'from-purple-500 to-pink-600',
+	//     icon: Users
+	//   }
+	// ];
 
 	const handleLogout = () => {
 		setIsLogoutModalOpen(false);
@@ -165,64 +81,8 @@ const Profile: React.FC<ProfileProps> = () => {
 		setAuthenticated(false);
 	};
 
-	if (isLoading && !user) {
-		return (
-			<div className="max-w-4xl mx-auto space-y-8">
-				<div className="flex items-center justify-center py-16">
-					<div className="flex items-center space-x-3">
-						<div className="w-6 h-6 border-2 border-purple-600/30 border-t-purple-600 rounded-full animate-spin" />
-						<span className={cn('text-gray-600 dark:text-gray-300')}>
-							Loading profile...
-						</span>
-					</div>
-				</div>
-			</div>
-		);
-	}
-
 	return (
 		<div className="max-w-4xl mx-auto space-y-8">
-			{/* Success Message */}
-			{successMessage && (
-				<motion.div
-					initial={{ opacity: 0, y: -10 }}
-					animate={{ opacity: 1, y: 0 }}
-					exit={{ opacity: 0, y: -10 }}
-					className={cn(
-						"border rounded-lg p-4 flex items-center space-x-2",
-						"bg-green-50 border-green-200 dark:bg-green-900/20 dark:border-green-800/30"
-					)}
-				>
-					<Check className="w-5 h-5 text-green-600 dark:text-green-400" />
-					<span className="text-green-800 dark:text-green-200">{successMessage}</span>
-				</motion.div>
-			)}
-
-			{/* Error Message */}
-			{error && (
-				<motion.div
-					initial={{ opacity: 0, y: -10 }}
-					animate={{ opacity: 1, y: 0 }}
-					className={cn(
-						"border rounded-lg p-4 flex items-center justify-between",
-						"bg-red-50 border-red-200 dark:bg-red-900/20 dark:border-red-800/30"
-					)}
-				>
-					<div className="flex items-center space-x-2">
-						<AlertCircle className="w-5 h-5 text-red-600 dark:text-red-400" />
-						<span className="text-red-800 dark:text-red-200">{error}</span>
-					</div>
-					<Button
-						variant="ghost"
-						size="sm"
-						onClick={clearError}
-						className="text-red-600 hover:text-red-700 dark:text-red-400 dark:hover:text-red-300"
-					>
-						<X className="w-4 h-4" />
-					</Button>
-				</motion.div>
-			)}
-
 			{/* Profile Header */}
 			<motion.div
 				initial={{ opacity: 0, y: -20 }}
@@ -231,9 +91,7 @@ const Profile: React.FC<ProfileProps> = () => {
 			>
 				<div className="relative inline-block mb-6">
 					<Avatar className="w-32 h-32 border-4 border-white shadow-xl">
-						{previewUrl ? (
-							<AvatarImage src={previewUrl} alt="Preview" />
-						) : user?.avatar ? (
+						{user?.avatar ? (
 							<AvatarImage src={user.avatar} alt={user.name || 'User'} />
 						) : null}
 						<AvatarFallback className="text-4xl font-bold bg-gradient-to-br from-purple-500 to-blue-600 text-white">
@@ -244,133 +102,33 @@ const Profile: React.FC<ProfileProps> = () => {
 							)}
 						</AvatarFallback>
 					</Avatar>
-					
-					{isEditMode && (
-						<>
-							<Label
-								htmlFor="avatar-upload"
-								className="absolute -bottom-2 -right-2 w-10 h-10 bg-purple-600 hover:bg-purple-700 dark:bg-purple-500 dark:hover:bg-purple-600 rounded-full flex items-center justify-center cursor-pointer transition-colors shadow-lg"
-							>
-								<Camera className="w-5 h-5 text-white" />
-							</Label>
-							<Input
-								id="avatar-upload"
-								type="file"
-								accept="image/*"
-								onChange={handleFileSelect}
-								className="hidden"
-							/>
-						</>
-					)}
-					
 					<div className="absolute -bottom-2 -right-2 w-8 h-8 bg-green-500 border-4 border-white rounded-full"></div>
 				</div>
 
-				{isEditMode ? (
-					<div className="space-y-4 max-w-md mx-auto">
-						<div>
-							<Label htmlFor="fullname" className="text-sm font-medium text-gray-700 dark:text-gray-200 mb-2 block">
-								Full Name
-							</Label>
-							<Input
-								id="fullname"
-								value={formData.fullname}
-								onChange={(e) => handleInputChange('fullname', e.target.value)}
-								placeholder="Enter your full name"
-								disabled={isLoading}
-							/>
-						</div>
-						<div>
-							<Label htmlFor="username" className="text-sm font-medium text-gray-700 dark:text-gray-200 mb-2 block">
-								Username
-							</Label>
-							<Input
-								id="username"
-								value={formData.username}
-								onChange={(e) => handleInputChange('username', e.target.value)}
-								placeholder="Enter your username"
-								disabled={isLoading}
-							/>
-						</div>
-						<div>
-							<Label htmlFor="email" className="text-sm font-medium text-gray-700 dark:text-gray-200 mb-2 block">
-								Email
-							</Label>
-							<Input
-								id="email"
-								type="email"
-								value={formData.email}
-								onChange={(e) => handleInputChange('email', e.target.value)}
-								placeholder="Enter your email"
-								disabled={isLoading}
-							/>
-						</div>
-					</div>
-				) : (
-					<>
-						<h1
-							className={cn(
-								'text-3xl font-bold mb-2',
-								'text-gray-900 dark:text-gray-100'
-							)}
-						>
-							{user?.name || 'Welcome to Dogether!'}
-						</h1>
-						<p className={cn('text-xl mb-4', 'text-gray-600 dark:text-gray-200')}>
-							{user?.username
-								? `@${user.username}`
-								: 'Complete your profile to get started'}
-						</p>
-					</>
-				)}
-
-				{/* Action Buttons */}
-				<div className="flex justify-center space-x-4 mb-6">
-					{isEditMode ? (
-						<>
-							<Button
-								variant="outline"
-								onClick={handleCancelEdit}
-								disabled={isLoading}
-								className="flex items-center space-x-2"
-							>
-								<X className="w-4 h-4" />
-								<span>Cancel</span>
-							</Button>
-							<Button
-								variant="gradient"
-								onClick={handleSaveProfile}
-								disabled={isLoading}
-								className="flex items-center space-x-2"
-							>
-								{isLoading ? (
-									<div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-								) : (
-									<Save className="w-4 h-4" />
-								)}
-								<span>{isLoading ? 'Saving...' : 'Save Changes'}</span>
-							</Button>
-						</>
-					) : (
-						<>
-							<Button
-								variant="outline"
-								onClick={() => setIsEditMode(true)}
-								className="flex items-center space-x-2"
-							>
-								<Edit3 className="w-4 h-4" />
-								<span>Edit Profile</span>
-							</Button>
-							<Button
-								variant="outline"
-								onClick={() => setIsLogoutModalOpen(true)}
-								className="flex items-center space-x-2 text-red-600 border-red-200 hover:bg-red-50 hover:border-red-300 dark:text-red-400 dark:border-red-800/30 dark:hover:bg-red-900/20"
-							>
-								<LogOut className="w-4 h-4" />
-								<span>Sign Out</span>
-							</Button>
-						</>
+				<h1
+					className={cn(
+						'text-3xl font-bold mb-2',
+						'text-gray-900 dark:text-gray-100'
 					)}
+				>
+					{user?.name || 'Welcome to Dogether!'}
+				</h1>
+				<p className={cn('text-xl mb-4', 'text-gray-600 dark:text-gray-200')}>
+					{user?.username
+						? `@${user.username}`
+						: 'Complete your profile to get started'}
+				</p>
+
+				{/* Logout Button */}
+				<div className="flex justify-center mb-6">
+					<Button
+						variant="outline"
+						onClick={() => setIsLogoutModalOpen(true)}
+						className="flex items-center space-x-2 text-red-600 border-red-200 hover:bg-red-50 hover:border-red-300 dark:text-red-400 dark:border-red-800/30 dark:hover:bg-red-900/20"
+					>
+						<LogOut className="w-4 h-4" />
+						<span>Sign Out</span>
+					</Button>
 				</div>
 
 				{/* Bio */}
@@ -384,27 +142,99 @@ const Profile: React.FC<ProfileProps> = () => {
 						>
 							About Me
 						</h2>
-						{isEditMode ? (
-							<Textarea
-								value={formData.bio}
-								onChange={(e) => handleInputChange('bio', e.target.value)}
-								placeholder="Tell us about yourself..."
-								rows={4}
-								disabled={isLoading}
-							/>
-						) : (
-							<p
-								className={cn(
-									'leading-relaxed',
-									'text-gray-700 dark:text-gray-200'
-								)}
-							>
-								{user?.bio || 'No bio added yet. Click "Edit Profile" to add one!'}
-							</p>
-						)}
+						<p
+							className={cn(
+								'leading-relaxed',
+								'text-gray-700 dark:text-gray-200'
+							)}
+						>
+							{user?.bio}
+						</p>
 					</CardContent>
 				</Card>
 			</motion.div>
+
+			{/* Stats with Bar Charts - Only show if user has some activity */}
+			{/* {(stats.totalTasks > 0 || badges.length > 0 || user.friends.length > 0) && (
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.1 }}
+        >
+          <h2 className={cn(
+            "text-2xl font-bold mb-6 text-center",
+            "text-gray-900 dark:text-gray-100"
+          )}>
+            My Statistics
+          </h2>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            {statsData.map((stat, index) => {
+              const percentage = stat.total > 0 ? (stat.value / stat.total) * 100 : 0;
+              const Icon = stat.icon;
+              
+              return (
+                <motion.div
+                  key={index}
+                  initial={{ opacity: 0, x: -20 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  transition={{ delay: index * 0.1 }}
+                >
+                  <Card className="overflow-hidden">
+                    <CardContent className="p-6">
+                      <div className="flex items-center justify-between mb-4">
+                        <div className="flex items-center space-x-3">
+                          <div className={`w-10 h-10 bg-gradient-to-br ${stat.color} rounded-lg flex items-center justify-center`}>
+                            <Icon className="w-5 h-5 text-white" />
+                          </div>
+                          <div>
+                            <h3 className={cn(
+                              "font-semibold",
+                              "text-gray-900 dark:text-gray-100"
+                            )}>
+                              {stat.label}
+                            </h3>
+                            <p className={cn(
+                              "text-sm",
+                              "text-gray-600 dark:text-gray-200"
+                            )}>
+                              {stat.value} of {stat.total}
+                            </p>
+                          </div>
+                        </div>
+                        <div className="text-right">
+                          <div className={cn(
+                            "text-2xl font-bold",
+                            "text-gray-900 dark:text-gray-100"
+                          )}>
+                            {stat.value}
+                          </div>
+                          <div className={cn(
+                            "text-sm",
+                            "text-gray-500 dark:text-gray-300"
+                          )}>
+                            {Math.round(percentage)}%
+                          </div>
+                        </div>
+                      </div>
+                      
+                      <div className="relative">
+                        <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-3">
+                          <motion.div
+                            className={`h-3 bg-gradient-to-r ${stat.color} rounded-full`}
+                            initial={{ width: 0 }}
+                            animate={{ width: `${percentage}%` }}
+                            transition={{ duration: 1, delay: index * 0.2 }}
+                          />
+                        </div>
+                      </div>
+                    </CardContent>
+                  </Card>
+                </motion.div>
+              );
+            })}
+          </div>
+        </motion.div>
+      )} */}
 
 			{/* Badges Section */}
 			<motion.div
@@ -525,22 +355,58 @@ const Profile: React.FC<ProfileProps> = () => {
 					<span>Recent Activity</span>
 				</h2>
 
-				<Card>
-					<CardContent className="p-12 text-center">
-						<Calendar className="w-16 h-16 text-gray-300 dark:text-gray-600 mx-auto mb-4" />
-						<h3
-							className={cn(
-								'text-xl font-semibold mb-2',
-								'text-gray-600 dark:text-gray-200'
-							)}
-						>
-							No recent activity
-						</h3>
-						<p className={cn('text-gray-500 dark:text-gray-300')}>
-							Start creating and completing goals to see your activity here!
-						</p>
-					</CardContent>
-				</Card>
+				{/* <Card>
+          <CardContent className="p-6">
+            {completedTasks.length > 0 ? (
+              <div className="space-y-4">
+                {completedTasks.slice(0, 3).map((task, index) => (
+                  <div key={task.id} className="flex items-center space-x-4 p-4 bg-gray-50 dark:bg-gray-800/50 rounded-lg">
+                    <div className={`w-10 h-10 bg-gradient-to-br ${task.type === 'goal' ? 'from-blue-500 to-purple-600' : 'from-orange-500 to-red-500'} rounded-lg flex items-center justify-center`}>
+                      {task.type === 'goal' ? (
+                        <Target className="w-5 h-5 text-white" />
+                      ) : (
+                        <CheckCircle2 className="w-5 h-5 text-white" />
+                      )}
+                    </div>
+                    <div className="flex-1">
+                      <h4 className={cn(
+                        "font-semibold",
+                        "text-gray-900 dark:text-gray-100"
+                      )}>
+                        {task.title}
+                      </h4>
+                      <p className={cn(
+                        "text-sm",
+                        "text-gray-600 dark:text-gray-200"
+                      )}>
+                        Completed {task.completedAt ? new Date(task.completedAt).toLocaleDateString() : ''}
+                      </p>
+                    </div>
+                    <Badge variant="success">
+                      <CheckCircle2 className="w-3 h-3 mr-1" />
+                      Done
+                    </Badge>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <div className="text-center py-8">
+                <CheckCircle2 className="w-12 h-12 text-gray-300 dark:text-gray-600 mx-auto mb-3" />
+                <h3 className={cn(
+                  "text-lg font-semibold mb-2",
+                  "text-gray-600 dark:text-gray-200"
+                )}>
+                  No completed activities yet
+                </h3>
+                <p className={cn(
+                  "text-gray-500 dark:text-gray-300"
+                )}>
+                  Start creating and completing goals to see your activity here!
+                </p>
+              </div>
+            )}
+          </CardContent>
+        </Card> */}
 			</motion.div>
 
 			{/* Logout Confirmation Modal */}
@@ -581,3 +447,4 @@ const Profile: React.FC<ProfileProps> = () => {
 };
 
 export default Profile;
+
