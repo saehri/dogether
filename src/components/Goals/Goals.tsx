@@ -1,5 +1,5 @@
 import React from 'react';
-import { cn } from '../../lib/utils';
+import { cn, fetchWithToken } from '../../lib/utils';
 import { motion } from 'framer-motion';
 import { getAuthToken } from '../../services/api';
 import { Task } from '../../types';
@@ -8,30 +8,6 @@ import useSWR from 'swr';
 import FeedCard from '../Feed/FeedCard';
 
 interface GoalsProps {}
-
-const fetchWithToken = async (
-	url: string,
-	token: string,
-	options: RequestInit = {}
-) => {
-	const response = await fetch(url, {
-		...options,
-		headers: {
-			...(options.headers || {}),
-			Authorization: `Bearer ${token}`,
-			'Content-Type': 'application/json',
-		},
-	});
-
-	if (!response.ok) {
-		const errorText = await response.text();
-		throw new Error(
-			`Fetch error: ${response.status} ${response.statusText} - ${errorText}`
-		);
-	}
-
-	return response.json();
-};
 
 const Goals: React.FC<GoalsProps> = () => {
 	const authToken = getAuthToken();
