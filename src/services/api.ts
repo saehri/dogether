@@ -75,6 +75,121 @@ export const authApi = {
 	},
 };
 
+// Task API endpoints (menggunakan endpoint /todos)
+export const taskApi = {
+	// Get all tasks/todos
+	getTasks: (filters?: any) => {
+		const params = new URLSearchParams();
+		if (filters) {
+			Object.entries(filters).forEach(([key, value]) => {
+				if (value !== undefined && value !== null) {
+					params.append(key, String(value));
+				}
+			});
+		}
+		const query = params.toString() ? `?${params.toString()}` : '';
+		return apiRequest(`/todos${query}`);
+	},
+
+	// Get single task
+	getTask: (taskId: string) => apiRequest(`/todos/${taskId}`),
+
+	// Create new task
+	createTask: (task: any) =>
+		apiRequest('/todos', {
+			method: 'POST',
+			body: JSON.stringify(task),
+		}),
+
+	// Update task
+	updateTask: (taskId: string, updates: any) =>
+		apiRequest(`/todos/${taskId}`, {
+			method: 'PUT',
+			body: JSON.stringify(updates),
+		}),
+
+	// Delete task
+	deleteTask: (taskId: string) =>
+		apiRequest(`/todos/${taskId}`, {
+			method: 'DELETE',
+		}),
+
+	// Complete task
+	completeTask: (taskId: string, evidence?: FormData) => {
+		const config: RequestInit = {
+			method: 'POST',
+		};
+
+		if (evidence) {
+			config.body = evidence;
+			config.headers = {}; // Let browser set Content-Type for FormData
+		}
+
+		return apiRequest(`/todos/${taskId}/complete`, config);
+	},
+};
+
+// Goal API endpoints (menggunakan endpoint /goals)
+export const goalApi = {
+	// Get all goals
+	getGoals: (filters?: any) => {
+		const params = new URLSearchParams();
+		if (filters) {
+			Object.entries(filters).forEach(([key, value]) => {
+				if (value !== undefined && value !== null) {
+					params.append(key, String(value));
+				}
+			});
+		}
+		const query = params.toString() ? `?${params.toString()}` : '';
+		return apiRequest(`/goals${query}`);
+	},
+
+	// Get single goal
+	getGoal: (goalId: string) => apiRequest(`/goals/${goalId}`),
+
+	// Create new goal
+	createGoal: (goal: any) =>
+		apiRequest('/goals', {
+			method: 'POST',
+			body: JSON.stringify(goal),
+		}),
+
+	// Update goal
+	updateGoal: (goalId: string, updates: any) =>
+		apiRequest(`/goals/${goalId}`, {
+			method: 'PUT',
+			body: JSON.stringify(updates),
+		}),
+
+	// Delete goal
+	deleteGoal: (goalId: string) =>
+		apiRequest(`/goals/${goalId}`, {
+			method: 'DELETE',
+		}),
+
+	// Update goal progress
+	updateGoalProgress: (goalId: string, progress: any) =>
+		apiRequest(`/goals/${goalId}/progress`, {
+			method: 'POST',
+			body: JSON.stringify(progress),
+		}),
+
+	// Complete goal
+	completeGoal: (goalId: string, evidence?: FormData) => {
+		const config: RequestInit = {
+			method: 'POST',
+		};
+
+		if (evidence) {
+			config.body = evidence;
+			config.headers = {}; // Let browser set Content-Type for FormData
+		}
+
+		return apiRequest(`/goals/${goalId}/complete`, config);
+	},
+};
+
 // User API endpoints
 export const userApi = {
 	getProfile: (userId?: string) => {
@@ -105,55 +220,6 @@ export const userApi = {
 	},
 
 	getUserStats: (userId: string) => apiRequest(`/users/${userId}/stats`),
-};
-
-// Task API endpoints
-export const taskApi = {
-	getTasks: (userId?: string, filters?: any) => {
-		const params = new URLSearchParams();
-		if (userId) params.append('userId', userId);
-		if (filters) {
-			Object.entries(filters).forEach(([key, value]) => {
-				if (value !== undefined && value !== null) {
-					params.append(key, String(value));
-				}
-			});
-		}
-		const query = params.toString() ? `?${params.toString()}` : '';
-		return apiRequest(`/tasks${query}`);
-	},
-
-	getTask: (taskId: string) => apiRequest(`/tasks/${taskId}`),
-
-	createTask: (task: any) =>
-		apiRequest('/tasks', {
-			method: 'POST',
-			body: JSON.stringify(task),
-		}),
-
-	updateTask: (taskId: string, updates: any) =>
-		apiRequest(`/tasks/${taskId}`, {
-			method: 'PUT',
-			body: JSON.stringify(updates),
-		}),
-
-	deleteTask: (taskId: string) =>
-		apiRequest(`/tasks/${taskId}`, {
-			method: 'DELETE',
-		}),
-
-	completeTask: (taskId: string, evidence?: FormData) => {
-		const config: RequestInit = {
-			method: 'POST',
-		};
-
-		if (evidence) {
-			config.body = evidence;
-			config.headers = {}; // Let browser set Content-Type for FormData
-		}
-
-		return apiRequest(`/tasks/${taskId}/complete`, config);
-	},
 };
 
 // Friend API endpoints

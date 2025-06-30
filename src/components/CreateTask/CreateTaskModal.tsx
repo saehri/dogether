@@ -26,7 +26,7 @@ const CreateTaskModal: React.FC<CreateTaskModalProps> = ({ isOpen, onClose }) =>
   const [targetCount, setTargetCount] = useState(7);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  const { addTask } = useTaskActions();
+  const { createTask, createGoal } = useTaskActions();
   const { user } = useAuth();
 
   const isCreateDisabled = title.trim() === '' || !user;
@@ -48,29 +48,33 @@ const CreateTaskModal: React.FC<CreateTaskModalProps> = ({ isOpen, onClose }) =>
     setIsSubmitting(true);
 
     try {
-      const newTask = {
-        id: Date.now().toString(),
+      const baseData = {
         title: title.trim(),
         description,
         type: taskType,
         userId: user.id,
         completed: false,
-        createdAt: new Date(),
-        ...(taskType === 'goal' && {
+      };
+
+      if (taskType === 'goal') {
+        const goalData = {
+          ...baseData,
           goalDetails: {
             targetCount,
             currentCount: 0,
             frequency,
             duration
           }
-        })
-      };
+        };
+        await createGoal(goalData);
+      } else {
+        await createTask(baseData);
+      }
 
-      addTask(newTask);
       resetForm();
       onClose();
     } catch (error) {
-      console.error('Failed to create task:', error);
+      console.error('Failed to create task/goal:', error);
     } finally {
       setIsSubmitting(false);
     }

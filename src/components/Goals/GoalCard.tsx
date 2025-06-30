@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { motion } from 'framer-motion';
 import { Task } from '../../types';
 import { cn } from '../../lib/utils';
-import { Calendar, Target, Camera, CheckCircle2, Clock, Trash2 } from 'lucide-react';
+import { Calendar, Target, Camera, CheckCircle2, Clock, Trash2, Plus } from 'lucide-react';
 
 import { Label } from '../../components/ui/label';
 import { Input } from '../../components/ui/input';
@@ -11,6 +11,7 @@ import { Button } from '../../components/ui/button';
 import { Progress } from '../../components/ui/progress';
 import { Card, CardContent, CardHeader } from '../../components/ui/card';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '../../components/ui/dialog';
+import { useTaskActions, useTasksLoading } from '../../stores/taskStore';
 
 interface GoalCardProps {
   task: Task;
@@ -19,7 +20,10 @@ interface GoalCardProps {
 const GoalCard: React.FC<GoalCardProps> = ({ task }) => {
   const [isEvidenceModalOpen, setIsEvidenceModalOpen] = useState(false);
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
+  const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   
+  const { updateTask, deleteTask, completeTask, updateGoal, deleteGoal, completeGoal, updateGoalProgress } = useTaskActions();
+  const isLoading = useTasksLoading();
 
   const isGoal = task.type === 'goal';
   const progress = isGoal && task.goalDetails ? 
@@ -33,21 +37,41 @@ const GoalCard: React.FC<GoalCardProps> = ({ task }) => {
   };
 
   const handleComplete = async () => {
-    if (!selectedFile && !task.completed) return;
-    
-    // await execute(async () => {
-    //   await completeTask(task.id, selectedFile || undefined);
-    //   setIsEvidenceModalOpen(false);
-    //   setSelectedFile(null);
-    // });
+    try {
+      if (isGoal) {
+        await completeGoal(task.id, selectedFile || undefined);
+      } else {
+        await completeTask(task.id, selectedFile || undefined);
+      }
+      setIsEvidenceModalOpen(false);
+      setSelectedFile(null);
+    } catch (error) {
+      console.error('Failed to complete task/goal:', error);
+    }
   };
 
   const handleDelete = async () => {
-    // if (confirm('Are you sure you want to delete this task?')) {
-    //   await execute(async () => {
-    //     await deleteTask(task.id);
-    //   });
-    // }
+    try {
+      if (isGoal) {
+        await deleteGoal(task.id);
+      } else {
+        await deleteTask(task.id);
+      }
+      setIsDeleteModalOpen(false);
+    } catch (error) {
+      console.error('Failed to delete task/goal:', error);
+    }
+  };
+
+  const handleProgressUpdate = async () => {
+    if (!isGoal || !task.goalDetails) return;
+    
+    try {
+      const newProgress = task.goalDetails.currentCount + 1;
+      await updateGoalProgress(task.id, newProgress);
+    } catch (error) {
+      console.error('Failed to update progress:', error);
+    }
   };
 
   return (
@@ -90,8 +114,9 @@ const GoalCard: React.FC<GoalCardProps> = ({ task }) => {
                 <Button
                   variant="ghost"
                   size="icon"
-                  onClick={handleDelete}
+                  onClick={() => setIsDeleteModalOpen(true)}
                   className="text-red-500 hover:text-red-700 hover:bg-red-50 dark:hover:bg-red-900/20"
+                  disabled={isLoading}
                 >
                   <Trash2 className="w-4 h-4" />
                 </Button>
@@ -127,6 +152,22 @@ const GoalCard: React.FC<GoalCardProps> = ({ task }) => {
                   </span>
                   <span>{Math.round(progress)}% complete</span>
                 </div>
+                
+                {/* Progress Update Button for Goals */}
+                {!task.completed && (
+                  <div className="mt-3">
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={handleProgressUpdate}
+                      disabled={isLoading}
+                      className="flex items-center space-x-2"
+                    >
+                      <Plus className="w-4 h-4" />
+                      <span>Add Progress</span>
+                    </Button>
+                  </div>
+                )}
               </div>
             )}
 
@@ -149,25 +190,18 @@ const GoalCard: React.FC<GoalCardProps> = ({ task }) => {
               </div>
             )}
 
-            {/* Error Display */}
-            {/* {error && (
-              <div className="bg-red-50 border border-red-200 rounded-lg p-3 dark:bg-red-900/20 dark:border-red-800/30">
-                <p className="text-red-700 text-sm dark:text-red-300">{error}</p>
-              </div>
-            )} */}
-
             {/* Actions */}
-            {/* {!task.completed && (
+            {!task.completed && (
               <Button
                 variant="gradient"
                 className="w-full flex items-center space-x-2"
                 onClick={() => setIsEvidenceModalOpen(true)}
-                disabled={loading}
+                disabled={isLoading}
               >
                 <Camera className="w-4 h-4" />
-                <span>{loading ? 'Processing...' : 'Complete with Evidence'}</span>
+                <span>{isLoading ? 'Processing...' : 'Complete with Evidence'}</span>
               </Button>
-            )} */}
+            )}
           </CardContent>
         </Card>
       </motion.div>
@@ -228,7 +262,7 @@ const GoalCard: React.FC<GoalCardProps> = ({ task }) => {
                 variant="outline"
                 className="flex-1"
                 onClick={() => setIsEvidenceModalOpen(false)}
-                // disabled={loading}
+                disabled={isLoading}
               >
                 Cancel
               </Button>
@@ -236,11 +270,44 @@ const GoalCard: React.FC<GoalCardProps> = ({ task }) => {
                 variant="gradient"
                 className="flex-1"
                 onClick={handleComplete}
-                // disabled={!selectedFile || loading}
+                disabled={!selectedFile || isLoading}
               >
-                {/* {loading ? 'Completing...' : 'Complete Task'} */}
+                {isLoading ? 'Completing...' : 'Complete Task'}
               </Button>
             </div>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Delete Confirmation Modal */}
+      <Dialog open={isDeleteModalOpen} onOpenChange={setIsDeleteModalOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle className="text-red-600 dark:text-red-400">
+              Delete {isGoal ? 'Goal' : 'Task'}
+            </DialogTitle>
+            <DialogDescription>
+              Are you sure you want to delete "{task.title}"? This action cannot be undone.
+            </DialogDescription>
+          </DialogHeader>
+          
+          <div className="flex space-x-3 mt-6">
+            <Button
+              variant="outline"
+              className="flex-1"
+              onClick={() => setIsDeleteModalOpen(false)}
+              disabled={isLoading}
+            >
+              Cancel
+            </Button>
+            <Button
+              variant="destructive"
+              className="flex-1"
+              onClick={handleDelete}
+              disabled={isLoading}
+            >
+              {isLoading ? 'Deleting...' : 'Delete'}
+            </Button>
           </div>
         </DialogContent>
       </Dialog>
