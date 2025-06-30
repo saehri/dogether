@@ -1,10 +1,13 @@
 import React from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
 import { Link, useLocation } from 'react-router-dom';
+import { motion, AnimatePresence } from 'framer-motion';
 import { Home, Target, Users, Trophy, Settings, User, X } from 'lucide-react';
-import { Button } from '../../components/ui/button';
-import { APP_NAME, ROUTES } from '../../utils/constants';
+
 import { cn } from '../../lib/utils';
+
+import { APP_NAME, ROUTES } from '../../utils/constants';
+
+import { Button } from '../../components/ui/button';
 
 interface SidebarProps {
 	isOpen: boolean;
@@ -132,3 +135,4 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
 };
 
 export default Sidebar;
+

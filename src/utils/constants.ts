@@ -5,7 +5,7 @@ export const API_BASE_URL = 'https://dogether.etalasepro.com/api';
 export const API_TIMEOUT = 10000;
 
 export const ROUTES = {
-	HOME: '/',
+	HOME: '/feed',
 	GOALS: '/goals',
 	FRIENDS: '/friends',
 	BADGES: '/badges',
@@ -35,3 +35,4 @@ export const FREQUENCIES = {
 	DAILY: 'daily',
 	WEEKLY: 'weekly',
 } as const;
+

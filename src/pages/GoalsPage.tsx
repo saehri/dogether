@@ -17,3 +17,4 @@ const GoalsPage: React.FC = () => {
 };
 
 export default GoalsPage;
+

@@ -102,12 +102,12 @@ export const taskApi = {
 		const formData = new FormData();
 		formData.append('title', task.title);
 		formData.append('description', task.description);
-		
+
 		console.log('FormData contents:');
 		for (let [key, value] of formData.entries()) {
 			console.log(key, value);
 		}
-		
+
 		return apiRequest('/todos', {
 			method: 'POST',
 			body: formData,
@@ -165,7 +165,7 @@ export const goalApi = {
 			});
 		}
 		const query = params.toString() ? `?${params.toString()}` : '';
-		
+
 		console.log('Fetching goals from:', `/goals${query}`);
 		// GET request tanpa body, menggunakan query parameters
 		return apiRequest(`/goals${query}`, {
@@ -183,18 +183,20 @@ export const goalApi = {
 		const formData = new FormData();
 		formData.append('title', goal.title);
 		formData.append('description', goal.description);
-		
+
 		// Add goal-specific fields if they exist
 		if (goal.start_date) formData.append('start_date', goal.start_date);
 		if (goal.end_date) formData.append('end_date', goal.end_date);
-		if (goal.current_streak !== undefined) formData.append('current_streak', String(goal.current_streak));
-		if (goal.is_active !== undefined) formData.append('is_active', String(goal.is_active));
-		
+		if (goal.current_streak !== undefined)
+			formData.append('current_streak', String(goal.current_streak));
+		if (goal.is_active !== undefined)
+			formData.append('is_active', String(goal.is_active));
+
 		console.log('FormData contents:');
 		for (let [key, value] of formData.entries()) {
 			console.log(key, value);
 		}
-		
+
 		return apiRequest('/goals', {
 			method: 'POST',
 			body: formData,
@@ -219,13 +221,17 @@ export const goalApi = {
 	},
 
 	// Delete goal - FIXED: Menggunakan query parameters untuk required fields
-	deleteGoal: (goalId: string, goalData?: { title?: string; description?: string }) => {
+	deleteGoal: (
+		goalId: string,
+		goalData?: { title?: string; description?: string }
+	) => {
 		// Jika API memerlukan title dan description untuk DELETE, gunakan query parameters
 		const params = new URLSearchParams();
 		if (goalData?.title) params.append('title', goalData.title);
-		if (goalData?.description) params.append('description', goalData.description);
+		if (goalData?.description)
+			params.append('description', goalData.description);
 		const query = params.toString() ? `?${params.toString()}` : '';
-		
+
 		return apiRequest(`/goals/${goalId}${query}`, {
 			method: 'DELETE',
 		});
@@ -234,8 +240,11 @@ export const goalApi = {
 	// Update goal progress
 	updateGoalProgress: (goalId: string, progress: any) => {
 		const formData = new FormData();
-		formData.append('current_streak', String(progress.current_streak || progress));
-		
+		formData.append(
+			'current_streak',
+			String(progress.current_streak || progress)
+		);
+
 		return apiRequest(`/goals/${goalId}/progress`, {
 			method: 'POST',
 			body: formData,
@@ -329,3 +338,4 @@ export { setAuthToken, removeAuthToken, getAuthToken };
 
 // Health check
 export const healthCheck = () => apiRequest('/health');
+

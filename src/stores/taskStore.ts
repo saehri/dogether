@@ -17,7 +17,7 @@ interface TaskActions {
 	updateTask: (taskId: string, updates: Partial<Task>) => Promise<void>;
 	deleteTask: (taskId: string) => Promise<void>;
 	completeTask: (taskId: string, evidence?: File) => Promise<void>;
-	
+
 	// Goal actions
 	fetchGoals: () => Promise<void>;
 	createGoal: (goal: Omit<Task, 'id' | 'createdAt'>) => Promise<void>;
@@ -25,7 +25,7 @@ interface TaskActions {
 	deleteGoal: (goalId: string) => Promise<void>;
 	completeGoal: (goalId: string, evidence?: File) => Promise<void>;
 	updateGoalProgress: (goalId: string, progress: number) => Promise<void>;
-	
+
 	// Local state management
 	setTasks: (tasks: Task[]) => void;
 	setGoals: (goals: Task[]) => void;
@@ -74,7 +74,9 @@ const transformApiTodoToTask = (apiTodo: any): Task => {
 		userId: String(apiTodo.user_id),
 		completed: apiTodo.completed || false,
 		createdAt: new Date(apiTodo.created_at),
-		completedAt: apiTodo.completed_at ? new Date(apiTodo.completed_at) : undefined,
+		completedAt: apiTodo.completed_at
+			? new Date(apiTodo.completed_at)
+			: undefined,
 	};
 };
 
@@ -90,14 +92,18 @@ export const useTaskStore = create<TaskStore>()(
 					try {
 						const response = await taskApi.getTasks();
 						console.log('Fetch tasks response:', response);
-						
+
 						if (response.success && response.data) {
 							// Handle different possible response structures
-							const todosData = response.data.todos || response.data.data || response.data || [];
-							const transformedTasks = Array.isArray(todosData) 
+							const todosData =
+								response.data.todos ||
+								response.data.data ||
+								response.data ||
+								[];
+							const transformedTasks = Array.isArray(todosData)
 								? todosData.map(transformApiTodoToTask)
 								: [];
-							
+
 							console.log('Transformed tasks:', transformedTasks);
 							set({ tasks: transformedTasks, isLoading: false });
 						} else {
@@ -106,7 +112,10 @@ export const useTaskStore = create<TaskStore>()(
 						}
 					} catch (error: any) {
 						console.error('Fetch tasks error:', error);
-						set({ error: error.message || 'Failed to fetch tasks', isLoading: false });
+						set({
+							error: error.message || 'Failed to fetch tasks',
+							isLoading: false,
+						});
 					}
 				},
 
@@ -117,29 +126,36 @@ export const useTaskStore = create<TaskStore>()(
 						console.log('Creating task with data:', taskData);
 						const response = await taskApi.createTask(taskData);
 						console.log('Create task response:', response);
-						
+
 						if (response.success && response.data) {
 							// Handle different possible response structures
-							const taskResponseData = response.data.todo || response.data.data || response.data;
+							const taskResponseData =
+								response.data.todo || response.data.data || response.data;
 							const newTask = transformApiTodoToTask(taskResponseData);
-							
+
 							console.log('New task created:', newTask);
 							set((state) => ({
 								tasks: [...state.tasks, newTask],
-								isLoading: false
+								isLoading: false,
 							}));
-							
+
 							// Refresh tasks to ensure we have the latest data
 							setTimeout(() => {
 								get().fetchTasks();
 							}, 500);
 						} else {
 							console.error('Create task failed:', response);
-							set({ error: response.message || 'Failed to create task', isLoading: false });
+							set({
+								error: response.message || 'Failed to create task',
+								isLoading: false,
+							});
 						}
 					} catch (error: any) {
 						console.error('Create task error:', error);
-						set({ error: error.message || 'Failed to create task', isLoading: false });
+						set({
+							error: error.message || 'Failed to create task',
+							isLoading: false,
+						});
 					}
 				},
 
@@ -149,19 +165,26 @@ export const useTaskStore = create<TaskStore>()(
 					try {
 						const response = await taskApi.updateTask(taskId, updates);
 						if (response.success && response.data) {
-							const taskResponseData = response.data.todo || response.data.data || response.data;
+							const taskResponseData =
+								response.data.todo || response.data.data || response.data;
 							const updatedTask = transformApiTodoToTask(taskResponseData);
 							set((state) => ({
-								tasks: state.tasks.map(task =>
+								tasks: state.tasks.map((task) =>
 									task.id === taskId ? updatedTask : task
 								),
-								isLoading: false
+								isLoading: false,
 							}));
 						} else {
-							set({ error: response.message || 'Failed to update task', isLoading: false });
+							set({
+								error: response.message || 'Failed to update task',
+								isLoading: false,
+							});
 						}
 					} catch (error: any) {
-						set({ error: error.message || 'Failed to update task', isLoading: false });
+						set({
+							error: error.message || 'Failed to update task',
+							isLoading: false,
+						});
 					}
 				},
 
@@ -172,14 +195,20 @@ export const useTaskStore = create<TaskStore>()(
 						const response = await taskApi.deleteTask(taskId);
 						if (response.success) {
 							set((state) => ({
-								tasks: state.tasks.filter(task => task.id !== taskId),
-								isLoading: false
+								tasks: state.tasks.filter((task) => task.id !== taskId),
+								isLoading: false,
 							}));
 						} else {
-							set({ error: response.message || 'Failed to delete task', isLoading: false });
+							set({
+								error: response.message || 'Failed to delete task',
+								isLoading: false,
+							});
 						}
 					} catch (error: any) {
-						set({ error: error.message || 'Failed to delete task', isLoading: false });
+						set({
+							error: error.message || 'Failed to delete task',
+							isLoading: false,
+						});
 					}
 				},
 
@@ -196,18 +225,29 @@ export const useTaskStore = create<TaskStore>()(
 						const response = await taskApi.completeTask(taskId, formData);
 						if (response.success) {
 							set((state) => ({
-								tasks: state.tasks.map(task =>
-									task.id === taskId 
-										? { ...task, completed: true, completedAt: new Date(), evidence: response.data?.evidence }
+								tasks: state.tasks.map((task) =>
+									task.id === taskId
+										? {
+												...task,
+												completed: true,
+												completedAt: new Date(),
+												evidence: response.data?.evidence,
+										  }
 										: task
 								),
-								isLoading: false
+								isLoading: false,
 							}));
 						} else {
-							set({ error: response.message || 'Failed to complete task', isLoading: false });
+							set({
+								error: response.message || 'Failed to complete task',
+								isLoading: false,
+							});
 						}
 					} catch (error: any) {
-						set({ error: error.message || 'Failed to complete task', isLoading: false });
+						set({
+							error: error.message || 'Failed to complete task',
+							isLoading: false,
+						});
 					}
 				},
 
@@ -217,14 +257,18 @@ export const useTaskStore = create<TaskStore>()(
 					try {
 						const response = await goalApi.getGoals();
 						console.log('Fetch goals response:', response);
-						
+
 						if (response.success && response.data) {
 							// Handle different possible response structures
-							const goalsData = response.data.goals || response.data.data || response.data || [];
-							const transformedGoals = Array.isArray(goalsData) 
+							const goalsData =
+								response.data.goals ||
+								response.data.data ||
+								response.data ||
+								[];
+							const transformedGoals = Array.isArray(goalsData)
 								? goalsData.map(transformApiGoalToTask)
 								: [];
-							
+
 							console.log('Transformed goals:', transformedGoals);
 							set({ goals: transformedGoals, isLoading: false });
 						} else {
@@ -233,7 +277,10 @@ export const useTaskStore = create<TaskStore>()(
 						}
 					} catch (error: any) {
 						console.error('Fetch goals error:', error);
-						set({ error: error.message || 'Failed to fetch goals', isLoading: false });
+						set({
+							error: error.message || 'Failed to fetch goals',
+							isLoading: false,
+						});
 					}
 				},
 
@@ -242,14 +289,19 @@ export const useTaskStore = create<TaskStore>()(
 					set({ isLoading: true, error: null });
 					try {
 						console.log('Creating goal with data:', goalData);
-						
+
 						// Transform goal data to API format
 						const apiGoalData = {
 							title: goalData.title,
 							description: goalData.description,
 							start_date: new Date().toISOString().split('T')[0], // Today's date
-							end_date: goalData.goalDetails?.duration 
-								? new Date(Date.now() + goalData.goalDetails.duration * 24 * 60 * 60 * 1000).toISOString().split('T')[0]
+							end_date: goalData.goalDetails?.duration
+								? new Date(
+										Date.now() +
+											goalData.goalDetails.duration * 24 * 60 * 60 * 1000
+								  )
+										.toISOString()
+										.split('T')[0]
 								: undefined,
 							current_streak: 0,
 							is_active: 1,
@@ -258,29 +310,36 @@ export const useTaskStore = create<TaskStore>()(
 						console.log('API goal data:', apiGoalData);
 						const response = await goalApi.createGoal(apiGoalData);
 						console.log('Create goal response:', response);
-						
+
 						if (response.success && response.data) {
 							// Handle different possible response structures
-							const goalResponseData = response.data.goal || response.data.data || response.data;
+							const goalResponseData =
+								response.data.goal || response.data.data || response.data;
 							const newGoal = transformApiGoalToTask(goalResponseData);
-							
+
 							console.log('New goal created:', newGoal);
 							set((state) => ({
 								goals: [...state.goals, newGoal],
-								isLoading: false
+								isLoading: false,
 							}));
-							
+
 							// Refresh goals to ensure we have the latest data
 							setTimeout(() => {
 								get().fetchGoals();
 							}, 500);
 						} else {
 							console.error('Create goal failed:', response);
-							set({ error: response.message || 'Failed to create goal', isLoading: false });
+							set({
+								error: response.message || 'Failed to create goal',
+								isLoading: false,
+							});
 						}
 					} catch (error: any) {
 						console.error('Create goal error:', error);
-						set({ error: error.message || 'Failed to create goal', isLoading: false });
+						set({
+							error: error.message || 'Failed to create goal',
+							isLoading: false,
+						});
 					}
 				},
 
@@ -290,19 +349,26 @@ export const useTaskStore = create<TaskStore>()(
 					try {
 						const response = await goalApi.updateGoal(goalId, updates);
 						if (response.success && response.data) {
-							const goalResponseData = response.data.goal || response.data.data || response.data;
+							const goalResponseData =
+								response.data.goal || response.data.data || response.data;
 							const updatedGoal = transformApiGoalToTask(goalResponseData);
 							set((state) => ({
-								goals: state.goals.map(goal =>
+								goals: state.goals.map((goal) =>
 									goal.id === goalId ? updatedGoal : goal
 								),
-								isLoading: false
+								isLoading: false,
 							}));
 						} else {
-							set({ error: response.message || 'Failed to update goal', isLoading: false });
+							set({
+								error: response.message || 'Failed to update goal',
+								isLoading: false,
+							});
 						}
 					} catch (error: any) {
-						set({ error: error.message || 'Failed to update goal', isLoading: false });
+						set({
+							error: error.message || 'Failed to update goal',
+							isLoading: false,
+						});
 					}
 				},
 
@@ -311,24 +377,32 @@ export const useTaskStore = create<TaskStore>()(
 					set({ isLoading: true, error: null });
 					try {
 						// Get goal data for required fields in delete request
-						const goalToDelete = get().goals.find(goal => goal.id === goalId);
-						const goalData = goalToDelete ? {
-							title: goalToDelete.title,
-							description: goalToDelete.description
-						} : undefined;
+						const goalToDelete = get().goals.find((goal) => goal.id === goalId);
+						const goalData = goalToDelete
+							? {
+									title: goalToDelete.title,
+									description: goalToDelete.description,
+							  }
+							: undefined;
 
 						const response = await goalApi.deleteGoal(goalId, goalData);
 						if (response.success) {
 							set((state) => ({
-								goals: state.goals.filter(goal => goal.id !== goalId),
-								isLoading: false
+								goals: state.goals.filter((goal) => goal.id !== goalId),
+								isLoading: false,
 							}));
 						} else {
-							set({ error: response.message || 'Failed to delete goal', isLoading: false });
+							set({
+								error: response.message || 'Failed to delete goal',
+								isLoading: false,
+							});
 						}
 					} catch (error: any) {
 						console.error('Delete goal error:', error);
-						set({ error: error.message || 'Failed to delete goal', isLoading: false });
+						set({
+							error: error.message || 'Failed to delete goal',
+							isLoading: false,
+						});
 					}
 				},
 
@@ -345,18 +419,29 @@ export const useTaskStore = create<TaskStore>()(
 						const response = await goalApi.completeGoal(goalId, formData);
 						if (response.success) {
 							set((state) => ({
-								goals: state.goals.map(goal =>
-									goal.id === goalId 
-										? { ...goal, completed: true, completedAt: new Date(), evidence: response.data?.evidence }
+								goals: state.goals.map((goal) =>
+									goal.id === goalId
+										? {
+												...goal,
+												completed: true,
+												completedAt: new Date(),
+												evidence: response.data?.evidence,
+										  }
 										: goal
 								),
-								isLoading: false
+								isLoading: false,
 							}));
 						} else {
-							set({ error: response.message || 'Failed to complete goal', isLoading: false });
+							set({
+								error: response.message || 'Failed to complete goal',
+								isLoading: false,
+							});
 						}
 					} catch (error: any) {
-						set({ error: error.message || 'Failed to complete goal', isLoading: false });
+						set({
+							error: error.message || 'Failed to complete goal',
+							isLoading: false,
+						});
 					}
 				},
 
@@ -364,26 +449,34 @@ export const useTaskStore = create<TaskStore>()(
 				updateGoalProgress: async (goalId, progress) => {
 					set({ isLoading: true, error: null });
 					try {
-						const response = await goalApi.updateGoalProgress(goalId, { current_streak: progress });
+						const response = await goalApi.updateGoalProgress(goalId, {
+							current_streak: progress,
+						});
 						if (response.success) {
 							set((state) => ({
-								goals: state.goals.map(goal =>
-									goal.id === goalId 
-										? { 
-											...goal, 
-											goalDetails: goal.goalDetails 
-												? { ...goal.goalDetails, currentCount: progress }
-												: undefined
-										}
+								goals: state.goals.map((goal) =>
+									goal.id === goalId
+										? {
+												...goal,
+												goalDetails: goal.goalDetails
+													? { ...goal.goalDetails, currentCount: progress }
+													: undefined,
+										  }
 										: goal
 								),
-								isLoading: false
+								isLoading: false,
 							}));
 						} else {
-							set({ error: response.message || 'Failed to update goal progress', isLoading: false });
+							set({
+								error: response.message || 'Failed to update goal progress',
+								isLoading: false,
+							});
 						}
 					} catch (error: any) {
-						set({ error: error.message || 'Failed to update goal progress', isLoading: false });
+						set({
+							error: error.message || 'Failed to update goal progress',
+							isLoading: false,
+						});
 					}
 				},
 
@@ -413,7 +506,8 @@ export const useTasks = () => useTaskStore((state) => state.tasks);
 export const useGoals = () => useTaskStore((state) => state.goals);
 
 // Combined tasks and goals for backward compatibility
-export const useAllTasks = () => useTaskStore((state) => [...state.tasks, ...state.goals]);
+export const useAllTasks = () =>
+	useTaskStore((state) => [...state.tasks, ...state.goals]);
 
 export const useTaskActions = () =>
 	useTaskStore((state) => ({
@@ -442,16 +536,22 @@ export const useTasksError = () => useTaskStore((state) => state.error);
 
 // Computed selectors
 export const useUserTasks = (userId: string) =>
-	useTaskStore((state) => [...state.tasks, ...state.goals].filter((task) => task.userId === userId));
+	useTaskStore((state) =>
+		[...state.tasks, ...state.goals].filter((task) => task.userId === userId)
+	);
 
 export const useCompletedTasks = (userId: string) =>
 	useTaskStore((state) =>
-		[...state.tasks, ...state.goals].filter((task) => task.userId === userId && task.completed)
+		[...state.tasks, ...state.goals].filter(
+			(task) => task.userId === userId && task.completed
+		)
 	);
 
 export const useTaskStats = (userId: string) =>
 	useTaskStore((state) => {
-		const allUserTasks = [...state.tasks, ...state.goals].filter((task) => task.userId === userId);
+		const allUserTasks = [...state.tasks, ...state.goals].filter(
+			(task) => task.userId === userId
+		);
 		const completedTasks = allUserTasks.filter((task) => task.completed);
 		const goals = state.goals.filter((goal) => goal.userId === userId);
 		const completedGoals = goals.filter((goal) => goal.completed);
@@ -467,3 +567,4 @@ export const useTaskStats = (userId: string) =>
 					: 0,
 		};
 	});
+

@@ -85,3 +85,4 @@ const Header: React.FC<HeaderProps> = ({ onMenuToggle, onCreateTask }) => {
 };
 
 export default Header;
+

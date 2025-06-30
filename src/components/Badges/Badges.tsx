@@ -1,64 +1,63 @@
 import React from 'react';
 import { motion } from 'framer-motion';
-import { Trophy, Lock, Star, Award } from 'lucide-react';
-import { Card, CardContent, CardHeader } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
-import { Progress } from '@/components/ui/progress';
-import { badges, currentUser } from '@/data/mockData';
-import { cn } from '@/lib/utils';
+// import { Award } from 'lucide-react';
+
+// import { Card, CardContent } from '../ui/card';
+// import { Badge } from '@/components/ui/badge';
+// import { Progress } from '@/components/ui/progress';
+// import { badges, currentUser } from '@/data/mockData';
+import { cn } from '../../lib/utils';
 
 const Badges: React.FC = () => {
-  const unlockedBadges = currentUser.badges;
-  const lockedBadges = badges.filter(badge => !unlockedBadges.find(ub => ub.id === badge.id));
-  const progressPercentage = badges.length > 0 ? (unlockedBadges.length / badges.length) * 100 : 0;
+	// const unlockedBadges = currentUser.badges;
+	// const lockedBadges = badges.filter(badge => !unlockedBadges.find(ub => ub.id === badge.id));
+	// const progressPercentage = badges.length > 0 ? (unlockedBadges.length / badges.length) * 100 : 0;
 
-  const stats = [
-    {
-      title: 'Badges Earned',
-      value: unlockedBadges.length,
-      icon: Trophy,
-      gradient: 'from-yellow-500 to-orange-600'
-    },
-    {
-      title: 'Total Available',
-      value: badges.length,
-      icon: Star,
-      gradient: 'from-purple-500 to-blue-600'
-    },
-    {
-      title: 'Complete',
-      value: `${Math.round(progressPercentage)}%`,
-      icon: () => <div className="text-2xl">{Math.round(progressPercentage)}%</div>,
-      gradient: 'from-green-500 to-emerald-600'
-    }
-  ];
+	// const stats = [
+	//   {
+	//     title: 'Badges Earned',
+	//     value: unlockedBadges.length,
+	//     icon: Trophy,
+	//     gradient: 'from-yellow-500 to-orange-600'
+	//   },
+	//   {
+	//     title: 'Total Available',
+	//     value: badges.length,
+	//     icon: Star,
+	//     gradient: 'from-purple-500 to-blue-600'
+	//   },
+	//   {
+	//     title: 'Complete',
+	//     value: `${Math.round(progressPercentage)}%`,
+	//     icon: () => <div className="text-2xl">{Math.round(progressPercentage)}%</div>,
+	//     gradient: 'from-green-500 to-emerald-600'
+	//   }
+	// ];
 
-  return (
-    <div className="max-w-4xl mx-auto space-y-6">
-      {/* Header */}
-      <motion.div
-        initial={{ opacity: 0, y: -20 }}
-        animate={{ opacity: 1, y: 0 }}
-        className="text-center"
-      >
-        <h2 className="text-2xl font-bold bg-gradient-to-r from-purple-600 to-blue-600 bg-clip-text text-transparent mb-2">
-          Your Badges
-        </h2>
-        <p className={cn(
-          "text-gray-600 dark:text-gray-200"
-        )}>
-          Achievements unlock as you complete goals
-        </p>
-      </motion.div>
+	return (
+		<div className="max-w-4xl mx-auto space-y-6">
+			{/* Header */}
+			<motion.div
+				initial={{ opacity: 0, y: -20 }}
+				animate={{ opacity: 1, y: 0 }}
+				className="text-center"
+			>
+				<h2 className="text-2xl font-bold bg-gradient-to-r from-purple-600 to-blue-600 bg-clip-text text-transparent mb-2">
+					Your Badges
+				</h2>
+				<p className={cn('text-gray-600 dark:text-gray-200')}>
+					Achievements unlock as you complete goals
+				</p>
+			</motion.div>
 
-      {/* Stats */}
-      <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: 0.1 }}
-        className="grid grid-cols-1 md:grid-cols-3 gap-4"
-      >
-        {stats.map((stat, index) => {
+			{/* Stats */}
+			<motion.div
+				initial={{ opacity: 0, y: 20 }}
+				animate={{ opacity: 1, y: 0 }}
+				transition={{ delay: 0.1 }}
+				className="grid grid-cols-1 md:grid-cols-3 gap-4"
+			>
+				{/* {stats.map((stat, index) => {
           const Icon = stat.icon;
           return (
             <Card key={index} className="overflow-hidden">
@@ -69,42 +68,46 @@ const Badges: React.FC = () => {
               </CardContent>
             </Card>
           );
-        })}
-      </motion.div>
+        })} */}
+			</motion.div>
 
-      {/* Content based on badge availability */}
-      {badges.length === 0 ? (
-        /* No badges available */
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.2 }}
-          className="text-center py-16"
-        >
-          <Card className="max-w-md mx-auto">
-            <CardContent className="p-12 text-center">
-              <div className="w-20 h-20 bg-gradient-to-br from-yellow-100 to-orange-100 dark:from-yellow-900/20 dark:to-orange-900/20 rounded-full flex items-center justify-center mx-auto mb-6">
-                <Award className="w-10 h-10 text-yellow-600 dark:text-yellow-400" />
-              </div>
-              <h3 className={cn(
-                "text-xl font-semibold mb-3",
-                "text-gray-900 dark:text-gray-100"
-              )}>
-                No badges available yet
-              </h3>
-              <p className={cn(
-                "leading-relaxed",
-                "text-gray-600 dark:text-gray-300"
-              )}>
-                Badges will become available as you start completing goals and tasks. Keep working towards your objectives to unlock achievements!
-              </p>
-            </CardContent>
-          </Card>
-        </motion.div>
-      ) : (
-        <>
-          {/* Unlocked Badges */}
-          {unlockedBadges.length > 0 && (
+			{/* Content based on badge availability */}
+			{/* {badges.length === 0 ? (
+				<motion.div
+					initial={{ opacity: 0, y: 20 }}
+					animate={{ opacity: 1, y: 0 }}
+					transition={{ delay: 0.2 }}
+					className="text-center py-16"
+				>
+					<Card className="max-w-md mx-auto">
+						<CardContent className="p-12 text-center">
+							<div className="w-20 h-20 bg-gradient-to-br from-yellow-100 to-orange-100 dark:from-yellow-900/20 dark:to-orange-900/20 rounded-full flex items-center justify-center mx-auto mb-6">
+								<Award className="w-10 h-10 text-yellow-600 dark:text-yellow-400" />
+							</div>
+							<h3
+								className={cn(
+									'text-xl font-semibold mb-3',
+									'text-gray-900 dark:text-gray-100'
+								)}
+							>
+								No badges available yet
+							</h3>
+							<p
+								className={cn(
+									'leading-relaxed',
+									'text-gray-600 dark:text-gray-300'
+								)}
+							>
+								Badges will become available as you start completing goals and
+								tasks. Keep working towards your objectives to unlock
+								achievements!
+							</p>
+						</CardContent>
+					</Card>
+				</motion.div>
+			) : (
+				<>
+					{unlockedBadges.length > 0 && (
             <motion.div
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
@@ -153,10 +156,10 @@ const Badges: React.FC = () => {
                 ))}
               </div>
             </motion.div>
-          )}
+          )} */}
 
-          {/* Locked Badges */}
-          {lockedBadges.length > 0 && (
+			{/* Locked Badges */}
+			{/* {lockedBadges.length > 0 && (
             <motion.div
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
@@ -204,10 +207,10 @@ const Badges: React.FC = () => {
                 ))}
               </div>
             </motion.div>
-          )}
+          )} */}
 
-          {/* Progress Hint */}
-          <motion.div
+			{/* Progress Hint */}
+			{/* <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.4 }}
@@ -239,11 +242,12 @@ const Badges: React.FC = () => {
                 )}
               </CardContent>
             </Card>
-          </motion.div>
-        </>
-      )}
-    </div>
-  );
+          </motion.div> 
+				</>
+			)}*/}
+		</div>
+	);
 };
 
 export default Badges;
+
