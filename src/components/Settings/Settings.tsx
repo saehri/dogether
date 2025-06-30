@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { 
   User, 
@@ -10,7 +10,8 @@ import {
   Eye,
   EyeOff,
   AlertTriangle,
-  Check
+  Check,
+  AlertCircle
 } from 'lucide-react';
 
 import { useTheme } from '../../contexts/ThemeContext';
@@ -23,16 +24,22 @@ import { Button } from '../../components/ui/button';
 import { Avatar, AvatarImage, AvatarFallback } from '../../components/ui/avatar';
 import { Card, CardContent, CardHeader, CardTitle } from '../../components/ui/card';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '../../components/ui/dialog';
-import { useAuthStore } from '../../stores/authStore';
-
+import { useAuth, useAuthActions } from '../../stores/authStore';
 
 const Settings: React.FC = () => {
-  const {user} = useAuthStore();
+  const { user, isLoading, error } = useAuth();
+  const { 
+    updateProfile, 
+    changePassword, 
+    uploadProfilePicture, 
+    deleteAccount,
+    clearError 
+  } = useAuthActions();
   const { theme, setTheme } = useTheme();
 
   // Form states
-  const [username, setUsername] = useState(user?.username || "");
-  const [email, setEmail] = useState(user?.email || '');
+  const [username, setUsername] = useState('');
+  const [email, setEmail] = useState('');
   const [currentPassword, setCurrentPassword] = useState('');
   const [newPassword, setNewPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
@@ -49,6 +56,22 @@ const Settings: React.FC = () => {
 
   // Validation states
   const [errors, setErrors] = useState<Record<string, string>>({});
+
+  // Load user data into form when user changes
+  useEffect(() => {
+    if (user) {
+      setUsername(user.username || '');
+      setEmail(user.email || '');
+    }
+  }, [user]);
+
+  // Clear success message after 3 seconds
+  useEffect(() => {
+    if (successMessage) {
+      const timer = setTimeout(() => setSuccessMessage(null), 3000);
+      return () => clearTimeout(timer);
+    }
+  }, [successMessage]);
 
   const validateForm = () => {
     const newErrors: Record<string, string> = {};
@@ -89,57 +112,62 @@ const Settings: React.FC = () => {
   const handleSaveProfile = async () => {
     if (!validateForm()) return;
 
-    // await execute(async () => {
-    //   const updates: any = {
-    //     username: username.trim(),
-    //     email: email.trim(),
-    //   };
+    try {
+      // Upload profile picture if selected
+      if (selectedFile) {
+        await uploadProfilePicture(selectedFile);
+        setSelectedFile(null);
+        setPreviewUrl(null);
+      }
 
-    //   // Handle profile picture upload
-    //   if (selectedFile) {
-    //     // In a real app, you'd upload to a service like Cloudinary or AWS S3
-    //     updates.avatar = URL.createObjectURL(selectedFile);
-    //   }
+      // Update profile data
+      const updates: any = {};
+      if (username !== user?.username) updates.username = username;
+      if (email !== user?.email) updates.email = email;
 
-    //   await updateUser(user.id, updates);
-    //   setSuccessMessage('Profile updated successfully!');
-      
-    //   // Clear success message after 3 seconds
-    //   setTimeout(() => setSuccessMessage(null), 3000);
-    // });
+      if (Object.keys(updates).length > 0) {
+        await updateProfile(updates);
+      }
+
+      setSuccessMessage('Profile updated successfully!');
+    } catch (error) {
+      console.error('Failed to save profile:', error);
+    }
   };
 
   const handleChangePassword = async () => {
-    // if (!validateForm()) return;
+    if (!validateForm()) return;
 
-    // await execute(async () => {
-    //   // In a real app, you'd verify the current password and update it
-    //   // For now, we'll just simulate the process
-    //   await new Promise(resolve => setTimeout(resolve, 1000));
+    try {
+      await changePassword({
+        current_password: currentPassword,
+        new_password: newPassword,
+        new_password_confirmation: confirmPassword,
+      });
       
-    //   setCurrentPassword('');
-    //   setNewPassword('');
-    //   setConfirmPassword('');
-    //   setSuccessMessage('Password changed successfully!');
-      
-    //   setTimeout(() => setSuccessMessage(null), 3000);
-    // });
+      setCurrentPassword('');
+      setNewPassword('');
+      setConfirmPassword('');
+      setSuccessMessage('Password changed successfully!');
+    } catch (error) {
+      console.error('Failed to change password:', error);
+    }
   };
 
   const handleDeleteAccount = async () => {
-    // if (deleteConfirmText !== 'DELETE') return;
+    if (deleteConfirmText !== 'DELETE') return;
 
-    // await execute(async () => {
-    //   await deleteUser(user.id);
-    //   // In a real app, you'd redirect to login or landing page
-    //   setSuccessMessage('Account deleted successfully');
-    // });
+    try {
+      await deleteAccount();
+      setSuccessMessage('Account deleted successfully');
+    } catch (error) {
+      console.error('Failed to delete account:', error);
+    }
   };
 
   const handleThemeChange = (newTheme: 'light' | 'dark' | 'system') => {
     setTheme(newTheme);
     setSuccessMessage(`Theme changed to ${newTheme}`);
-    setTimeout(() => setSuccessMessage(null), 3000);
   };
 
   const themeOptions = [
@@ -179,6 +207,31 @@ const Settings: React.FC = () => {
         >
           <Check className="w-5 h-5 text-green-600 dark:text-green-400" />
           <span className="text-green-800 dark:text-green-200">{successMessage}</span>
+        </motion.div>
+      )}
+
+      {/* Error Message */}
+      {error && (
+        <motion.div
+          initial={{ opacity: 0, y: -10 }}
+          animate={{ opacity: 1, y: 0 }}
+          className={cn(
+            "border rounded-lg p-4 flex items-center justify-between",
+            "bg-red-50 border-red-200 dark:bg-red-900/20 dark:border-red-800/30"
+          )}
+        >
+          <div className="flex items-center space-x-2">
+            <AlertCircle className="w-5 h-5 text-red-600 dark:text-red-400" />
+            <span className="text-red-800 dark:text-red-200">{error}</span>
+          </div>
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={clearError}
+            className="text-red-600 hover:text-red-700 dark:text-red-400 dark:hover:text-red-300"
+          >
+            ✕
+          </Button>
         </motion.div>
       )}
 
@@ -252,7 +305,7 @@ const Settings: React.FC = () => {
                 <Avatar className="w-20 h-20">
                   <AvatarImage src={previewUrl || user?.avatar} alt={user?.name} />
                   <AvatarFallback className="text-xl bg-gradient-to-br from-purple-500 to-blue-600 text-white">
-                    {user?.name.charAt(0)}
+                    {user?.name?.charAt(0) || 'U'}
                   </AvatarFallback>
                 </Avatar>
                 <Label
@@ -274,15 +327,15 @@ const Settings: React.FC = () => {
                   "font-semibold",
                   "text-gray-900 dark:text-gray-100"
                 )}>
-                  {user?.name}
+                  {user?.name || 'User'}
                 </h3>
                 <p className={cn(
                   "text-gray-600 dark:text-gray-400"
                 )}>
-                  @{user?.username}
+                  @{user?.username || 'username'}
                 </p>
                 <Badge variant="info" className="mt-1">
-                  {/* {user?.badges.length} badges earned */}
+                  Active User
                 </Badge>
               </div>
             </div>
@@ -301,6 +354,7 @@ const Settings: React.FC = () => {
                   value={username}
                   onChange={(e) => setUsername(e.target.value)}
                   className={cn(errors.username && "border-red-500 focus:border-red-500 dark:border-red-400")}
+                  disabled={isLoading}
                 />
                 {errors.username && (
                   <p className="text-xs text-red-600 dark:text-red-400 mt-1">{errors.username}</p>
@@ -320,6 +374,7 @@ const Settings: React.FC = () => {
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   className={cn(errors.email && "border-red-500 focus:border-red-500 dark:border-red-400")}
+                  disabled={isLoading}
                 />
                 {errors.email && (
                   <p className="text-xs text-red-600 dark:text-red-400 mt-1">{errors.email}</p>
@@ -327,23 +382,14 @@ const Settings: React.FC = () => {
               </div>
             </div>
 
-            {/* Error Display */}
-            {/* {error && (
-              <div className={cn(
-                "border rounded-lg p-3",
-                "bg-red-50 border-red-200 dark:bg-red-900/20 dark:border-red-800/30"
-              )}>
-                <p className="text-red-700 dark:text-red-300 text-sm">{error}</p>
-              </div>
-            )} */}
-
             <Button
               onClick={handleSaveProfile}
               variant="gradient"
               className="flex items-center space-x-2"
+              disabled={isLoading}
             >
               <Save className="w-4 h-4" />
-              {/* <span>{loading ? 'Saving...' : 'Save Profile'}</span> */}
+              <span>{isLoading ? 'Saving...' : 'Save Profile'}</span>
             </Button>
           </CardContent>
         </Card>
@@ -377,6 +423,7 @@ const Settings: React.FC = () => {
                   value={currentPassword}
                   onChange={(e) => setCurrentPassword(e.target.value)}
                   className={cn(errors.currentPassword && "border-red-500 focus:border-red-500 dark:border-red-400")}
+                  disabled={isLoading}
                 />
                 <Button
                   type="button"
@@ -408,6 +455,7 @@ const Settings: React.FC = () => {
                     value={newPassword}
                     onChange={(e) => setNewPassword(e.target.value)}
                     className={cn(errors.newPassword && "border-red-500 focus:border-red-500 dark:border-red-400")}
+                    disabled={isLoading}
                   />
                   <Button
                     type="button"
@@ -438,6 +486,7 @@ const Settings: React.FC = () => {
                     value={confirmPassword}
                     onChange={(e) => setConfirmPassword(e.target.value)}
                     className={cn(errors.confirmPassword && "border-red-500 focus:border-red-500 dark:border-red-400")}
+                    disabled={isLoading}
                   />
                   <Button
                     type="button"
@@ -457,12 +506,12 @@ const Settings: React.FC = () => {
 
             <Button
               onClick={handleChangePassword}
-              // disabled={loading || !newPassword}
+              disabled={isLoading || !newPassword}
               variant="gradient"
               className="flex items-center space-x-2"
             >
               <Lock className="w-4 h-4" />
-              {/* <span>{loading ? 'Changing...' : 'Change Password'}</span> */}
+              <span>{isLoading ? 'Changing...' : 'Change Password'}</span>
             </Button>
           </CardContent>
         </Card>
@@ -538,7 +587,7 @@ const Settings: React.FC = () => {
                   setIsDeleteModalOpen(false);
                   setDeleteConfirmText('');
                 }}
-                // disabled={loading}
+                disabled={isLoading}
               >
                 Cancel
               </Button>
@@ -546,9 +595,9 @@ const Settings: React.FC = () => {
                 variant="destructive"
                 className="flex-1"
                 onClick={handleDeleteAccount}
-                // disabled={deleteConfirmText !== 'DELETE' || loading}
+                disabled={deleteConfirmText !== 'DELETE' || isLoading}
               >
-                {/* {loading ? 'Deleting...' : 'Delete Account'} */}
+                {isLoading ? 'Deleting...' : 'Delete Account'}
               </Button>
             </div>
           </div>

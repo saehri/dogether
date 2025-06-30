@@ -12,7 +12,7 @@ function App() {
   const [isInitializing, setIsInitializing] = useState(true);
   const { isAuthenticated, error: authError } = useAuth();
   const { error: uiError } = useUI();
-  const { setAuthenticated } = useAuthActions();
+  const { setAuthenticated, fetchProfile } = useAuthActions();
   const { setError: setUIError } = useUIActions();
 
   // Check for existing auth token on app start
@@ -21,8 +21,17 @@ function App() {
       try {
         const token = getAuthToken();
         if (token) {
-          // In a real app, you'd validate the token with the server
-          setAuthenticated(true);
+          // Validate token by fetching profile
+          try {
+            await fetchProfile();
+            setAuthenticated(true);
+          } catch (error) {
+            console.error('Token validation failed:', error);
+            removeAuthToken();
+            setAuthenticated(false);
+          }
+        } else {
+          setAuthenticated(false);
         }
       } catch (error) {
         console.error('Auth check failed:', error);
@@ -34,7 +43,7 @@ function App() {
     };
 
     checkAuthStatus();
-  }, [setAuthenticated]);
+  }, [setAuthenticated, fetchProfile]);
 
   // Clear errors after 5 seconds
   useEffect(() => {

@@ -258,36 +258,83 @@ export const goalApi = {
 	},
 };
 
-// User API endpoints
+// User API endpoints - Updated based on API documentation
 export const userApi = {
-	getProfile: (userId?: string) => {
-		const endpoint = userId ? `/users/${userId}` : '/profile';
-		return apiRequest(endpoint);
-	},
+	// Get current user profile
+	getProfile: () => apiRequest('/profile'),
 
-	updateProfile: (userId: string, updates: any) =>
-		apiRequest(`/users/${userId}`, {
-			method: 'PUT',
-			body: JSON.stringify(updates),
-		}),
+	// Get user by ID
+	getUser: (userId: string) => apiRequest(`/users/${userId}`),
 
-	deleteProfile: (userId: string) =>
-		apiRequest(`/users/${userId}`, {
-			method: 'DELETE',
-		}),
-
-	uploadAvatar: (file: File) => {
+	// Update current user profile
+	updateProfile: (updates: {
+		fullname?: string;
+		username?: string;
+		email?: string;
+		bio?: string;
+		date_of_birth?: string;
+	}) => {
 		const formData = new FormData();
-		formData.append('avatar', file);
+		Object.entries(updates).forEach(([key, value]) => {
+			if (value !== undefined && value !== null) {
+				formData.append(key, String(value));
+			}
+		});
 
-		return apiRequest('/users/avatar', {
-			method: 'POST',
+		return apiRequest('/profile', {
+			method: 'PUT',
 			body: formData,
-			headers: {}, // Let browser set Content-Type for FormData
+			headers: {},
 		});
 	},
 
-	getUserStats: (userId: string) => apiRequest(`/users/${userId}/stats`),
+	// Change password
+	changePassword: (passwordData: {
+		current_password: string;
+		new_password: string;
+		new_password_confirmation: string;
+	}) => {
+		const formData = new FormData();
+		formData.append('current_password', passwordData.current_password);
+		formData.append('new_password', passwordData.new_password);
+		formData.append('new_password_confirmation', passwordData.new_password_confirmation);
+
+		return apiRequest('/profile/change-password', {
+			method: 'PUT',
+			body: formData,
+			headers: {},
+		});
+	},
+
+	// Upload profile picture
+	uploadProfilePicture: (file: File) => {
+		const formData = new FormData();
+		formData.append('profile_picture', file);
+
+		return apiRequest('/profile/upload-picture', {
+			method: 'POST',
+			body: formData,
+			headers: {},
+		});
+	},
+
+	// Delete account
+	deleteAccount: () => apiRequest('/profile', {
+		method: 'DELETE',
+	}),
+
+	// Get user statistics
+	getUserStats: (userId?: string) => {
+		const endpoint = userId ? `/users/${userId}/stats` : '/profile/stats';
+		return apiRequest(endpoint);
+	},
+
+	// Search users
+	searchUsers: (query: string) => {
+		const params = new URLSearchParams();
+		params.append('q', query);
+		return apiRequest(`/users/search?${params.toString()}`);
+	},
 };
 
 // Friend API endpoints
