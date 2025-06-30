@@ -191,6 +191,7 @@ export const useTaskStore = create<TaskStore>()(
 				fetchGoals: async () => {
 					set({ isLoading: true, error: null });
 					try {
+						// FIXED: GET request tanpa body, hanya menggunakan query parameters jika diperlukan
 						const response = await goalApi.getGoals();
 						if (response.success) {
 							// Transform API response to Task format
@@ -200,6 +201,7 @@ export const useTaskStore = create<TaskStore>()(
 							set({ error: response.message || 'Failed to fetch goals', isLoading: false });
 						}
 					} catch (error: any) {
+						console.error('Fetch goals error:', error);
 						set({ error: error.message || 'Failed to fetch goals', isLoading: false });
 					}
 				},
@@ -231,6 +233,7 @@ export const useTaskStore = create<TaskStore>()(
 							set({ error: response.message || 'Failed to create goal', isLoading: false });
 						}
 					} catch (error: any) {
+						console.error('Create goal error:', error);
 						set({ error: error.message || 'Failed to create goal', isLoading: false });
 					}
 				},
@@ -260,7 +263,14 @@ export const useTaskStore = create<TaskStore>()(
 				deleteGoal: async (goalId) => {
 					set({ isLoading: true, error: null });
 					try {
-						const response = await goalApi.deleteGoal(goalId);
+						// Get goal data for required fields in delete request
+						const goalToDelete = get().goals.find(goal => goal.id === goalId);
+						const goalData = goalToDelete ? {
+							title: goalToDelete.title,
+							description: goalToDelete.description
+						} : undefined;
+
+						const response = await goalApi.deleteGoal(goalId, goalData);
 						if (response.success) {
 							set((state) => ({
 								goals: state.goals.filter(goal => goal.id !== goalId),
@@ -270,6 +280,7 @@ export const useTaskStore = create<TaskStore>()(
 							set({ error: response.message || 'Failed to delete goal', isLoading: false });
 						}
 					} catch (error: any) {
+						console.error('Delete goal error:', error);
 						set({ error: error.message || 'Failed to delete goal', isLoading: false });
 					}
 				},

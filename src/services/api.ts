@@ -77,7 +77,7 @@ export const authApi = {
 
 // Task API endpoints (menggunakan endpoint /todos)
 export const taskApi = {
-	// Get all tasks/todos
+	// Get all tasks/todos - menggunakan query parameters untuk filter
 	getTasks: (filters?: any) => {
 		const params = new URLSearchParams();
 		if (filters) {
@@ -147,22 +147,21 @@ export const taskApi = {
 
 // Goal API endpoints (menggunakan endpoint /goals)
 export const goalApi = {
-	// Get all goals
+	// Get all goals - FIXED: Menggunakan query parameters instead of body
 	getGoals: (filters?: any) => {
-		// Based on API doc, GET request can include form data
-		const formData = new FormData();
+		const params = new URLSearchParams();
 		if (filters) {
 			Object.entries(filters).forEach(([key, value]) => {
 				if (value !== undefined && value !== null) {
-					formData.append(key, String(value));
+					params.append(key, String(value));
 				}
 			});
 		}
-
-		return apiRequest('/goals', {
+		const query = params.toString() ? `?${params.toString()}` : '';
+		
+		// GET request tanpa body, menggunakan query parameters
+		return apiRequest(`/goals${query}`, {
 			method: 'GET',
-			body: formData,
-			headers: {}, // Let browser set Content-Type for FormData
 		});
 	},
 
@@ -205,17 +204,16 @@ export const goalApi = {
 		});
 	},
 
-	// Delete goal
-	deleteGoal: (goalId: string) => {
-		// Based on API doc, DELETE request includes form data
-		const formData = new FormData();
-		formData.append('title', 'goals isal'); // This seems to be required based on doc
-		formData.append('description', 'goals mantul'); // This seems to be required based on doc
+	// Delete goal - FIXED: Menggunakan query parameters untuk required fields
+	deleteGoal: (goalId: string, goalData?: { title?: string; description?: string }) => {
+		// Jika API memerlukan title dan description untuk DELETE, gunakan query parameters
+		const params = new URLSearchParams();
+		if (goalData?.title) params.append('title', goalData.title);
+		if (goalData?.description) params.append('description', goalData.description);
+		const query = params.toString() ? `?${params.toString()}` : '';
 		
-		return apiRequest(`/goals/${goalId}`, {
+		return apiRequest(`/goals/${goalId}${query}`, {
 			method: 'DELETE',
-			body: formData,
-			headers: {},
 		});
 	},
 
