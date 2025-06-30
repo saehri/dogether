@@ -95,18 +95,34 @@ export const taskApi = {
 	getTask: (taskId: string) => apiRequest(`/todos/${taskId}`),
 
 	// Create new task
-	createTask: (task: any) =>
-		apiRequest('/todos', {
+	createTask: (task: any) => {
+		// Convert to form data for API compatibility
+		const formData = new FormData();
+		formData.append('title', task.title);
+		formData.append('description', task.description);
+		
+		return apiRequest('/todos', {
 			method: 'POST',
-			body: JSON.stringify(task),
-		}),
+			body: formData,
+			headers: {}, // Let browser set Content-Type for FormData
+		});
+	},
 
 	// Update task
-	updateTask: (taskId: string, updates: any) =>
-		apiRequest(`/todos/${taskId}`, {
+	updateTask: (taskId: string, updates: any) => {
+		const formData = new FormData();
+		Object.entries(updates).forEach(([key, value]) => {
+			if (value !== undefined && value !== null) {
+				formData.append(key, String(value));
+			}
+		});
+
+		return apiRequest(`/todos/${taskId}`, {
 			method: 'PUT',
-			body: JSON.stringify(updates),
-		}),
+			body: formData,
+			headers: {},
+		});
+	},
 
 	// Delete task
 	deleteTask: (taskId: string) =>
@@ -133,47 +149,87 @@ export const taskApi = {
 export const goalApi = {
 	// Get all goals
 	getGoals: (filters?: any) => {
-		const params = new URLSearchParams();
+		// Based on API doc, GET request can include form data
+		const formData = new FormData();
 		if (filters) {
 			Object.entries(filters).forEach(([key, value]) => {
 				if (value !== undefined && value !== null) {
-					params.append(key, String(value));
+					formData.append(key, String(value));
 				}
 			});
 		}
-		const query = params.toString() ? `?${params.toString()}` : '';
-		return apiRequest(`/goals${query}`);
+
+		return apiRequest('/goals', {
+			method: 'GET',
+			body: formData,
+			headers: {}, // Let browser set Content-Type for FormData
+		});
 	},
 
 	// Get single goal
 	getGoal: (goalId: string) => apiRequest(`/goals/${goalId}`),
 
 	// Create new goal
-	createGoal: (goal: any) =>
-		apiRequest('/goals', {
+	createGoal: (goal: any) => {
+		// Convert to form data for API compatibility
+		const formData = new FormData();
+		formData.append('title', goal.title);
+		formData.append('description', goal.description);
+		
+		// Add goal-specific fields if they exist
+		if (goal.start_date) formData.append('start_date', goal.start_date);
+		if (goal.end_date) formData.append('end_date', goal.end_date);
+		if (goal.current_streak !== undefined) formData.append('current_streak', String(goal.current_streak));
+		if (goal.is_active !== undefined) formData.append('is_active', String(goal.is_active));
+		
+		return apiRequest('/goals', {
 			method: 'POST',
-			body: JSON.stringify(goal),
-		}),
+			body: formData,
+			headers: {}, // Let browser set Content-Type for FormData
+		});
+	},
 
 	// Update goal
-	updateGoal: (goalId: string, updates: any) =>
-		apiRequest(`/goals/${goalId}`, {
+	updateGoal: (goalId: string, updates: any) => {
+		const formData = new FormData();
+		Object.entries(updates).forEach(([key, value]) => {
+			if (value !== undefined && value !== null) {
+				formData.append(key, String(value));
+			}
+		});
+
+		return apiRequest(`/goals/${goalId}`, {
 			method: 'PUT',
-			body: JSON.stringify(updates),
-		}),
+			body: formData,
+			headers: {},
+		});
+	},
 
 	// Delete goal
-	deleteGoal: (goalId: string) =>
-		apiRequest(`/goals/${goalId}`, {
+	deleteGoal: (goalId: string) => {
+		// Based on API doc, DELETE request includes form data
+		const formData = new FormData();
+		formData.append('title', 'goals isal'); // This seems to be required based on doc
+		formData.append('description', 'goals mantul'); // This seems to be required based on doc
+		
+		return apiRequest(`/goals/${goalId}`, {
 			method: 'DELETE',
-		}),
+			body: formData,
+			headers: {},
+		});
+	},
 
 	// Update goal progress
-	updateGoalProgress: (goalId: string, progress: any) =>
-		apiRequest(`/goals/${goalId}/progress`, {
+	updateGoalProgress: (goalId: string, progress: any) => {
+		const formData = new FormData();
+		formData.append('current_streak', String(progress.current_streak || progress));
+		
+		return apiRequest(`/goals/${goalId}/progress`, {
 			method: 'POST',
-			body: JSON.stringify(progress),
-		}),
+			body: formData,
+			headers: {},
+		});
+	},
 
 	// Complete goal
 	completeGoal: (goalId: string, evidence?: FormData) => {

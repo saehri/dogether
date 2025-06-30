@@ -45,6 +45,39 @@ const initialState: TaskState = {
 	error: null,
 };
 
+// Helper function to transform API response to Task format
+const transformApiGoalToTask = (apiGoal: any): Task => {
+	return {
+		id: String(apiGoal.id),
+		title: apiGoal.title,
+		description: apiGoal.description,
+		type: 'goal' as const,
+		userId: String(apiGoal.user_id),
+		completed: !apiGoal.is_active, // Assuming is_active false means completed
+		createdAt: new Date(apiGoal.created_at),
+		completedAt: !apiGoal.is_active ? new Date(apiGoal.updated_at) : undefined,
+		goalDetails: {
+			targetCount: 30, // Default target, could be configurable
+			currentCount: apiGoal.current_streak || 0,
+			frequency: 'daily' as const,
+			duration: 30, // Default duration
+		},
+	};
+};
+
+const transformApiTodoToTask = (apiTodo: any): Task => {
+	return {
+		id: String(apiTodo.id),
+		title: apiTodo.title,
+		description: apiTodo.description,
+		type: 'task' as const,
+		userId: String(apiTodo.user_id),
+		completed: apiTodo.completed || false,
+		createdAt: new Date(apiTodo.created_at),
+		completedAt: apiTodo.completed_at ? new Date(apiTodo.completed_at) : undefined,
+	};
+};
+
 export const useTaskStore = create<TaskStore>()(
 	devtools(
 		persist(
@@ -57,7 +90,9 @@ export const useTaskStore = create<TaskStore>()(
 					try {
 						const response = await taskApi.getTasks();
 						if (response.success) {
-							set({ tasks: response.data || [], isLoading: false });
+							// Transform API response to Task format
+							const transformedTasks = (response.data?.todos || []).map(transformApiTodoToTask);
+							set({ tasks: transformedTasks, isLoading: false });
 						} else {
 							set({ error: response.message || 'Failed to fetch tasks', isLoading: false });
 						}
@@ -72,7 +107,7 @@ export const useTaskStore = create<TaskStore>()(
 					try {
 						const response = await taskApi.createTask(taskData);
 						if (response.success) {
-							const newTask = response.data;
+							const newTask = transformApiTodoToTask(response.data);
 							set((state) => ({
 								tasks: [...state.tasks, newTask],
 								isLoading: false
@@ -91,9 +126,10 @@ export const useTaskStore = create<TaskStore>()(
 					try {
 						const response = await taskApi.updateTask(taskId, updates);
 						if (response.success) {
+							const updatedTask = transformApiTodoToTask(response.data);
 							set((state) => ({
 								tasks: state.tasks.map(task =>
-									task.id === taskId ? { ...task, ...response.data } : task
+									task.id === taskId ? updatedTask : task
 								),
 								isLoading: false
 							}));
@@ -157,7 +193,9 @@ export const useTaskStore = create<TaskStore>()(
 					try {
 						const response = await goalApi.getGoals();
 						if (response.success) {
-							set({ goals: response.data || [], isLoading: false });
+							// Transform API response to Task format
+							const transformedGoals = (response.data?.goals || []).map(transformApiGoalToTask);
+							set({ goals: transformedGoals, isLoading: false });
 						} else {
 							set({ error: response.message || 'Failed to fetch goals', isLoading: false });
 						}
@@ -170,9 +208,21 @@ export const useTaskStore = create<TaskStore>()(
 				createGoal: async (goalData) => {
 					set({ isLoading: true, error: null });
 					try {
-						const response = await goalApi.createGoal(goalData);
+						// Transform goal data to API format
+						const apiGoalData = {
+							title: goalData.title,
+							description: goalData.description,
+							start_date: new Date().toISOString().split('T')[0], // Today's date
+							end_date: goalData.goalDetails?.duration 
+								? new Date(Date.now() + goalData.goalDetails.duration * 24 * 60 * 60 * 1000).toISOString().split('T')[0]
+								: undefined,
+							current_streak: 0,
+							is_active: 1,
+						};
+
+						const response = await goalApi.createGoal(apiGoalData);
 						if (response.success) {
-							const newGoal = response.data;
+							const newGoal = transformApiGoalToTask(response.data);
 							set((state) => ({
 								goals: [...state.goals, newGoal],
 								isLoading: false
@@ -191,9 +241,10 @@ export const useTaskStore = create<TaskStore>()(
 					try {
 						const response = await goalApi.updateGoal(goalId, updates);
 						if (response.success) {
+							const updatedGoal = transformApiGoalToTask(response.data);
 							set((state) => ({
 								goals: state.goals.map(goal =>
-									goal.id === goalId ? { ...goal, ...response.data } : goal
+									goal.id === goalId ? updatedGoal : goal
 								),
 								isLoading: false
 							}));
@@ -255,7 +306,7 @@ export const useTaskStore = create<TaskStore>()(
 				updateGoalProgress: async (goalId, progress) => {
 					set({ isLoading: true, error: null });
 					try {
-						const response = await goalApi.updateGoalProgress(goalId, { progress });
+						const response = await goalApi.updateGoalProgress(goalId, { current_streak: progress });
 						if (response.success) {
 							set((state) => ({
 								goals: state.goals.map(goal =>

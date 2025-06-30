@@ -40,20 +40,22 @@ export async function apiRequest<T>(
 	const token = getAuthToken();
 
 	// Default headers
-	const defaultHeaders: HeadersInit = {
-		'Content-Type': 'application/json',
-	};
+	const defaultHeaders: HeadersInit = {};
+
+	// Only add Content-Type for JSON requests
+	if (options.body && typeof options.body === 'string') {
+		defaultHeaders['Content-Type'] = 'application/json';
+	}
 
 	// Add auth header if token exists
 	if (token) {
 		defaultHeaders.Authorization = `Bearer ${token}`;
 	}
 
-	// Merge headers
-	const headers = {
-		...defaultHeaders,
-		...options.headers,
-	};
+	// Merge headers, but don't override if headers are explicitly set to empty object
+	const headers = options.headers === undefined 
+		? { ...defaultHeaders, ...options.headers }
+		: { ...defaultHeaders, ...options.headers };
 
 	// Create abort controller for timeout
 	const controller = new AbortController();
@@ -88,8 +90,9 @@ export async function apiRequest<T>(
 			});
 		}
 
+		// Transform response to match our ApiResponse interface
 		return {
-			data,
+			data: data,
 			success: true,
 			message: data?.message,
 		};
