@@ -91,11 +91,11 @@ const FeedCard: React.FC<FeedCardProps> = ({ task, index }) => {
 								<span>•</span>
 								<Calendar className="w-4 h-4" />
 								<span>
-									{new Date(task?.created_at).toLocaleDateString('en-US', {
-										day: '2-digit',
-										month: 'long',
-										year: 'numeric',
-									})}
+									{new Intl.DateTimeFormat('en', {
+										dateStyle: 'medium',
+										timeStyle: 'medium',
+										hourCycle: 'h24',
+									}).format(new Date(task?.created_at))}
 								</span>
 							</div>
 						</div>
@@ -227,7 +227,11 @@ const FeedCard: React.FC<FeedCardProps> = ({ task, index }) => {
 							<span
 								className={cn('text-xs', 'text-gray-500 dark:text-gray-300')}
 							>
-								Completed {new Date(task.completed_at).toLocaleDateString()}
+								Completed{' '}
+								{new Intl.DateTimeFormat('en', {
+									dateStyle: 'medium',
+									timeStyle: 'medium',
+								}).format(new Date(task?.completed_at))}
 							</span>
 						)}
 					</div>
