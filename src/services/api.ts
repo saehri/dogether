@@ -88,6 +88,7 @@ export const taskApi = {
 			});
 		}
 		const query = params.toString() ? `?${params.toString()}` : '';
+		console.log('Fetching tasks from:', `/todos${query}`);
 		return apiRequest(`/todos${query}`);
 	},
 
@@ -96,10 +97,16 @@ export const taskApi = {
 
 	// Create new task
 	createTask: (task: any) => {
+		console.log('Creating task with data:', task);
 		// Convert to form data for API compatibility
 		const formData = new FormData();
 		formData.append('title', task.title);
 		formData.append('description', task.description);
+		
+		console.log('FormData contents:');
+		for (let [key, value] of formData.entries()) {
+			console.log(key, value);
+		}
 		
 		return apiRequest('/todos', {
 			method: 'POST',
@@ -159,6 +166,7 @@ export const goalApi = {
 		}
 		const query = params.toString() ? `?${params.toString()}` : '';
 		
+		console.log('Fetching goals from:', `/goals${query}`);
 		// GET request tanpa body, menggunakan query parameters
 		return apiRequest(`/goals${query}`, {
 			method: 'GET',
@@ -170,6 +178,7 @@ export const goalApi = {
 
 	// Create new goal
 	createGoal: (goal: any) => {
+		console.log('Creating goal with data:', goal);
 		// Convert to form data for API compatibility
 		const formData = new FormData();
 		formData.append('title', goal.title);
@@ -180,6 +189,11 @@ export const goalApi = {
 		if (goal.end_date) formData.append('end_date', goal.end_date);
 		if (goal.current_streak !== undefined) formData.append('current_streak', String(goal.current_streak));
 		if (goal.is_active !== undefined) formData.append('is_active', String(goal.is_active));
+		
+		console.log('FormData contents:');
+		for (let [key, value] of formData.entries()) {
+			console.log(key, value);
+		}
 		
 		return apiRequest('/goals', {
 			method: 'POST',

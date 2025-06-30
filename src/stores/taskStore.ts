@@ -89,14 +89,23 @@ export const useTaskStore = create<TaskStore>()(
 					set({ isLoading: true, error: null });
 					try {
 						const response = await taskApi.getTasks();
-						if (response.success) {
-							// Transform API response to Task format
-							const transformedTasks = (response.data?.todos || []).map(transformApiTodoToTask);
+						console.log('Fetch tasks response:', response);
+						
+						if (response.success && response.data) {
+							// Handle different possible response structures
+							const todosData = response.data.todos || response.data.data || response.data || [];
+							const transformedTasks = Array.isArray(todosData) 
+								? todosData.map(transformApiTodoToTask)
+								: [];
+							
+							console.log('Transformed tasks:', transformedTasks);
 							set({ tasks: transformedTasks, isLoading: false });
 						} else {
-							set({ error: response.message || 'Failed to fetch tasks', isLoading: false });
+							console.warn('No tasks data in response:', response);
+							set({ tasks: [], isLoading: false });
 						}
 					} catch (error: any) {
+						console.error('Fetch tasks error:', error);
 						set({ error: error.message || 'Failed to fetch tasks', isLoading: false });
 					}
 				},
@@ -105,17 +114,31 @@ export const useTaskStore = create<TaskStore>()(
 				createTask: async (taskData) => {
 					set({ isLoading: true, error: null });
 					try {
+						console.log('Creating task with data:', taskData);
 						const response = await taskApi.createTask(taskData);
-						if (response.success) {
-							const newTask = transformApiTodoToTask(response.data);
+						console.log('Create task response:', response);
+						
+						if (response.success && response.data) {
+							// Handle different possible response structures
+							const taskResponseData = response.data.todo || response.data.data || response.data;
+							const newTask = transformApiTodoToTask(taskResponseData);
+							
+							console.log('New task created:', newTask);
 							set((state) => ({
 								tasks: [...state.tasks, newTask],
 								isLoading: false
 							}));
+							
+							// Refresh tasks to ensure we have the latest data
+							setTimeout(() => {
+								get().fetchTasks();
+							}, 500);
 						} else {
+							console.error('Create task failed:', response);
 							set({ error: response.message || 'Failed to create task', isLoading: false });
 						}
 					} catch (error: any) {
+						console.error('Create task error:', error);
 						set({ error: error.message || 'Failed to create task', isLoading: false });
 					}
 				},
@@ -125,8 +148,9 @@ export const useTaskStore = create<TaskStore>()(
 					set({ isLoading: true, error: null });
 					try {
 						const response = await taskApi.updateTask(taskId, updates);
-						if (response.success) {
-							const updatedTask = transformApiTodoToTask(response.data);
+						if (response.success && response.data) {
+							const taskResponseData = response.data.todo || response.data.data || response.data;
+							const updatedTask = transformApiTodoToTask(taskResponseData);
 							set((state) => ({
 								tasks: state.tasks.map(task =>
 									task.id === taskId ? updatedTask : task
@@ -191,14 +215,21 @@ export const useTaskStore = create<TaskStore>()(
 				fetchGoals: async () => {
 					set({ isLoading: true, error: null });
 					try {
-						// FIXED: GET request tanpa body, hanya menggunakan query parameters jika diperlukan
 						const response = await goalApi.getGoals();
-						if (response.success) {
-							// Transform API response to Task format
-							const transformedGoals = (response.data?.goals || []).map(transformApiGoalToTask);
+						console.log('Fetch goals response:', response);
+						
+						if (response.success && response.data) {
+							// Handle different possible response structures
+							const goalsData = response.data.goals || response.data.data || response.data || [];
+							const transformedGoals = Array.isArray(goalsData) 
+								? goalsData.map(transformApiGoalToTask)
+								: [];
+							
+							console.log('Transformed goals:', transformedGoals);
 							set({ goals: transformedGoals, isLoading: false });
 						} else {
-							set({ error: response.message || 'Failed to fetch goals', isLoading: false });
+							console.warn('No goals data in response:', response);
+							set({ goals: [], isLoading: false });
 						}
 					} catch (error: any) {
 						console.error('Fetch goals error:', error);
@@ -210,6 +241,8 @@ export const useTaskStore = create<TaskStore>()(
 				createGoal: async (goalData) => {
 					set({ isLoading: true, error: null });
 					try {
+						console.log('Creating goal with data:', goalData);
+						
 						// Transform goal data to API format
 						const apiGoalData = {
 							title: goalData.title,
@@ -222,14 +255,27 @@ export const useTaskStore = create<TaskStore>()(
 							is_active: 1,
 						};
 
+						console.log('API goal data:', apiGoalData);
 						const response = await goalApi.createGoal(apiGoalData);
-						if (response.success) {
-							const newGoal = transformApiGoalToTask(response.data);
+						console.log('Create goal response:', response);
+						
+						if (response.success && response.data) {
+							// Handle different possible response structures
+							const goalResponseData = response.data.goal || response.data.data || response.data;
+							const newGoal = transformApiGoalToTask(goalResponseData);
+							
+							console.log('New goal created:', newGoal);
 							set((state) => ({
 								goals: [...state.goals, newGoal],
 								isLoading: false
 							}));
+							
+							// Refresh goals to ensure we have the latest data
+							setTimeout(() => {
+								get().fetchGoals();
+							}, 500);
 						} else {
+							console.error('Create goal failed:', response);
 							set({ error: response.message || 'Failed to create goal', isLoading: false });
 						}
 					} catch (error: any) {
@@ -243,8 +289,9 @@ export const useTaskStore = create<TaskStore>()(
 					set({ isLoading: true, error: null });
 					try {
 						const response = await goalApi.updateGoal(goalId, updates);
-						if (response.success) {
-							const updatedGoal = transformApiGoalToTask(response.data);
+						if (response.success && response.data) {
+							const goalResponseData = response.data.goal || response.data.data || response.data;
+							const updatedGoal = transformApiGoalToTask(goalResponseData);
 							set((state) => ({
 								goals: state.goals.map(goal =>
 									goal.id === goalId ? updatedGoal : goal
