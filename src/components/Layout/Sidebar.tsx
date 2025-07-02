@@ -18,7 +18,7 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
 	const location = useLocation();
 
 	const menuItems = [
-		{ id: 'feed', label: 'Feed', icon: Home, path: ROUTES.HOME },
+		{ id: 'feed', label: 'Feed', icon: Home, path: ROUTES.FEED },
 		{ id: 'goals', label: 'My Goals', icon: Target, path: ROUTES.GOALS },
 		{ id: 'friends', label: 'Friends', icon: Users, path: ROUTES.FRIENDS },
 		{ id: 'badges', label: 'Badges', icon: Trophy, path: ROUTES.BADGES },
@@ -34,8 +34,8 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
 	const HEADER_HEIGHT = 64;
 
 	const isActiveRoute = (path: string) => {
-		if (path === ROUTES.HOME) {
-			return location.pathname === ROUTES.HOME;
+		if (path === ROUTES.FEED) {
+			return location.pathname === ROUTES.HOME || location.pathname === ROUTES.FEED;
 		}
 		return location.pathname.startsWith(path);
 	};
@@ -135,4 +135,3 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
 };
 
 export default Sidebar;
-

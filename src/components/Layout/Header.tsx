@@ -9,7 +9,7 @@ import {
 	AvatarFallback,
 } from '../../components/ui/avatar';
 import { useAuth } from '../../stores/authStore';
-import { APP_NAME } from '../../utils/constants';
+import { APP_NAME, ROUTES } from '../../utils/constants';
 
 interface HeaderProps {
 	onMenuToggle: () => void;
@@ -21,7 +21,7 @@ const Header: React.FC<HeaderProps> = ({ onMenuToggle, onCreateTask }) => {
 	const { user } = useAuth();
 
 	const handleProfileClick = () => {
-		navigate('/profile');
+		navigate(ROUTES.PROFILE);
 	};
 
 	return (
@@ -44,7 +44,7 @@ const Header: React.FC<HeaderProps> = ({ onMenuToggle, onCreateTask }) => {
 						</Button>
 
 						<Link
-							to="/"
+							to={ROUTES.HOME}
 							className="flex items-center space-x-2 hover:opacity-80 transition-opacity"
 						>
 							<div className="w-8 h-8 bg-gradient-to-br from-purple-500 to-blue-600 rounded-lg flex items-center justify-center">
@@ -72,7 +72,7 @@ const Header: React.FC<HeaderProps> = ({ onMenuToggle, onCreateTask }) => {
 							className="w-8 h-8 border-2 border-purple-200 dark:border-purple-700 cursor-pointer hover:border-purple-400 dark:hover:border-purple-500 transition-colors"
 							onClick={handleProfileClick}
 						>
-							<AvatarImage src={user?.avatar} alt={user?.name || 'User'} />
+							<AvatarImage src={user?.profile_picture} alt={user?.name || 'User'} />
 							<AvatarFallback>
 								{user?.name ? user.name.charAt(0) : 'U'}
 							</AvatarFallback>
@@ -85,4 +85,3 @@ const Header: React.FC<HeaderProps> = ({ onMenuToggle, onCreateTask }) => {
 };
 
 export default Header;
-

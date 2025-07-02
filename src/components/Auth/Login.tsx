@@ -20,6 +20,7 @@ import {
 	CheckCircle,
 } from 'lucide-react';
 import { useAuthActions } from '../../stores/authStore';
+import { ROUTES } from '../../utils/constants';
 
 interface LoginProps {}
 
@@ -108,8 +109,9 @@ const Login: React.FC<LoginProps> = () => {
 				setUser(response.data.user);
 				setAuthenticated(true);
 
-				// Navigate to intended page
-				navigate('/', { replace: true });
+				// Navigate to intended page or default app route
+				const from = location.state?.from?.pathname || ROUTES.HOME;
+				navigate(from, { replace: true });
 			} else {
 				setErrors({
 					general:
@@ -373,7 +375,7 @@ const Login: React.FC<LoginProps> = () => {
 								>
 									Don't have an account?{' '}
 									<Link
-										to="/register"
+										to={ROUTES.REGISTER}
 										className="text-purple-600 dark:text-purple-400 hover:text-purple-700 dark:hover:text-purple-300 font-semibold transition-colors"
 									>
 										Create one here
@@ -408,4 +410,3 @@ const Login: React.FC<LoginProps> = () => {
 };
 
 export default Login;
-

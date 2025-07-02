@@ -1,6 +1,5 @@
 import { createBrowserRouter } from 'react-router-dom';
 
-import PublicRoutes from './PublicRoutes';
 import PrivateRoutes from './PrivateRoutes';
 
 import AuthLayout from '../layouts/AuthLayout';
@@ -14,37 +13,42 @@ import Profile from '../pages/ProfilePage';
 import Friends from '../pages/FriendsPage';
 import Register from '../pages/RegisterPage';
 import Settings from '../pages/SettingsPage';
+import NotFoundPage from '../pages/NotFoundPage';
 
 export const router = createBrowserRouter([
+	// Public routes (authentication pages)
 	{
-		element: <PublicRoutes />,
+		path: '/',
+		element: <AuthLayout />,
 		children: [
-			{
-				path: '/',
-				element: <AuthLayout />,
-				children: [
-					{ path: '/login', element: <Login /> },
-					{ path: '/register', element: <Register /> },
-				],
-			},
+			{ index: true, element: <Login /> }, // Default route shows login
+			{ path: 'login', element: <Login /> },
+			{ path: 'register', element: <Register /> },
 		],
 	},
+	// Protected routes (main app)
 	{
 		element: <PrivateRoutes />,
 		children: [
 			{
-				path: '/',
+				path: '/app',
 				element: <AppLayout />,
 				children: [
-					{ path: '/feed', element: <Feed /> },
-					{ path: '/goals', element: <Goals /> },
-					{ path: '/friends', element: <Friends /> },
-					{ path: '/badges', element: <Badges /> },
-					{ path: '/profile', element: <Profile /> },
-					{ path: '/settings', element: <Settings /> },
+					{ index: true, element: <Feed /> }, // Default app route
+					{ path: 'feed', element: <Feed /> },
+					{ path: 'goals', element: <Goals /> },
+					{ path: 'friends', element: <Friends /> },
+					{ path: 'badges', element: <Badges /> },
+					{ path: 'profile', element: <Profile /> },
+					{ path: 'profile/:userId', element: <Profile /> },
+					{ path: 'settings', element: <Settings /> },
 				],
 			},
 		],
 	},
+	// 404 page
+	{
+		path: '*',
+		element: <NotFoundPage />,
+	},
 ]);
-
