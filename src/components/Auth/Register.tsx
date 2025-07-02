@@ -26,6 +26,7 @@ import {
 	PopoverContent,
 	PopoverTrigger,
 } from '../../components/ui/popover';
+import { ROUTES } from '../../utils/constants';
 
 interface RegisterProps {}
 
@@ -173,7 +174,7 @@ const Register: React.FC<RegisterProps> = () => {
 				}
 
 				// Navigate to login page with success message
-				navigate('/login', {
+				navigate(ROUTES.LOGIN, {
 					state: {
 						message:
 							'Registration successful! Please sign in with your new account.',
@@ -297,33 +298,6 @@ const Register: React.FC<RegisterProps> = () => {
 						</CardHeader>
 
 						<CardContent className="space-y-6">
-							{/* Google Register Button */}
-							{/* <Button
-                type="button"
-                variant="outline"
-                className="w-full h-12 flex items-center justify-center space-x-3 border-2 hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-all"
-                onClick={handleGoogleRegister}
-                disabled={isLoading}
-              >
-                <Chrome className="w-5 h-5 text-blue-600" />
-                <span className="font-medium">Continue with Google</span>
-              </Button> */}
-
-							{/* Divider */}
-							{/* <div className="relative">
-                <div className="absolute inset-0 flex items-center">
-                  <div className="w-full border-t border-gray-300 dark:border-gray-600"></div>
-                </div>
-                <div className="relative flex justify-center text-sm">
-                  <span className={cn(
-                    "px-4 bg-white dark:bg-gray-800",
-                    "text-gray-500 dark:text-gray-400"
-                  )}>
-                    Or register with email
-                  </span>
-                </div>
-              </div> */}
-
 							{/* Register Form */}
 							<form onSubmit={handleSubmit} className="space-y-4">
 								{/* Full Name Field */}
@@ -742,7 +716,7 @@ const Register: React.FC<RegisterProps> = () => {
 								>
 									Already have an account?{' '}
 									<Link
-										to="/login"
+										to={ROUTES.LOGIN}
 										className="text-purple-600 dark:text-purple-400 hover:text-purple-700 dark:hover:text-purple-300 font-semibold transition-colors"
 									>
 										Sign in here
@@ -770,4 +744,3 @@ const Register: React.FC<RegisterProps> = () => {
 };
 
 export default Register;
-
