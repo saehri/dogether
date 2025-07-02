@@ -14,7 +14,6 @@ import {
 
 import { Label } from '../../components/ui/label';
 import { Input } from '../../components/ui/input';
-import { Badge } from '../../components/ui/badge';
 import { Button } from '../../components/ui/button';
 import { Progress } from '../../components/ui/progress';
 import { Card, CardContent, CardHeader } from '../../components/ui/card';
@@ -37,10 +36,8 @@ const GoalCard: React.FC<GoalCardProps> = ({ task }) => {
 	const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
 
 	const {
-		updateTask,
 		deleteTask,
 		completeTask,
-		updateGoal,
 		deleteGoal,
 		completeGoal,
 		updateGoalProgress,
@@ -102,134 +99,135 @@ const GoalCard: React.FC<GoalCardProps> = ({ task }) => {
 		<>
 			<motion.div layout>
 				<Card className="hover:shadow-md transition-all">
-					<CardHeader className="pb-4">
-						<div className="flex items-start justify-between">
-							<div className="flex items-center space-x-3">
-								{isGoal ? (
-									<div className="w-10 h-10 bg-gradient-to-br from-blue-500 to-purple-600 rounded-xl flex items-center justify-center">
-										<Target className="w-5 h-5 text-white" />
-									</div>
-								) : (
-									<div className="w-10 h-10 bg-gradient-to-br from-orange-500 to-red-500 rounded-xl flex items-center justify-center">
-										<CheckCircle2 className="w-5 h-5 text-white" />
-									</div>
-								)}
-								<div>
-									<h3
-										className={cn(
-											'font-semibold',
-											'text-gray-900 dark:text-gray-100'
-										)}
-									>
-										{task.title}
-									</h3>
-									<p
-										className={cn(
-											'text-sm flex items-center space-x-1',
-											'text-gray-500 dark:text-gray-300'
-										)}
-									>
-										<Calendar className="w-4 h-4" />
-										<span>
-											Started {new Date(task.createdAt).toLocaleDateString()}
-										</span>
-									</p>
+					<CardHeader className="grid grid-cols-[1fr,_max-content] p-4 gap-4">
+						<div className="flex items-start space-x-3">
+							{isGoal ? (
+								<div className="w-10 h-10 bg-gradient-to-br from-blue-500 to-purple-600 rounded-xl flex items-center justify-center shrink-0">
+									<Target className="w-5 h-5 text-white" />
 								</div>
-							</div>
+							) : (
+								<div className="w-10 h-10 bg-gradient-to-br from-orange-500 to-red-500 rounded-xl flex items-center justify-center shrink-0">
+									<CheckCircle2 className="w-5 h-5 text-white" />
+								</div>
+							)}
 
-							<div className="flex items-center space-x-2">
-								<Badge
-									variant={
-										task.completed ? 'success' : isGoal ? 'info' : 'warning'
-									}
-								>
-									{task.completed ? 'Completed' : isGoal ? 'Goal' : 'Task'}
-								</Badge>
-								<Button
-									variant="ghost"
-									size="icon"
-									onClick={() => setIsDeleteModalOpen(true)}
-									className="text-red-500 hover:text-red-700 hover:bg-red-50 dark:hover:bg-red-900/20"
-									disabled={isLoading}
-								>
-									<Trash2 className="w-4 h-4" />
-								</Button>
-							</div>
-						</div>
-					</CardHeader>
-
-					<CardContent className="space-y-4">
-						<p className={cn('text-gray-600 dark:text-gray-200')}>
-							{task.description}
-						</p>
-
-						{/* Progress for Goals */}
-						{isGoal && task.goalDetails && (
-							<div>
-								<div
+							<div className="space-y-2">
+								<h3
 									className={cn(
-										'flex items-center justify-between text-sm mb-2',
-										'text-gray-600 dark:text-gray-200'
+										'font-semibold -mt-1',
+										'text-gray-900 dark:text-gray-100'
 									)}
 								>
-									<span>Progress</span>
-									<span>
-										{task.goalDetails.currentCount}/
-										{task.goalDetails.targetCount} days
+									{task.title}
+
+									<span className="font-sans text-xs inline-block p-1 px-3 rounded-full bg-yellow-200 text-yellow-900 ml-2">
+										{task.completed ? 'Completed' : isGoal ? 'Goal' : 'Task'}
 									</span>
-								</div>
-								<Progress value={progress} className="h-3" />
-								<div
+								</h3>
+
+								<p
 									className={cn(
-										'flex items-center justify-between text-xs mt-2',
+										'text-sm flex items-center space-x-2',
 										'text-gray-500 dark:text-gray-300'
 									)}
 								>
-									<span className="flex items-center space-x-1">
-										<Clock className="w-3 h-3" />
-										<span>{task.goalDetails.frequency}</span>
+									<Calendar className="w-4 h-4" />
+									<span>
+										Started{' '}
+										{new Intl.DateTimeFormat('en-US', {
+											dateStyle: 'medium',
+											timeStyle: 'short',
+										}).format(new Date(task.created_at))}
 									</span>
-									<span>{Math.round(progress)}% complete</span>
-								</div>
-
-								{/* Progress Update Button for Goals */}
-								{!task.completed && (
-									<div className="mt-3">
-										<Button
-											variant="outline"
-											size="sm"
-											onClick={handleProgressUpdate}
-											disabled={isLoading}
-											className="flex items-center space-x-2"
-										>
-											<Plus className="w-4 h-4" />
-											<span>Add Progress</span>
-										</Button>
-									</div>
-								)}
+								</p>
 							</div>
-						)}
+						</div>
 
-						{/* Evidence */}
-						{task.evidence && (
-							<div>
-								<img
-									src={task.evidence.imageUrl}
-									alt="Evidence"
-									className="w-full h-48 object-cover rounded-lg"
-								/>
-								{task.evidence.caption && (
-									<p
+						<Button
+							variant="ghost"
+							size="icon"
+							onClick={() => setIsDeleteModalOpen(true)}
+							className="text-red-500 hover:text-red-700 hover:bg-red-50 dark:hover:bg-red-900/20 outline-1 outline-double outline-slate-300 dark:outline-slate-700"
+							disabled={isLoading}
+						>
+							<Trash2 className="w-4 h-4" />
+						</Button>
+					</CardHeader>
+
+					<CardContent className="flex h-[100%_!important] flex-col justify-between gap-4 p-4">
+						<div className="space-y-4">
+							<p className={cn('text-gray-600 dark:text-gray-200')}>
+								{task.description}
+							</p>
+
+							{/* Progress for Goals */}
+							{isGoal && task.goalDetails && (
+								<div>
+									<div
 										className={cn(
-											'text-sm mt-2',
-											'text-gray-700 dark:text-gray-200'
+											'flex items-center justify-between text-sm mb-2',
+											'text-gray-600 dark:text-gray-200'
 										)}
 									>
-										{task.evidence.caption}
-									</p>
-								)}
-							</div>
-						)}
+										<span>Progress</span>
+										<span>
+											{task.goalDetails.currentCount}/
+											{task.goalDetails.targetCount} days
+										</span>
+									</div>
+									<Progress value={progress} className="h-3" />
+									<div
+										className={cn(
+											'flex items-center justify-between text-xs mt-2',
+											'text-gray-500 dark:text-gray-300'
+										)}
+									>
+										<span className="flex items-center space-x-1">
+											<Clock className="w-3 h-3" />
+											<span>{task.goalDetails.frequency}</span>
+										</span>
+										<span>{Math.round(progress)}% complete</span>
+									</div>
+
+									{/* Progress Update Button for Goals */}
+									{!task.completed && (
+										<div className="mt-3">
+											<Button
+												variant="outline"
+												size="sm"
+												onClick={handleProgressUpdate}
+												disabled={isLoading}
+												className="flex items-center space-x-2"
+											>
+												<Plus className="w-4 h-4" />
+												<span>Add Progress</span>
+											</Button>
+										</div>
+									)}
+								</div>
+							)}
+
+							{/* Evidence */}
+							{task.evidence && (
+								<div>
+									<img
+										src={task.evidence.imageUrl}
+										alt="Evidence"
+										className="w-full h-48 object-cover rounded-lg"
+									/>
+									{task.evidence.caption && (
+										<p
+											className={cn(
+												'text-sm mt-2',
+												'text-gray-700 dark:text-gray-200'
+											)}
+										>
+											{task.evidence.caption}
+										</p>
+									)}
+								</div>
+							)}
+						</div>
 
 						{/* Actions */}
 						{!task.completed && (

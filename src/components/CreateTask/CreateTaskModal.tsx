@@ -2,9 +2,6 @@ import React, { useState } from 'react';
 import { AnimatePresence } from 'framer-motion';
 import { Target, CheckCircle2, Calendar } from 'lucide-react';
 
-import { useTaskActions } from '../../stores/taskStore';
-import { useAuth } from '../../stores/authStore';
-
 import { cn } from '../../lib/utils';
 
 import {
@@ -25,6 +22,9 @@ import {
 	SelectValue,
 } from '../../components/ui/select';
 import { Card, CardContent } from '../../components/ui/card';
+import { useSWRConfig } from 'swr';
+
+import { useTaskActions } from '../../stores/taskStore';
 
 interface CreateTaskModalProps {
 	isOpen: boolean;
@@ -35,6 +35,9 @@ const CreateTaskModal: React.FC<CreateTaskModalProps> = ({
 	isOpen,
 	onClose,
 }) => {
+	const { createGoal, createTask } = useTaskActions();
+	const { mutate } = useSWRConfig();
+
 	const [taskType, setTaskType] = useState<'task' | 'goal'>('task');
 	const [title, setTitle] = useState('');
 	const [description, setDescription] = useState('');
@@ -42,11 +45,6 @@ const CreateTaskModal: React.FC<CreateTaskModalProps> = ({
 	const [duration, setDuration] = useState(7);
 	const [targetCount, setTargetCount] = useState(7);
 	const [isSubmitting, setIsSubmitting] = useState(false);
-
-	const { createTask, createGoal } = useTaskActions();
-	const { user } = useAuth();
-
-	const isCreateDisabled = title.trim() === '' || !user;
 
 	const resetForm = () => {
 		setTitle('');
@@ -60,8 +58,6 @@ const CreateTaskModal: React.FC<CreateTaskModalProps> = ({
 	const handleSubmit = async (e: React.FormEvent) => {
 		e.preventDefault();
 
-		if (isCreateDisabled || !user) return;
-
 		setIsSubmitting(true);
 
 		try {
@@ -69,7 +65,6 @@ const CreateTaskModal: React.FC<CreateTaskModalProps> = ({
 				title: title.trim(),
 				description,
 				type: taskType,
-				userId: user.id,
 				completed: false,
 			};
 
@@ -87,6 +82,9 @@ const CreateTaskModal: React.FC<CreateTaskModalProps> = ({
 			} else {
 				await createTask(baseData);
 			}
+
+			mutate('https://dogether.etalasepro.com/api/goals');
+			mutate('https://dogether.etalasepro.com/api/tasks');
 
 			resetForm();
 			onClose();
@@ -108,14 +106,14 @@ const CreateTaskModal: React.FC<CreateTaskModalProps> = ({
 		<AnimatePresence>
 			{isOpen && (
 				<Dialog open={isOpen} onOpenChange={handleClose}>
-					<DialogContent className="max-w-md max-h-[90vh] overflow-hidden flex flex-col">
+					<DialogContent className="max-w-md max-h-[90vh] overflow-hidden flex flex-col pl-4">
 						<DialogHeader className="flex-shrink-0">
 							<DialogTitle className="text-2xl font-bold bg-gradient-to-r from-purple-600 to-blue-600 bg-clip-text text-transparent">
 								Create New {taskType === 'task' ? 'Task' : 'Goal'}
 							</DialogTitle>
 						</DialogHeader>
 
-						<div className="flex-1 overflow-y-auto pr-2 -mr-2">
+						<div className="flex-1 overflow-y-auto px-1 -mr-2 pb-2">
 							<form onSubmit={handleSubmit} className="space-y-6">
 								{/* Task Type Selection */}
 								<div>
@@ -300,7 +298,6 @@ const CreateTaskModal: React.FC<CreateTaskModalProps> = ({
 									variant="gradient"
 									className="flex-1"
 									onClick={handleSubmit}
-									disabled={isCreateDisabled || isSubmitting}
 								>
 									{isSubmitting
 										? 'Creating...'
